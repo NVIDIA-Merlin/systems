@@ -14,8 +14,8 @@
 # limitations under the License.
 #
 import warnings
-from ._version import get_versions
 
+from ._version import get_versions
 
 # suppress some warnings with cudf warning about column ordering with dlpack
 # and numba warning about deprecated environment variables
