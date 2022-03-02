@@ -1,0 +1,36 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+use_parentheses = true
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+ensure_newline_before_comments = true
+line_length = 100
+balanced_wrapping = true
+indent = "    "
+known_third_party = ["cudf", "cupy", "dask", "dask_cuda", "dask_cudf", "numba", "numpy", "pytest", "torch", "rmm", "tensorflow"]
+skip = ["build", ".eggs"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+		'ignore:`np.*` is a deprecated alias:DeprecationWarning',
+		'ignore:The default dtype for empty Series:DeprecationWarning',
+		'ignore:General-metadata information not detected:UserWarning',
+		'ignore:Changing an NVTabular Dataset to CPU mode:UserWarning',
+		'ignore:Initializing an NVTabular Dataset in CPU mode:UserWarning',
+		'ignore:Performing a hash-based transformation:UserWarning',
+    		'ignore:WARNING..cuDF.to_dlpack',
+    		'ignore:::numba.cuda.envvar:',
+		'ignore:Call to deprecated create function:DeprecationWarning',
+                'ignore:Only created .* files did not have enough partitions to create .* file:UserWarning',
+                'ignore:distutils Version classes are deprecated. Use packaging.version instead:DeprecationWarning',
+	]
