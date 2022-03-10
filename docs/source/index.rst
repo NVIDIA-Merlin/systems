@@ -13,6 +13,7 @@ The Merlin Systems library provides facilities that simply building a recommende
    :caption: Contents:
 
    API Documentation <api/index>
+   Release Notes <release_notes>
 
 
 Indices and tables
