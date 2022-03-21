@@ -78,14 +78,14 @@ class FilterCandidates(PipelineableInferenceOperator):
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
-        return Schema([ColumnSchema("filtered_ids", dtype=np.int32, is_list=False)])
+        return Schema([ColumnSchema("filtered_ids", dtype=np.int64, is_list=False)])
 
     def transform(self, df: InferenceDataFrame):
         candidate_ids = df[self._input_col]
         filter_ids = df[self._filter_out_col]
 
         filtered_results = np.array([candidate_ids[~np.isin(candidate_ids, filter_ids)]]).T
-        return InferenceDataFrame({"filtered_ids": filtered_results})
+        return InferenceDataFrame({"filtered_ids": filtered_results.astype(np.int64)})
 
     def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
         params = params or {}

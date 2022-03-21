@@ -23,11 +23,17 @@ class QueryFeast(PipelineableInferenceOperator):
     def from_feature_view(cls, store, path, view, column, output_prefix=None, include_id=False):
         feature_view = store.get_feature_view(view)
         entity_id = feature_view.entities[0]
-
+        entity_dtype = np.int64
+        ent_is_list = False
+        ent_is_ragged = False
+        for entity in store.list_entities():
+            if entity.name == entity_id:
+                entity_dtype, ent_is_list, ent_is_ragged = feast_2_numpy[store.list_entities()[0].value_type]
+        
         features = []
         mh_features = []
 
-        input_schema = Schema([ColumnSchema(column, dtype=np.int32)])
+        input_schema = Schema([ColumnSchema(column, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged)])
 
         output_schema = Schema([])
         for feature in feature_view.features:
@@ -42,7 +48,7 @@ class QueryFeast(PipelineableInferenceOperator):
                     values_name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
                 )
                 output_schema[nnzs_name] = ColumnSchema(
-                    nnzs_name, dtype=np.int64, is_list=True, is_ragged=False
+                    nnzs_name, dtype=feature.dtype, is_list=True, is_ragged=False
                 )
             else:
                 features.append(feature.name)
@@ -53,7 +59,7 @@ class QueryFeast(PipelineableInferenceOperator):
                 )
 
         if include_id:
-            output_schema[entity_id] = ColumnSchema(entity_id, dtype=np.int32)
+            output_schema[entity_id] = ColumnSchema(entity_id, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged)
 
         return QueryFeast(
             path,

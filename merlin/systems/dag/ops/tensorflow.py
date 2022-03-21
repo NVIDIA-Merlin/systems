@@ -59,7 +59,7 @@ class PredictTensorflow(InferenceOperator):
 
         input_col_names = [col.name.split("/")[0] for col in inputs]
         output_col_names = [col.name.split("/")[0] for col in outputs]
-
+        breakpoint()
         self.input_schema = Schema()
         for col, input_col in zip(input_col_names, inputs):
             self.input_schema.column_schemas[col] = ColumnSchema(

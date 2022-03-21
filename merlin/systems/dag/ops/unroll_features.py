@@ -21,7 +21,9 @@ from merlin.dag import Node
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import Schema
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
+import logging
 
+LOG = logging.getLogger("merlin.systems")
 
 class UnrollFeatures(PipelineableInferenceOperator):
     def __init__(self, item_id_col, unroll_cols, unrolled_prefix=""):
@@ -74,7 +76,8 @@ class UnrollFeatures(PipelineableInferenceOperator):
             target = outputs.pop(col)
             col_name = f"{self.unrolled_prefix}_{col}" if self.unrolled_prefix else col
             outputs[col_name] = np.repeat(target, num_items, axis=0)
-
+        
+        LOG.error(f"OUTPUTS SHAPES: {[(name, outputs[name].shape) for name in outputs]}")
         return InferenceDataFrame(outputs)
 
     @property
