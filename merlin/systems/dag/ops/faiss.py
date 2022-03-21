@@ -61,7 +61,7 @@ class QueryFaiss(PipelineableInferenceOperator):
         full_path = pathlib.Path(path) / f"{node_id}_{QueryFaiss.__name__.lower()}" / str(version)
 
         # set index path to new path after export
-        new_index_path = full_path /  index_filename
+        new_index_path = full_path / index_filename
 
         new_index_path.mkdir(parents=True, exist_ok=True)
         copy2(self.index_path, new_index_path)
@@ -74,7 +74,7 @@ class QueryFaiss(PipelineableInferenceOperator):
         _, indices = self._index.search(user_vector, self.topk)
         # distances, indices = self.index.search(user_vector, self.topk)
 
-        candidate_ids = np.array(indices).T.astype(np.int32)
+        candidate_ids = np.array(indices).T.astype(np.int64)
 
         return InferenceDataFrame({"candidate_ids": candidate_ids})
 
@@ -100,7 +100,7 @@ class QueryFaiss(PipelineableInferenceOperator):
     ) -> Schema:
         return Schema(
             [
-                ColumnSchema("candidate_ids", dtype=np.int32),
+                ColumnSchema("candidate_ids", dtype=np.int64),
             ]
         )
 

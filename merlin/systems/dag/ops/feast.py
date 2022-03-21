@@ -2,9 +2,9 @@ import json
 
 import numpy as np
 from feast import FeatureStore, ValueType
-
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
+
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
 
 # Feast_key: (numpy dtype, is_list, is_ragged)
@@ -28,12 +28,16 @@ class QueryFeast(PipelineableInferenceOperator):
         ent_is_ragged = False
         for entity in store.list_entities():
             if entity.name == entity_id:
-                entity_dtype, ent_is_list, ent_is_ragged = feast_2_numpy[store.list_entities()[0].value_type]
-        
+                entity_dtype, ent_is_list, ent_is_ragged = feast_2_numpy[
+                    store.list_entities()[0].value_type
+                ]
+
         features = []
         mh_features = []
 
-        input_schema = Schema([ColumnSchema(column, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged)])
+        input_schema = Schema(
+            [ColumnSchema(column, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged)]
+        )
 
         output_schema = Schema([])
         for feature in feature_view.features:
@@ -59,7 +63,9 @@ class QueryFeast(PipelineableInferenceOperator):
                 )
 
         if include_id:
-            output_schema[entity_id] = ColumnSchema(entity_id, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged)
+            output_schema[entity_id] = ColumnSchema(
+                entity_id, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged
+            )
 
         return QueryFeast(
             path,

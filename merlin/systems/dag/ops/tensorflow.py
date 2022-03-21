@@ -23,10 +23,10 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 import tensorflow as tf  # noqa
 from google.protobuf import text_format  # noqa
-
-import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
+
+import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 from merlin.systems.triton.export import _convert_dtype  # noqa
 
@@ -59,7 +59,7 @@ class PredictTensorflow(InferenceOperator):
 
         input_col_names = [col.name.split("/")[0] for col in inputs]
         output_col_names = [col.name.split("/")[0] for col in outputs]
-        breakpoint()
+
         self.input_schema = Schema()
         for col, input_col in zip(input_col_names, inputs):
             self.input_schema.column_schemas[col] = ColumnSchema(
