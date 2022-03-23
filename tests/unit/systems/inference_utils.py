@@ -91,6 +91,7 @@ def _run_ensemble_on_tritonserver(
     outputs = [grpcclient.InferRequestedOutput(col) for col in output_columns]
     response = None
     with run_triton_server(tmpdir) as client:
-        response = client.infer(model_name, inputs, outputs=outputs)
+        for i in range(10):
+            response = client.infer(model_name, inputs, outputs=outputs)
 
     return response

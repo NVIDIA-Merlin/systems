@@ -25,7 +25,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
+import logging
 import sys
+import time
 import traceback
 from typing import List
 
@@ -40,6 +42,8 @@ from triton_python_backend_utils import (
 from merlin.systems.dag.op_runner import OperatorRunner
 from merlin.systems.dag.ops.operator import InferenceDataFrame
 
+LOG = logging.getLogger("merlin-systems")
+
 
 class TritonPythonModel:
     def initialize(self, args):
@@ -47,12 +51,15 @@ class TritonPythonModel:
         self.runner = OperatorRunner(self.model_config)
 
     def execute(self, requests: List[InferenceRequest]) -> List[InferenceResponse]:
+        # TODO: Log start time
+        start_time = time.time()
+
         params = self.model_config["parameters"]
         op_names = json.loads(params["operator_names"]["string_value"])
         first_operator_name = op_names[0]
         operator_params = json.loads(params[first_operator_name]["string_value"])
         input_column_names = list(json.loads(operator_params["input_dict"]).keys())
-
+        
         responses = []
 
         for request in requests:
@@ -84,5 +91,8 @@ class TritonPythonModel:
                         tensors=[], error=f"{exc_type}, {exc_value}, {tb_string}"
                     )
                 )
+
+        # TODO: Log end time
+        LOG.warning(f"Operator name: {first_operator_name} Start time: {start_time} End time: {time.time()}")
 
         return responses

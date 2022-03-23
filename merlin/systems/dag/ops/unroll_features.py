@@ -78,7 +78,7 @@ class UnrollFeatures(PipelineableInferenceOperator):
             col_name = f"{self.unrolled_prefix}_{col}" if self.unrolled_prefix else col
             outputs[col_name] = np.repeat(target, num_items, axis=0)
 
-        LOG.error(f"OUTPUTS SHAPES: {[(name, outputs[name].shape) for name in outputs]}")
+        # LOG.error(f"OUTPUTS SHAPES: {[(name, outputs[name].shape) for name in outputs]}")
         return InferenceDataFrame(outputs)
 
     @property

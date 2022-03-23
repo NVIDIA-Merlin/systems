@@ -60,7 +60,7 @@ def test_poc_ensemble(tmpdir):
         path=feast_repo_path,
         view="user_features",
         column="user_id",
-        include_id=True
+        include_id=True,
     )
 
     retrieval = (
@@ -116,3 +116,4 @@ def test_poc_ensemble(tmpdir):
 
     assert response is not None
     assert len(response.as_numpy("ordered_ids")) == 10
+    assert False
