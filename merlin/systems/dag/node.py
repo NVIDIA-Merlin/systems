@@ -13,27 +13,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
+from typing import Union
+
 from merlin.dag import Node
 from merlin.schema import Schema
 
 
 class InferenceNode(Node):
-    def export(self, output_path, node_id=None, version=1):
+    """Specialized node class used in Triton Ensemble DAGs"""
+
+    def export(self, output_path: Union[str, os.PathLike], node_id: int = None, version: int = 1):
+        """
+        Export a Triton config directory for this node
+
+        Parameters
+        ----------
+        output_path : Union[str, os.PathLike]
+            The base path to write this node's config directory into
+        node_id : int, optional
+            The id of this node in a larger graph (for disambiguation), by default None
+        version : int, optional
+            The Triton model version to use for this config export, by default 1
+
+        Returns
+        -------
+        ModelConfig
+            Triton model config corresponding to this node
+        """
         return self.op.export(
             output_path, self.input_schema, self.output_schema, node_id=node_id, version=version
         )
 
     @property
     def export_name(self):
+        """
+        Name for the exported Triton config directory
+
+        Returns
+        -------
+        str
+            Name supplied by this node's operator
+        """
         return self.op.export_name
-
-    def match_descendant_dtypes(self, source_node):
-        self.output_schema = _match_dtypes(source_node.input_schema, self.output_schema)
-        return self
-
-    def match_ancestor_dtypes(self, source_node):
-        self.input_schema = _match_dtypes(source_node.output_schema, self.input_schema)
-        return self
 
     def validate_schemas(self, root_schema, strict_dtypes=False):
         super().validate_schemas(root_schema, strict_dtypes)
@@ -51,12 +73,3 @@ class InferenceNode(Node):
                         f"Output column '{col_name}' not detected in any "
                         f"child inputs for '{self.op.__class__.__name__}'."
                     )
-
-
-def _match_dtypes(source_schema, dest_schema):
-    matched = Schema()
-    for col_name, col_schema in dest_schema.column_schemas.items():
-        source_dtype = source_schema.get(col_name, col_schema).dtype
-        matched[col_name] = col_schema.with_dtype(source_dtype)
-
-    return matched
