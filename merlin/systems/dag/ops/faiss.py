@@ -20,6 +20,7 @@ from shutil import copy2
 
 import faiss
 import numpy as np
+
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
