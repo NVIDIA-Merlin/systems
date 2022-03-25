@@ -1,7 +1,7 @@
 # packages necessary to run tests and push PRs
 # assumes requirements for nvtabular logic are already installed
 
-tritonclient
+tritonclient[all]
 
 # testing
 pytest>=5
