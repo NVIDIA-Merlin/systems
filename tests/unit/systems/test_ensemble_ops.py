@@ -17,9 +17,9 @@ from distutils.spawn import find_executable
 
 import numpy as np
 import pytest
-
 from merlin.core.dispatch import make_df
 from merlin.schema import ColumnSchema, Schema
+
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.dag.ops.softmax_sampling import SoftmaxSampling

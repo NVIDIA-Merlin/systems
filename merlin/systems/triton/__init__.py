@@ -21,9 +21,9 @@ import pandas as pd
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 import tritonclient.grpc as grpcclient  # noqa
+from merlin.core.dispatch import is_list_dtype, is_string_dtype, make_df  # noqa
 from tritonclient.utils import np_to_triton_dtype  # noqa
 
-from merlin.core.dispatch import is_list_dtype, is_string_dtype, make_df  # noqa
 from merlin.systems.triton.export import (  # noqa
     _convert_string2pytorch_dtype,
     export_hugectr_ensemble,

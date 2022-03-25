@@ -21,9 +21,9 @@ from merlin.dag import postorder_iter_nodes
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
+from merlin.dag import Graph  # noqa
 
 import merlin.systems.triton.model_config_pb2 as model_config  # noqa
-from merlin.dag import Graph  # noqa
 from merlin.systems.triton.export import _convert_dtype  # noqa
 
 

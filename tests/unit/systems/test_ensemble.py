@@ -21,7 +21,6 @@ import pytest
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
-
 from merlin.core.dispatch import make_df  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.dag.node import postorder_iter_nodes  # noqa

@@ -27,7 +27,6 @@ import dask
 import numpy as np
 import pandas as pd
 import pytest
-
 from merlin.io import Dataset
 
 try:
@@ -51,7 +50,6 @@ except ImportError:
             return pd.testing.assert_series_equal(a, b, *args, **kwargs)
         else:
             return np.testing.assert_allclose(a, b)
-
 
 
 grpcclient = pytest.importorskip("tritonclient.grpc")
@@ -179,9 +177,11 @@ def datasets(tmpdir_factory):
 
     return datadir
 
+
 @pytest.fixture(scope="function")
 def paths(engine, datasets):
     return sorted(glob.glob(str(datasets[engine]) + "/*." + engine.split("-")[0]))
+
 
 @pytest.fixture(scope="function")
 def dataset(request, paths, engine):

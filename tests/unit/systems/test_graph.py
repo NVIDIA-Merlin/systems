@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import pytest
-
 from merlin.schema import Schema
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
