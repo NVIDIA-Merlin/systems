@@ -2,6 +2,7 @@
 # assumes requirements for nvtabular logic are already installed
 
 tritonclient[all]
+nvtabular
 
 # testing
 pytest>=5
