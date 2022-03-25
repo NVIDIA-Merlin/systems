@@ -22,6 +22,7 @@ import pytest
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
+
 from merlin.schema import Schema  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa

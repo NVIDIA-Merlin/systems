@@ -17,10 +17,10 @@
 from distutils.spawn import find_executable
 
 import pytest
-from merlin.io import Dataset
-from nvtabular import Workflow, ops
 
+from merlin.io import Dataset
 from merlin.systems.workflow import get_embedding_sizes
+from nvtabular import Workflow, ops
 
 tf_utils = pytest.importorskip("nvtabular.loader.tf_utils")  # noqa
 

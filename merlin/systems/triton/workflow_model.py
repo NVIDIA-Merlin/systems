@@ -28,8 +28,6 @@ import json
 import os
 from typing import List
 
-import nvtabular
-from merlin.core.dispatch import is_list_dtype
 from triton_python_backend_utils import (
     InferenceRequest,
     InferenceResponse,
@@ -39,6 +37,8 @@ from triton_python_backend_utils import (
     triton_string_to_numpy,
 )
 
+import nvtabular
+from merlin.core.dispatch import is_list_dtype
 from merlin.systems.triton import _convert_tensor
 from merlin.systems.workflow.hugectr import HugeCTRWorkflowRunner
 from merlin.systems.workflow.pytorch import PyTorchWorkflowRunner

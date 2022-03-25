@@ -24,11 +24,11 @@ import numpy as np
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
+
+import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 from merlin.core.dispatch import is_string_dtype  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Tags  # noqa
-
-import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 
 
 def export_tensorflow_ensemble(
