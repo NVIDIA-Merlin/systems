@@ -18,6 +18,7 @@ line_length = 100
 balanced_wrapping = true
 indent = "    "
 known_third_party = ["cudf", "cupy", "dask", "dask_cuda", "dask_cudf", "numba", "numpy", "pytest", "torch", "rmm", "tensorflow"]
+known_first_party = ["merlin", "nvtabular"]
 skip = ["build", ".eggs"]
 
 [tool.interrogate]
@@ -32,9 +33,9 @@ ignore-nested-functions = true
 ignore-semiprivate = true
 ignore-setters = true
 fail-under = 35
-exclude = ["docs", "tests", "setup.py", "versioneer.py"]
+exclude = ["build", "docs", "examples", "tests", "setup.py", "versioneer.py"]
 verbose = 1
-omit-covered-files = false
+omit-covered-files = true
 quiet = false
 whitelist-regex = []
 ignore-regex = []
