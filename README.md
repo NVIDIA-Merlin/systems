@@ -1,14 +1,14 @@
-# Project Title
+# Merlin Systems
 
-Optional: Consider badges, <https://shields.io/>:
+![GitHub License](https://img.shields.io/github/license/NVIDIA-Merlin/systems)
 
-- Python version
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/merlin-systems)
 
-- Build and test status
+[![PyPI version shields.io](https://img.shields.io/pypi/v/merlin-systems.svg)](https://pypi.python.org/pypi/merlin-systems/)
 
-- Project version
+[![Stability Alpha](https://img.shields.io/badge/stability-alpha-f4d03f.svg)](https://img.shields.io/badge/stability-alpha-f4d03f.svg)
 
-- License
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/NVIDIA-Merlin/systems/CPU%20CI)
 
 Required: Write a one to three sentence paragraph that identifies what the
 project does and how the project solves an academic or business problem.
