@@ -41,6 +41,16 @@ class QueryFaiss(PipelineableInferenceOperator):
     """
 
     def __init__(self, index_path, topk=10):
+        """
+        Creates a QueryFaiss Pipelineable Inference Operator.
+
+        Parameters
+        ----------
+        index_path : str
+            A path to an already setup index
+        topk : int, optional
+            The number of results we should receive from query to Faiss as output, by default 10
+        """
         self.index_path = str(index_path)
         self.topk = topk
         self._index = None

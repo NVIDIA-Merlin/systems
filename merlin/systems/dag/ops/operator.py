@@ -19,7 +19,8 @@ from merlin.systems.triton.export import _convert_dtype  # noqa
 
 class InferenceDataFrame:
     def __init__(self, tensors=None):
-        """_summary_
+        """
+        This is a dictionary that has a set of key (column name) and value (tensor)
 
         Parameters
         ----------
