@@ -1,14 +1,19 @@
 import json
 
 import numpy as np
-
 from merlin.dag.node import Node
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
+
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
 
 
 class SoftmaxSampling(PipelineableInferenceOperator):
+    """
+    Given inputs of ID and prediction, this operator will sort all
+    inputs in descending order.
+    """
+
     def __init__(self, relevance_col, temperature=20.0, topk=10, _input_col=None):
         self.relevance_col = Node.construct_from(relevance_col)
         self.temperature = temperature
