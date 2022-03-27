@@ -21,16 +21,47 @@ feast_2_numpy = {
 
 class QueryFeast(PipelineableInferenceOperator):
     """
-    Create an operator that interfaces with Feast[1] to allow for feature store look ups.
-    Given a target input, lookup features corresponding to the input.
+    The QueryFeast operator is responsible for ensuring that your feast feature store [1]
+    can communicate correctly with tritonserver for the ensemble feast feature look ups.
 
     References
-    -------
-    [1] https://github.com/feast-dev/feast
+    ----------
+    [1] https://docs.feast.dev/
     """
 
     @classmethod
-    def from_feature_view(cls, store, path, view, column, output_prefix=None, include_id=False):
+    def from_feature_view(
+        cls,
+        store: FeatureStore,
+        path: str,
+        view: str,
+        column: str,
+        output_prefix: str = None,
+        include_id: bool = False,
+    ):
+        """
+        Allows for the creation of a QueryFeast operator from already created Feast artifacts.
+
+        Parameters
+        ----------
+        store : FeatureStore
+            Previously loaded feast feature store.
+        path : str
+            Path to the feast feature repo.
+        view : str
+            The feature view you want to pull feature from.
+        column : str
+            The column that input data will match against.
+        output_prefix : str, optional
+            A column prefix that can be added to each output column, by default None
+        include_id : bool, optional
+            A boolean to decide to include the input column in output, by default False
+
+        Returns
+        -------
+        QueryFeast
+            Class object
+        """
         feature_view = store.get_feature_view(view)
         entity_id = feature_view.entities[0]
 
@@ -83,37 +114,38 @@ class QueryFeast(PipelineableInferenceOperator):
         self,
         repo_path: str,
         entity_id: str,
-        entity_view,
+        entity_view: str,
         entity_column: str,
-        features,
-        mh_features,
-        input_schema,
-        output_schema,
-        include_id=False,
-        output_prefix="",
+        features: List[str],
+        mh_features: List[str],
+        input_schema: Schema,
+        output_schema: Schema,
+        include_id: bool = False,
+        output_prefix: str = "",
         suffix_int: int = 1,
     ):
         """
-        Create a Feast operator, to handle communication between ensemble and feast
-        feature store.
+        Create a new QueryFeast operator to handle link between tritonserver ensemble
+        and a Feast feature store. This operator will create your feature store as well
+        as the QueryFeast operator.
 
         Parameters
         ----------
-        repo_path : _type_
+        repo_path : str
             _description_
-        entity_id : _type_
+        entity_id : str
             _description_
-        entity_view : _type_
+        entity_view : str
             _description_
-        entity_column : _type_
+        entity_column : str
             _description_
-        features : _type_
+        features : List[str]
             _description_
-        mh_features : _type_
+        mh_features : List[str]
             _description_
-        input_schema : _type_
+        input_schema : Schema
             _description_
-        output_schema : _type_
+        output_schema : Schema
             _description_
         include_id : bool, optional
             _description_, by default False
@@ -141,26 +173,6 @@ class QueryFeast(PipelineableInferenceOperator):
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
-        """
-        Compute the output schema of this node given the input schema, column selector
-        and previous output schema.
-
-        Parameters
-        ----------
-        input_schema : Schema
-            The schema representing the input columns to the graph
-        col_selector : ColumnSelector
-            A column selector representing a target subset of columns necessary for this node's
-            operator
-        prev_output_schema : Schema
-            A schema representing the output of the previous node.
-
-        Returns
-        -------
-        Schema
-            An output schema object representing all outputs of this node.
-
-        """
         return self.output_schema
 
     def compute_input_schema(
@@ -170,7 +182,6 @@ class QueryFeast(PipelineableInferenceOperator):
         deps_schema: Schema,
         selector: ColumnSelector,
     ) -> Schema:
-
         return self.input_schema
 
     @classmethod
@@ -219,32 +230,7 @@ class QueryFeast(PipelineableInferenceOperator):
             suffix_int,
         )
 
-    def export(
-        self, path, input_schema, output_schema, params=None, node_id=None, version=1
-    ) -> List[dict, list]:
-        """
-        Export the class object as a config and all related files to the user defined path.
-
-        Parameters
-        ----------
-        path : str
-            Artifact export path
-        input_schema : Schema
-            A schema with information about the inputs to this operator
-        output_schema : Schema
-            A schema with information about the outputs of this operator
-        params : dict, optional
-            Parameters dictionary of key, value pairs stored in exported config, by default None
-        node_id : int, optional
-            The placement of the node in the graph (starts at 1), by default None
-        version : int, optional
-            The version of the model, by default 1
-
-        Returns
-        -------
-        Ensemble_config: dict
-        Node_configs: list
-        """
+    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
         params = params or {}
         self_params = {
             "entity_id": self.entity_id,
@@ -261,6 +247,19 @@ class QueryFeast(PipelineableInferenceOperator):
         return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
     def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+        """
+        Transform input dataframe to output dataframe using function logic.
+
+        Parameters
+        ----------
+        df : InferenceDataFrame
+            Input tensor dictionary, data that will be manipulated
+
+        Returns
+        -------
+        InferenceDataFrame
+            Transformed tensor dictionary
+        """
         entity_ids = df[self.entity_column]
         entity_rows = [{self.entity_id: int(entity_id)} for entity_id in entity_ids]
 
@@ -321,7 +320,7 @@ class QueryFeast(PipelineableInferenceOperator):
         return InferenceDataFrame(output_tensors)
 
     @classmethod
-    def _prefixed_name(cls, output_prefix, col_name) -> str:
+    def _prefixed_name(cls, output_prefix, col_name):
         if output_prefix and col_name and not col_name.startswith(output_prefix):
             return f"{output_prefix}_{col_name}"
         else:
