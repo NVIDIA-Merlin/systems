@@ -23,16 +23,31 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 import tensorflow as tf  # noqa
 from google.protobuf import text_format  # noqa
-
-import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
+
+import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 from merlin.systems.triton.export import _convert_dtype  # noqa
 
 
 class PredictTensorflow(InferenceOperator):
-    def __init__(self, model_or_path, custom_objects=None):
+    """
+    This operator takes a tensorflow model and packages it correctly for tritonserver
+    to run, on the tensorflow backend.
+    """
+
+    def __init__(self, model_or_path, custom_objects: dict = None):
+        """
+        Instantiate a PredictTensorflow inference operator.
+
+        Parameters
+        ----------
+        model_or_path : Tensorflow model or string
+            This can be a tensorflow model or a path to a tensorflow model.
+        custom_objects : dict, optional
+            Any custom objects that need to be loaded with the model, by default None.
+        """
         custom_objects = custom_objects or {}
 
         if isinstance(model_or_path, (str, os.PathLike)):
