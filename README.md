@@ -1,4 +1,4 @@
-# Merlin Systems
+# [Merlin Systems](https://github.com/NVIDIA-Merlin/systems)
 
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/merlin-systems)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/merlin-systems.svg)](https://pypi.python.org/pypi/merlin-systems/)
@@ -41,7 +41,7 @@ Merlin Systems is installed on multiple Docker containers, which are available i
 If you want to add support for GPU-accelerated workflows, you'will first need to install  the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) to provide GPU support for Docker. You can use the NGC links referenced in the table above to obtain more information about how to launch and run these containers.
 
 ## Getting Started with Merlin Systems
-Merlin systems is a library designed to allow users to easily deploy data science pipelines to the Triton Inference Server[https://developer.nvidia.com/nvidia-triton-inference-server]. Merlin systems is designed to simplify the inference deployment scheme. To do this we leverage the merlin DAG, the same graph API used in NVTabular[https://github.com/NVIDIA-Merlin/NVTabular] for feature engineering. Below we will illustrate how easy it is to setup a triton inference server instance running a feature engineering workflow that feeds into a tensorflow model. 
+Merlin systems is a library designed to allow users to easily deploy data science pipelines to the [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inference-server). Merlin systems is designed to simplify the inference deployment scheme. To do this we leverage the merlin DAG, the same graph API used in [NVTabular](https://github.com/NVIDIA-Merlin/NVTabular) for feature engineering. Below we will illustrate how easy it is to setup a triton inference server instance running a feature engineering workflow that feeds into a tensorflow model. 
 
 ```python
 import tensorflow as tf
