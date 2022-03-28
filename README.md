@@ -74,7 +74,7 @@ triton_chain = (
 	PredictTensorflow(model)
 )
 ```
-Once you have created your graph, defining all the steps of your Inference pipeline, the next step is encapsulate that graph with an `Ensemble`. The `Ensemble` is responsible for interpreting the graph supplied and the supplied input_schema. After creating the ensemble, you need to call `export` on your `Ensemble` object. This will create a directory hosting necessary artifacts and a series of config for each of the steps in the inference pipeline and one config for the entire ensemble. 
+Once you have created your graph, defining all the steps of your Inference pipeline, the next step is encapsulate that graph with an `Ensemble`. The `Ensemble` is responsible for interpreting the graph supplied and the supplied input_schema. After creating the ensemble, you need to call `export` on your `Ensemble` object. This will create a directory hosting the necessary artifacts, a series of config for each of the steps in the inference pipeline and one config for the entire ensemble. 
 
 ```python
 # Export artificats to disk
