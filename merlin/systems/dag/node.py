@@ -25,21 +25,21 @@ class InferenceNode(Node):
 
     def export(self, output_path: Union[str, os.PathLike], node_id: int = None, version: int = 1):
         """
-        Export a Triton config directory for this node
+        Export a Triton config directory for this node.
 
         Parameters
         ----------
         output_path : Union[str, os.PathLike]
-            The base path to write this node's config directory into
+            The base path to write this node's config directory.
         node_id : int, optional
-            The id of this node in a larger graph (for disambiguation), by default None
+            The id of this node in a larger graph (for disambiguation), by default None.
         version : int, optional
-            The Triton model version to use for this config export, by default 1
+            The Triton model version to use for this config export, by default 1.
 
         Returns
         -------
         ModelConfig
-            Triton model config corresponding to this node
+            Triton model config corresponding to this node.
         """
         return self.op.export(
             output_path, self.input_schema, self.output_schema, node_id=node_id, version=version
@@ -48,12 +48,12 @@ class InferenceNode(Node):
     @property
     def export_name(self):
         """
-        Name for the exported Triton config directory
+        Name for the exported Triton config directory.
 
         Returns
         -------
         str
-            Name supplied by this node's operator
+            Name supplied by this node's operator.
         """
         return self.op.export_name
 

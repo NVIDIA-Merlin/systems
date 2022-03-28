@@ -21,20 +21,39 @@ from merlin.dag import postorder_iter_nodes
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
+from merlin.dag import Graph  # noqa
 
 import merlin.systems.triton.model_config_pb2 as model_config  # noqa
-from merlin.dag import Graph  # noqa
 from merlin.systems.triton.export import _convert_dtype  # noqa
 
 
 class Ensemble:
+    """
+    Class that represents an entire ensemble consisting of multiple models that
+    run sequentially in tritonserver initiated by an inference request.
+    """
+
     def __init__(self, ops, schema, name="ensemble_model", label_columns=None):
+        """_summary_
+
+        Parameters
+        ----------
+        ops : InferenceNode
+            An inference node that represents the chain of operators for the ensemble.
+        schema : Schema
+            The schema of the input data.
+        name : str, optional
+            Name of the ensemble, by default "ensemble_model"
+        label_columns : List[str], optional
+            List of strings representing label columns, by default None
+        """
         self.graph = Graph(ops)
         self.graph.construct_schema(schema)
         self.name = name
         self.label_columns = label_columns or []
 
     def export(self, export_path, version=1):
+        """Write out an Ensemble Triton model config directory"""
         # Create ensemble config
         ensemble_config = model_config.ModelConfig(
             name=self.name,
