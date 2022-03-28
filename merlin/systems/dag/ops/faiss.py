@@ -229,7 +229,9 @@ class QueryFaiss(PipelineableInferenceOperator):
 
 
 def setup_faiss(item_vector, output_path: str):
-    """_summary_
+    """
+    Utiltiy function that will create a Faiss index from an embedding vector. Currently only
+    supports L2 distance.
 
     Parameters
     ----------
