@@ -38,10 +38,10 @@ Merlin Systems is installed on multiple Docker containers, which are available i
 | merlin-inference           | https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-inference           | Merlin frameworks and Triton Inference Server |
 | merlin-tensorflow-inference            | https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow-inference            | Merlin frameworks selected for only Tensorflow support and Triton Inference Server                    |
 
-If you want to add support for GPU-accelerated workflows, you'will first need to install  the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) to provide GPU support for Docker. You can use the NGC links referenced in the table above to obtain more information about how to launch and run these containers.
+If you want to add support for GPU-accelerated workflows, you will first need to install the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) to provide GPU support for Docker. You can use the NGC links referenced in the table above to obtain more information about how to launch and run these containers.
 
 ## Getting Started with Merlin Systems
-Merlin systems is a library designed to allow users to easily deploy data science pipelines to the [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inference-server). Merlin systems is designed to simplify the inference deployment scheme. To do this we leverage the merlin DAG, the same graph API used in [NVTabular](https://github.com/NVIDIA-Merlin/NVTabular) for feature engineering. Below we will illustrate how easy it is to setup a triton inference server instance running a feature engineering workflow that feeds into a tensorflow model. 
+Merlin Systems is a library designed to allow users to easily deploy data science pipelines to the [Triton Inference Server](https://developer.nvidia.com/nvidia-triton-inference-server). The Systems library is designed to simplify inference deployment. To do this we leverage the merlin DAG, the same graph API used in [NVTabular](https://github.com/NVIDIA-Merlin/NVTabular) for feature engineering. Below we will illustrate how easy it is to setup a triton inference server instance running a feature engineering workflow that feeds into a tensorflow model. 
 
 ```python
 import tensorflow as tf
@@ -56,7 +56,7 @@ workflow = Workflow.load(nvtabular_workflow_path)
 model = tf.keras.models.load_model(tf_model_path)
 ```
 
-First step is to load the previously saved workflow and model. We will then do some necessary modifications to these components.
+First step is to load the previously saved workflow and model. Followed by necessary modifications to these components.
 
 ```python
 # Modify workflow and model
