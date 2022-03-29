@@ -1,7 +1,8 @@
 # packages necessary to run tests and push PRs
 # assumes requirements for nvtabular logic are already installed
 
-tritonclient
+tritonclient[all]
+nvtabular
 
 # testing
 pytest>=5
@@ -28,3 +29,4 @@ sphinx_markdown_tables==0.0.15
 sphinx-multiversion==0.2.4
 recommonmark==0.7.1
 nbsphinx>=0.6
+Jinja2<3.1
