@@ -43,7 +43,7 @@ class PredictTensorflow(InferenceOperator):
             self.model = model_or_path
 
         for key, spec in self.model._saved_model_inputs_spec.items():
-            self.model._saved_models_input_spec[key] = tf.TensorSpec(shape=spec.shape, dtype=spec.dtype, name=key)
+            self.model._saved_model_inputs_spec[key] = tf.TensorSpec(shape=spec.shape, dtype=spec.dtype, name=key)
 
         signatures = getattr(self.model, "signatures", {}) or {}
         default_signature = signatures.get("serving_default")
