@@ -16,6 +16,7 @@
 
 import json
 import os
+import pathlib
 from shutil import copy2
 
 import faiss
@@ -58,11 +59,14 @@ class QueryFaiss(PipelineableInferenceOperator):
         index_filename = os.path.basename(os.path.realpath(self.index_path))
 
         # set index path to new path after export
-        new_index_path = os.path.join(
-            path, f"{node_id}_{QueryFaiss.__name__.lower()}", str(version), index_filename
-        )
+        full_path = pathlib.Path(path) / f"{node_id}_{QueryFaiss.__name__.lower()}" / str(version)
+
+        # set index path to new path after export
+        new_index_path = full_path / index_filename
+
+        new_index_path.mkdir(parents=True, exist_ok=True)
         copy2(self.index_path, new_index_path)
-        self.index_path = new_index_path
+        self.index_path = str(new_index_path)
         return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
     def transform(self, df: InferenceDataFrame):
