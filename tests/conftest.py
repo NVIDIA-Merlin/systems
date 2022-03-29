@@ -14,13 +14,8 @@
 # limitations under the License.
 #
 
-import contextlib
 import glob
-import os
 import random
-import signal
-import subprocess
-import time
 from distutils.spawn import find_executable
 
 import dask

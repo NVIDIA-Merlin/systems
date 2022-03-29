@@ -1,26 +1,17 @@
 import contextlib
-import glob
 import os
-import random
 import signal
 import subprocess
 import time
 from distutils.spawn import find_executable
 
-import dask
-import numpy as np
-import pandas as pd
-import pytest
-
-from merlin.io import Dataset
-import cudf
-
-import merlin.systems.triton as triton
-import merlin.systems.triton.conversions as data_conversions
-import tritonclient as tritonclient
+import tritonclient
 import tritonclient.grpc as grpcclient
 
+import merlin.systems.triton as triton
+
 TRITON_SERVER_PATH = find_executable("tritonserver")
+
 
 @contextlib.contextmanager
 def run_triton_server(modelpath):
@@ -56,7 +47,6 @@ def run_triton_server(modelpath):
         finally:
             # signal triton to shutdown
             process.send_signal(signal.SIGINT)
-
 
 
 def run_ensemble_on_tritonserver(
