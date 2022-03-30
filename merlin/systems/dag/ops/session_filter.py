@@ -17,9 +17,9 @@
 import json
 
 import numpy as np
+
 from merlin.dag import ColumnSelector, Node
 from merlin.schema import ColumnSchema, Schema
-
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
 
 
@@ -80,7 +80,7 @@ class FilterCandidates(PipelineableInferenceOperator):
         selector: ColumnSelector,
     ) -> Schema:
         """
-        Compute the input schema of this node given the root, parents and dependencies schemas of
+        Compute the input schema of this node given the root, parents, and dependencies schemas of
         all ancestor nodes.
 
         Parameters

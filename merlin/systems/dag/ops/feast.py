@@ -3,9 +3,9 @@ from typing import List
 
 import numpy as np
 from feast import FeatureStore, ValueType
+
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
 
 # Feast_key: (numpy dtype, is_list, is_ragged)
