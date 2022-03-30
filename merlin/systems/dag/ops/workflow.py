@@ -82,7 +82,7 @@ class TransformWorkflow(InferenceOperator):
         node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
 
         node_export_path = pathlib.Path(path) / node_name
-        node_export_path.mkdir(exist_ok=True)
+        node_export_path.mkdir(parents=True, exist_ok=True)
 
         workflow_export_path = node_export_path / str(version) / "workflow"
         modified_workflow.save(str(workflow_export_path))
