@@ -9,7 +9,26 @@ from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInfe
 
 
 class SoftmaxSampling(PipelineableInferenceOperator):
+    """
+    Given inputs of ID and prediction, this operator will sort all
+    inputs in descending order.
+    """
+
     def __init__(self, relevance_col, temperature=20.0, topk=10, _input_col=None):
+        """
+        Create a SoftmaxSampling Pipelineable Inference Operator.
+
+        Parameters
+        ----------
+        relevance_col : string
+            The column to judge sorting order with.
+        temperature : float, optional
+            Value which will be used to effect the weights used in sorting, by default 20.0
+        topk : int, optional
+            The max number of results you wish to receive as output, by default 10
+        _input_col : _type_, optional
+            The column whose values will be sorted, by default None.
+        """
         self.relevance_col = Node.construct_from(relevance_col)
         self.temperature = temperature
         self.topk = topk

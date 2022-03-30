@@ -24,7 +24,26 @@ from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInfe
 
 
 class FilterCandidates(PipelineableInferenceOperator):
-    def __init__(self, filter_out, input_col=None):
+    """
+    This operator takes the input column and filters out elements of that column
+    based on the supplied criteria.
+    """
+
+    def __init__(self, filter_out: str, input_col: str = None) -> "FilterCandidates":
+        """_summary_
+
+        Parameters
+        ----------
+        filter_out : str
+            the name of the column to use to filter out
+        input_col : str, optional
+            The target column to filter on, by default None
+
+        Returns
+        -------
+        FilterCandidates
+            A class object is instantiated with param values passed.
+        """
         self.filter_out = Node.construct_from(filter_out)
         self._input_col = input_col
         self._filter_out_col = filter_out
@@ -32,6 +51,18 @@ class FilterCandidates(PipelineableInferenceOperator):
 
     @classmethod
     def from_config(cls, config):
+        """
+        Instantiate a class object given a config.
+
+        Parameters
+        ----------
+        config : dict
+
+
+        Returns
+        -------
+            Class object instantiated with config values
+        """
         parameters = json.loads(config.get("params", ""))
         filter_out_col = parameters["filter_out_col"]
         input_col = parameters["input_col"]
@@ -48,6 +79,33 @@ class FilterCandidates(PipelineableInferenceOperator):
         deps_schema: Schema,
         selector: ColumnSelector,
     ) -> Schema:
+        """
+        Compute the input schema of this node given the root, parents, and dependencies schemas of
+        all ancestor nodes.
+
+        Parameters
+        ----------
+        root_schema : Schema
+            The schema representing the input columns to the graph
+        parents_schema : Schema
+            A schema representing all the output columns of the ancestors of this node.
+        deps_schema : Schema
+            A schema representing the dependencies of this node.
+        selector : ColumnSelector
+            A column selector representing a target subset of columns necessary for this node's
+            operator
+
+        Returns
+        -------
+        Schema
+            A schema that has the correct representation of all the incoming columns necessary for
+            this node's operator to complete its transform.
+
+        Raises
+        ------
+        ValueError
+            Cannot receive more than one input for this node
+        """
         input_schema = super().compute_input_schema(
             root_schema, parents_schema, deps_schema, selector
         )
@@ -78,16 +136,79 @@ class FilterCandidates(PipelineableInferenceOperator):
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
+        """
+        Compute the input schema of this node given the root, parents and dependencies schemas of
+        all ancestor nodes.
+
+        Parameters
+        ----------
+        input_schema : Schema
+            The schema representing the input columns to the graph
+        col_selector : ColumnSelector
+            A column selector representing a target subset of columns necessary for this node's
+            operator
+        prev_output_schema : Schema
+            A schema representing the output of the previous node.
+
+        Returns
+        -------
+        Schema
+            A schema object representing all outputs of this node.
+        """
         return Schema([ColumnSchema("filtered_ids", dtype=np.int32, is_list=False)])
 
     def transform(self, df: InferenceDataFrame):
+        """
+        Transform input dataframe to output dataframe using function logic.
+
+        Parameters
+        ----------
+        df : InferenceDataFrame
+            Input tensor dictionary, data that will be manipulated
+
+        Returns
+        -------
+        InferenceDataFrame
+            Transformed tensor dictionary
+        """
         candidate_ids = df[self._input_col]
         filter_ids = df[self._filter_out_col]
 
         filtered_results = np.array([candidate_ids[~np.isin(candidate_ids, filter_ids)]]).T
         return InferenceDataFrame({"filtered_ids": filtered_results})
 
-    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+    ):
+        """
+        Export the class object as a config and all related files to the user defined path.
+
+        Parameters
+        ----------
+        path : str
+            Artifact export path
+        input_schema : Schema
+            A schema with information about the inputs to this operator
+        output_schema : Schema
+            A schema with information about the outputs of this operator
+        params : dict, optional
+            Parameters dictionary of key, value pairs stored in exported config, by default None
+        node_id : int, optional
+            The placement of the node in the graph (starts at 1), by default None
+        version : int, optional
+            The version of the model, by default 1
+
+        Returns
+        -------
+        Ensemble_config: dict
+        Node_configs: list
+        """
         params = params or {}
         self_params = {
             "input_col": self._input_col,
