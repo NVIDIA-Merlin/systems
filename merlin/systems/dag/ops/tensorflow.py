@@ -32,7 +32,22 @@ from merlin.systems.triton.export import _convert_dtype  # noqa
 
 
 class PredictTensorflow(InferenceOperator):
-    def __init__(self, model_or_path, custom_objects=None):
+    """
+    This operator takes a tensorflow model and packages it correctly for tritonserver
+    to run, on the tensorflow backend.
+    """
+
+    def __init__(self, model_or_path, custom_objects: dict = None):
+        """
+        Instantiate a PredictTensorflow inference operator.
+
+        Parameters
+        ----------
+        model_or_path : Tensorflow model or string
+            This can be a tensorflow model or a path to a tensorflow model.
+        custom_objects : dict, optional
+            Any custom objects that need to be loaded with the model, by default None.
+        """
         custom_objects = custom_objects or {}
 
         if isinstance(model_or_path, (str, os.PathLike)):
