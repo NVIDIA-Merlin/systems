@@ -18,7 +18,7 @@ import json
 import os
 import pathlib
 from shutil import copy2
-from typing import List
+from typing import Dict, List, Tuple
 
 import faiss
 import numpy as np
@@ -89,7 +89,7 @@ class QueryFaiss(PipelineableInferenceOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-    ) -> List[dict, list]:
+    ) -> Tuple[Dict, List]:
         """
         Export the class object as a config and all related files to the user defined path.
 
