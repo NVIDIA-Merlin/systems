@@ -30,9 +30,9 @@ from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInfe
 class QueryFaiss(PipelineableInferenceOperator):
     """
     This operator creates an interface between a FAISS[1] Approximate Nearest Neighbors (ANN)
-    Index and Triton infrence server. It allows users to perform different supported types[2]
-    of Nearest Neighbor search to your ensemble. For input query vector, we do an ANN search
-    query to find the ids of top-k nearby nodes in the index.
+    Index and Triton Infrence Server. The operator allows users to perform different supported
+    types[2] of Nearest Neighbor search to your ensemble. For input query vector, we do an ANN
+    search query to find the ids of top-k nearby nodes in the index.
 
     References
     ----------

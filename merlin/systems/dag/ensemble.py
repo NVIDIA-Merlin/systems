@@ -53,7 +53,10 @@ class Ensemble:
         self.label_columns = label_columns or []
 
     def export(self, export_path, version=1):
-        """Write out an Ensemble Triton model config directory"""
+        """
+        Write out an ensemble model configuration directory. The exported
+        ensemble is designed for use with Triton Inference Server.
+        """
         # Create ensemble config
         ensemble_config = model_config.ModelConfig(
             name=self.name,

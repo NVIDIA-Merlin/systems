@@ -140,7 +140,7 @@ class PipelineableInferenceOperator(InferenceOperator):
 
         Returns
         -------
-            class object instantiated with config values
+            Class object instantiated with config values
         """
 
     @abstractmethod
@@ -168,7 +168,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         version: int = 1,
     ):
         """
-        Export the class object as a config and all related files to the user defined path.
+        Export the class object as a config and all related files to the user-defined path.
 
         Parameters
         ----------
