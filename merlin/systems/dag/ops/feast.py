@@ -1,4 +1,5 @@
 import json
+from typing import List
 
 import numpy as np
 from feast import FeatureStore, ValueType
@@ -19,8 +20,48 @@ feast_2_numpy = {
 
 
 class QueryFeast(PipelineableInferenceOperator):
+    """
+    The QueryFeast operator is responsible for ensuring that your feast feature store [1]
+    can communicate correctly with tritonserver for the ensemble feast feature look ups.
+
+    References
+    ----------
+    [1] https://docs.feast.dev/
+    """
+
     @classmethod
-    def from_feature_view(cls, store, path, view, column, output_prefix=None, include_id=False):
+    def from_feature_view(
+        cls,
+        store: FeatureStore,
+        path: str,
+        view: str,
+        column: str,
+        output_prefix: str = None,
+        include_id: bool = False,
+    ):
+        """
+        Allows for the creation of a QueryFeast operator from already created Feast artifacts.
+
+        Parameters
+        ----------
+        store : FeatureStore
+            Previously loaded feast feature store.
+        path : str
+            Path to the feast feature repo.
+        view : str
+            The feature view you want to pull feature from.
+        column : str
+            The column that input data will match against.
+        output_prefix : str, optional
+            A column prefix that can be added to each output column, by default None
+        include_id : bool, optional
+            A boolean to decide to include the input column in output, by default False
+
+        Returns
+        -------
+        QueryFeast
+            Class object
+        """
         feature_view = store.get_feature_view(view)
         entity_id = feature_view.entities[0]
 
@@ -71,18 +112,48 @@ class QueryFeast(PipelineableInferenceOperator):
 
     def __init__(
         self,
-        repo_path,
-        entity_id,
-        entity_view,
-        entity_column,
-        features,
-        mh_features,
-        input_schema,
-        output_schema,
-        include_id=False,
-        output_prefix="",
-        suffix_int=1,
+        repo_path: str,
+        entity_id: str,
+        entity_view: str,
+        entity_column: str,
+        features: List[str],
+        mh_features: List[str],
+        input_schema: Schema,
+        output_schema: Schema,
+        include_id: bool = False,
+        output_prefix: str = "",
+        suffix_int: int = 1,
     ):
+        """
+        Create a new QueryFeast operator to handle link between tritonserver ensemble
+        and a Feast feature store. This operator will create your feature store as well
+        as the QueryFeast operator.
+
+        Parameters
+        ----------
+        repo_path : str
+            _description_
+        entity_id : str
+            _description_
+        entity_view : str
+            _description_
+        entity_column : str
+            _description_
+        features : List[str]
+            _description_
+        mh_features : List[str]
+            _description_
+        input_schema : Schema
+            _description_
+        output_schema : Schema
+            _description_
+        include_id : bool, optional
+            _description_, by default False
+        output_prefix : str, optional
+            _description_, by default ""
+        suffix_int : int, optional
+            _description_, by default 1
+        """
         self.repo_path = repo_path
         self.entity_id = entity_id
         self.entity_view = entity_view
@@ -176,6 +247,19 @@ class QueryFeast(PipelineableInferenceOperator):
         return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
     def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+        """
+        Transform input dataframe to output dataframe using function logic.
+
+        Parameters
+        ----------
+        df : InferenceDataFrame
+            Input tensor dictionary, data that will be manipulated
+
+        Returns
+        -------
+        InferenceDataFrame
+            Transformed tensor dictionary
+        """
         entity_ids = df[self.entity_column]
         entity_rows = [{self.entity_id: int(entity_id)} for entity_id in entity_ids]
 
