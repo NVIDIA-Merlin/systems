@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import pathlib
+from typing import List
 
 from merlin.dag import ColumnSelector
 from merlin.schema import Schema
@@ -22,16 +23,42 @@ from merlin.systems.triton.export import _generate_nvtabular_config
 
 
 class TransformWorkflow(InferenceOperator):
+    """
+    This operator takes a workflow and turns it into a ensemble operator so that we can
+    execute feature engineering during ensemble on tritonserver.
+    """
+
     def __init__(
         self,
         workflow,
-        sparse_max=None,
-        max_batch_size=None,
-        label_columns=None,
-        model_framework=None,
-        cats=None,
-        conts=None,
+        sparse_max: dict = None,
+        max_batch_size: int = None,
+        label_columns: List[str] = None,
+        model_framework: str = None,
+        cats: List[str] = None,
+        conts: List[str] = None,
     ):
+        """
+        Creates a Transform Workflow operator for a target workflow.
+
+        Parameters
+        ----------
+        workflow : Nvtabular.Workflow
+            The workflow to transform data in ensemble.
+        sparse_max : dict, optional
+            Dictionary representing key(name)/val(max value) pairs of max sparsity, by default None
+        max_batch_size : int, optional
+            Maximum batch size, by default None
+        label_columns : List[str], optional
+            List of strings identifying the label columns, by default None
+        model_framework : str, optional
+            String representing the target framework
+            (supported: hugectr, tensorflow, pytorch, python), by default None
+        cats : List[str], optional
+            List of strings identifying categorical columns, by default None
+        conts : List[str], optional
+            List of string identifying continuous columns, by default None
+        """
         super().__init__()
 
         self.workflow = workflow

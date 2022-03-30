@@ -24,6 +24,11 @@ from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInfe
 
 
 class UnrollFeatures(PipelineableInferenceOperator):
+    """
+    This operator takes a target column and joins the "unroll" columns to the target. This helps
+    when broadcasting a series of user features to a set of items.
+    """
+
     def __init__(self, item_id_col, unroll_cols, unrolled_prefix=""):
         self.item_id_col = item_id_col
         self.unroll_cols = Node.construct_from(unroll_cols)
@@ -32,6 +37,7 @@ class UnrollFeatures(PipelineableInferenceOperator):
 
     @classmethod
     def from_config(cls, config):
+        """Load operator and properties from Triton config"""
         parameters = json.loads(config.get("params", ""))
         candidate_col = parameters["item_id_col"]
         unroll_cols = parameters["unroll_cols"]
@@ -39,6 +45,7 @@ class UnrollFeatures(PipelineableInferenceOperator):
         return UnrollFeatures(candidate_col, unroll_cols, unrolled_prefix)
 
     def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+        """Write out a Triton model config directory"""
         params = params or {}
         self_params = {
             "item_id_col": self.item_id_col,

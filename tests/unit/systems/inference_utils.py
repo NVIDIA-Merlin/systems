@@ -31,7 +31,7 @@ tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
-from tests.conftest import run_triton_server  # noqa
+from merlin.systems.triton.utils import run_triton_server  # noqa
 
 tf = pytest.importorskip("tensorflow")
 
