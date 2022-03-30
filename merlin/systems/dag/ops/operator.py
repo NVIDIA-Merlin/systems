@@ -166,7 +166,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-    ) -> tuple[dict, list]:
+    ):
         """
         Export the class object as a config and all related files to the user defined path.
 
