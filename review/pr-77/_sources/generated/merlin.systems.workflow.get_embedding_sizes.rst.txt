@@ -1,0 +1,6 @@
+﻿merlin.systems.workflow.get\_embedding\_sizes
+=============================================
+
+.. currentmodule:: merlin.systems.workflow
+
+.. autofunction:: get_embedding_sizes
