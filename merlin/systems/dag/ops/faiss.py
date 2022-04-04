@@ -244,6 +244,6 @@ def setup_faiss(item_vector, output_path: str):
     output_path : string
         target output path
     """
-    index = faiss.IndexFlatL2(item_vector[0].shape[0])
-    index.add(item_vector)
+    index = faiss.IndexIVF(item_vector[0].shape[0])
+    index.add_with_ids(item_vector)
     faiss.write_index(index, str(output_path))
