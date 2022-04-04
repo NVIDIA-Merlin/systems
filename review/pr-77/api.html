@@ -40,30 +40,17 @@
 <li class="toctree-l1"><a class="reference internal" href="README.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples/README.html">Example Notebooks</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#workflow-graph-constructors">Workflow Graph Constructors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ensemble-graph-constructors">Ensemble Graph Constructors</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.dag.Ensemble.html">merlin.systems.dag.Ensemble</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.dag.Node.html">merlin.systems.dag.Node</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#workflow-operator-constructors">Workflow Operator Constructors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#ensemble-operator-constructors">Ensemble Operator Constructors</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html">merlin.systems.dag.ops.workflow.TransformWorkflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.dag.ops.operator.InferenceDataFrame.html">merlin.systems.dag.ops.operator.InferenceDataFrame</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html">merlin.systems.dag.ops.tensorflow.PredictTensorflow</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html">merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.dag.ops.session_filter.FilterCandidates.html">merlin.systems.dag.ops.session_filter.FilterCandidates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html">merlin.systems.dag.ops.unroll_features.UnrollFeatures</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#workflow-functions">Workflow Functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.workflow.get_embedding_sizes.html">merlin.systems.workflow.get_embedding_sizes</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#triton-functions">Triton Functions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.triton.export_tensorflow_ensemble.html">merlin.systems.triton.export_tensorflow_ensemble</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.triton.export_pytorch_ensemble.html">merlin.systems.triton.export_pytorch_ensemble</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.triton.export_hugectr_ensemble.html">merlin.systems.triton.export_hugectr_ensemble</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.triton.generate_nvtabular_model.html">merlin.systems.triton.generate_nvtabular_model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="generated/merlin.systems.triton.generate_hugectr_model.html">merlin.systems.triton.generate_hugectr_model</a></li>
 </ul>
 </li>
 </ul>
@@ -119,8 +106,8 @@
 </style>
 <div class="section" id="api-documentation">
 <h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline"></a></h1>
-<div class="section" id="workflow-graph-constructors">
-<h2>Workflow Graph Constructors<a class="headerlink" href="#workflow-graph-constructors" title="Permalink to this headline"></a></h2>
+<div class="section" id="ensemble-graph-constructors">
+<h2>Ensemble Graph Constructors<a class="headerlink" href="#ensemble-graph-constructors" title="Permalink to this headline"></a></h2>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -130,14 +117,11 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble" title="merlin.systems.dag.Ensemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Ensemble</span></code></a>(ops, schema[, name, label_columns])</p></td>
 <td><p>Class that represents an entire ensemble consisting of multiple models that run sequentially in tritonserver initiated by an inference request.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/merlin.systems.dag.Node.html#merlin.systems.dag.Node" title="merlin.systems.dag.Node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Node</span></code></a>([selector])</p></td>
-<td><p>A Node is a group of columns that you want to apply the same transformations to.</p></td>
-</tr>
 </tbody>
 </table>
 </div>
-<div class="section" id="workflow-operator-constructors">
-<h2>Workflow Operator Constructors<a class="headerlink" href="#workflow-operator-constructors" title="Permalink to this headline"></a></h2>
+<div class="section" id="ensemble-operator-constructors">
+<h2>Ensemble Operator Constructors<a class="headerlink" href="#ensemble-operator-constructors" title="Permalink to this headline"></a></h2>
 <table class="longtable docutils align-default">
 <colgroup>
 <col style="width: 10%" />
@@ -161,46 +145,6 @@
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures" title="merlin.systems.dag.ops.unroll_features.UnrollFeatures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unroll_features.UnrollFeatures</span></code></a>(item_id_col, …)</p></td>
 <td><p>This operator takes a target column and joins the “unroll” columns to the target.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="workflow-functions">
-<h2>Workflow Functions<a class="headerlink" href="#workflow-functions" title="Permalink to this headline"></a></h2>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/merlin.systems.workflow.get_embedding_sizes.html#merlin.systems.workflow.get_embedding_sizes" title="merlin.systems.workflow.get_embedding_sizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merlin.systems.workflow.get_embedding_sizes</span></code></a>(source)</p></td>
-<td><p>Returns a dictionary of embedding sizes from a workflow or workflow_node</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="triton-functions">
-<h2>Triton Functions<a class="headerlink" href="#triton-functions" title="Permalink to this headline"></a></h2>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/merlin.systems.triton.export_tensorflow_ensemble.html#merlin.systems.triton.export_tensorflow_ensemble" title="merlin.systems.triton.export_tensorflow_ensemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_tensorflow_ensemble</span></code></a>(model, workflow, …)</p></td>
-<td><p>Creates an ensemble triton server model, with the first model being a nvtabular preprocessing, and the second by a tensorflow savedmodel</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/merlin.systems.triton.export_pytorch_ensemble.html#merlin.systems.triton.export_pytorch_ensemble" title="merlin.systems.triton.export_pytorch_ensemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_pytorch_ensemble</span></code></a>(model, workflow, …)</p></td>
-<td><p>Creates an ensemble triton server model, with the first model being a nvtabular preprocessing, and the second by a pytorch savedmodel</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/merlin.systems.triton.export_hugectr_ensemble.html#merlin.systems.triton.export_hugectr_ensemble" title="merlin.systems.triton.export_hugectr_ensemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_hugectr_ensemble</span></code></a>(workflow, …[, …])</p></td>
-<td><p>Creates an ensemble hugectr server model, with the first model being a nvtabular preprocessing, and the second by a hugectr savedmodel</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/merlin.systems.triton.generate_nvtabular_model.html#merlin.systems.triton.generate_nvtabular_model" title="merlin.systems.triton.generate_nvtabular_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_nvtabular_model</span></code></a>(workflow, name, …)</p></td>
-<td><p>converts a workflow to a triton mode :param sparse_max: Max length of the each row when the sparse data is converted to dense :param cats: Names of the categorical columns :param conts: Names of the continuous columns</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/merlin.systems.triton.generate_hugectr_model.html#merlin.systems.triton.generate_hugectr_model" title="merlin.systems.triton.generate_hugectr_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_hugectr_model</span></code></a>(trained_model_path, …)</p></td>
-<td><p>converts a trained HugeCTR model to a triton mode</p></td>
 </tr>
 </tbody>
 </table>

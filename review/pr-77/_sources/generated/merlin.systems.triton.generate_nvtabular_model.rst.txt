@@ -1,6 +1,0 @@
-﻿merlin.systems.triton.generate\_nvtabular\_model
-================================================
-
-.. currentmodule:: merlin.systems.triton
-
-.. autofunction:: generate_nvtabular_model

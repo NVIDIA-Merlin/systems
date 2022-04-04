@@ -1,6 +1,0 @@
-﻿merlin.systems.triton.generate\_hugectr\_model
-==============================================
-
-.. currentmodule:: merlin.systems.triton
-
-.. autofunction:: generate_hugectr_model

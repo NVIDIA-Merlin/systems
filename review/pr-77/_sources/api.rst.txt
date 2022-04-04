@@ -5,7 +5,7 @@ API Documentation
 .. currentmodule:: merlin.systems
 
 
-Workflow Graph Constructors
+Ensemble Graph Constructors
 ---------------------------
 
 .. currentmodule:: merlin.systems.dag
@@ -14,9 +14,8 @@ Workflow Graph Constructors
    :toctree: generated
 
    Ensemble
-   Node
 
-Workflow Operator Constructors
+Ensemble Operator Constructors
 ------------------------------
 
 .. currentmodule:: merlin.systems.dag.ops
@@ -33,28 +32,3 @@ Workflow Operator Constructors
 
 .. faiss.QueryFaiss
 .. feast.QueryFeast
-
-
-Workflow Functions
-------------------
-
-.. currentmodule:: merlin.systems
-
-.. autosummary::
-   :toctree: generated
-
-   merlin.systems.workflow.get_embedding_sizes
-
-Triton Functions
-----------------
-
-.. currentmodule:: merlin.systems.triton
-
-.. autosummary::
-   :toctree: generated
-
-   export_tensorflow_ensemble
-   export_pytorch_ensemble
-   export_hugectr_ensemble
-   generate_nvtabular_model
-   generate_hugectr_model
