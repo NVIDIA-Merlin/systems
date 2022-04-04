@@ -1,7 +1,7 @@
 Merlin Systems
 ==============
 
-The Merlin Systems library provides facilities that simply building a recommender system for batch or serving.
+The Merlin Systems library provides facilities that simplify building a recommender system for batch or serving.
 
 .. toctree::
    :maxdepth: 2
