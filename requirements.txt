@@ -8,3 +8,4 @@ tensorflow-metadata>=1.2.0
 protobuf>=3.0.0
 packaging
 merlin-core@git+https://github.com/NVIDIA-Merlin/core.git
+nvtabular@git+https://github.com/NVIDIA-Merlin/NVTabular.git
