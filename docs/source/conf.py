@@ -10,12 +10,19 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import errno
 import os
+import shutil
+import subprocess
 import sys
 
+from natsort import natsorted
 from recommonmark.parser import CommonMarkParser
 
-sys.path.insert(0, os.path.abspath("."))
+sys.path.insert(0, os.path.abspath("../.."))
+
+repodir = os.path.abspath(os.path.join(__file__, r"../../.."))
+gitdir = os.path.join(repodir, r".git")
 
 
 # -- Project information -----------------------------------------------------
@@ -23,9 +30,6 @@ sys.path.insert(0, os.path.abspath("."))
 project = "Merlin Systems"
 copyright = "2022, NVIDIA"  # pylint: disable=W0622
 author = "NVIDIA"
-
-# The full version, including alpha/beta/rc tags
-release = "0.1.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -40,6 +44,7 @@ extensions = [
     "sphinx_markdown_tables",
     "nbsphinx",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
     "sphinx.ext.githubpages",
     "sphinx.ext.napoleon",
@@ -53,7 +58,9 @@ templates_path = ["_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = [
+    "examples/Getting_Started/README.md",
+]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -74,4 +81,66 @@ source_suffix = [".rst", ".md"]
 nbsphinx_allow_errors = True
 html_show_sourcelink = False
 
+if os.path.exists(gitdir):
+    tag_refs = subprocess.check_output(["git", "tag", "-l", "v*"]).decode("utf-8").split()
+    tag_refs = natsorted(tag_refs)[-6:]
+    smv_tag_whitelist = r"^(" + r"|".join(tag_refs) + r")$"
+else:
+    smv_tag_whitelist = r"^v.*$"
+
+smv_branch_whitelist = r"^main$"
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3", None),
+    "cudf": ("https://docs.rapids.ai/api/cudf/stable/", None),
+    "distributed": ("https://distributed.dask.org/en/latest/", None),
+    "torch": ("https://pytorch.org/docs/stable/", None),
+    "merlin-core": ("https://nvidia-merlin.github.io/core/main/", None),
+}
+
 autodoc_inherit_docstrings = False
+autodoc_default_options = {
+    "members": True,
+    "undoc-members": True,
+    "show-inheritance": False,
+    "member-order": "bysource",
+}
+
+autosummary_generate = True
+
+
+def copy_files(src: str):
+    """
+    src_dir: A path, specified as relative to the
+             docs/source directory in the repository.
+             The source can be a directory or a file.
+             Sphinx considers all directories as relative
+             to the docs/source directory.
+
+             TIP: Add these paths to the .gitignore file.
+    """
+    src_path = os.path.abspath(src)
+    if not os.path.exists(src_path):
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), src_path)
+    out_path = os.path.basename(src_path)
+    out_path = os.path.abspath("{}/".format(out_path))
+
+    print(
+        r"Copying source documentation from: {}".format(src_path),
+        file=sys.stderr,
+    )
+    print(r"  ...to destination: {}".format(out_path), file=sys.stderr)
+
+    if os.path.exists(out_path) and os.path.isdir(out_path):
+        shutil.rmtree(out_path, ignore_errors=True)
+    if os.path.exists(out_path) and os.path.isfile(out_path):
+        os.unlink(out_path)
+
+    if os.path.isdir(src_path):
+        shutil.copytree(src_path, out_path)
+    else:
+        shutil.copyfile(src_path, out_path)
+
+
+copy_files(r"../../README.md")
+copy_files(r"../../examples/")
