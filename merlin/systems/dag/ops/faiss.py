@@ -247,7 +247,7 @@ def setup_faiss(item_vector, output_path: str):
     ids = item_vector[:, 0].astype(np.int64)
     item_vectors = np.ascontiguousarray(item_vector[:, 1:].astype(np.float32))
 
-    index = faiss.index_factory(item_vector.shape[1], "IVF32,Flat")
+    index = faiss.index_factory(item_vectors.shape[1], "IVF32,Flat")
     index.nprobe = 8
 
     index.train(item_vectors)
