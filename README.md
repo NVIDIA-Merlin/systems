@@ -8,6 +8,7 @@
 Merlin Systems provides tools for combining recommendation models with other elements of production recommender systems like feature stores, nearest neighbor search, and exploration strategies into end-to-end recommendation pipelines that can be served with [Triton Inference Server](https://github.com/triton-inference-server/server).
 
 ## Quickstart
+
 Merlin Systems uses the Merlin Operator DAG API, the same API used in [NVTabular](https://github.com/NVIDIA-Merlin/NVTabular) for feature engineering, to create serving ensembles. To combine a feature engineering workflow and a Tensorflow model into an inference pipeline: 
 
 ```python
@@ -34,12 +35,14 @@ ensemble = Ensemble(pipeline, workflow.input_schema)
 ensemble.export(export_path)
 ```
 
-Once you have successfully exported your ensemble you can use the created directory to run an instance of tritonserver hosting your ensemble.
+After you export your ensemble, you reference the directory to run an instance of Triton Inference Server to host your ensemble.
+
 ```shell
 tritonserver --model-repository=/export_path/
 ```
 
-See the [Getting Started with Merlin Systems](./examples/Getting_Started/Getting-started-with-Merlin-Systems.ipynb) example notebook for details. The notebook deploys this ensemble and demonstrates sending requests to Triton Inference Server.
+Refer to the [Merlin Systems Example Notebooks](http://github.io/NVIDIA-Merlin/systems/main/examples/README.html) for a notebook that serves a ranking models ensemble.
+The notebook shows how to deploy the ensemble and demonstrates sending requests to Triton Inference Server.
 
 ## Building a Four-Stage Recommender Pipeline
 
@@ -103,7 +106,7 @@ Merlin Systems requires Triton Inference Server and Tensorflow. The simplest set
 
 You can install Merlin Systems with `pip`:
 
-```sh
+```shell
 pip install merlin-systems
 ```
 
@@ -111,7 +114,7 @@ pip install merlin-systems
 
 Merlin Systems can be installed from source by cloning the GitHub repository and running `setup.py`
 
-```bash
+```shell
 git clone https://github.com/NVIDIA-Merlin/systems.git
 cd systems && python setup.py develop
 ```
