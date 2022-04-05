@@ -244,6 +244,12 @@ def setup_faiss(item_vector, output_path: str):
     output_path : string
         target output path
     """
-    index = faiss.IndexFlatL2(item_vector[0].shape[0])
-    index.add(item_vector)
+    ids = item_vector[:, 0].astype(np.int64)
+    item_vectors = np.ascontiguousarray(item_vector[:, 1:].astype(np.float32))
+
+    index = faiss.index_factory(item_vectors.shape[1], "IVF32,Flat")
+    index.nprobe = 8
+
+    index.train(item_vectors)
+    index.add_with_ids(item_vectors, ids)
     faiss.write_index(index, str(output_path))
