@@ -20,7 +20,6 @@
       ~PredictTensorflow.compute_output_schema
       ~PredictTensorflow.compute_selector
       ~PredictTensorflow.create_node
-      ~PredictTensorflow.dependencies
       ~PredictTensorflow.export
       ~PredictTensorflow.output_column_names
    
@@ -32,6 +31,7 @@
 
    .. autosummary::
    
+      ~PredictTensorflow.dependencies
       ~PredictTensorflow.dynamic_dtypes
       ~PredictTensorflow.export_name
       ~PredictTensorflow.label

@@ -158,13 +158,10 @@ execute feature engineering during ensemble on tritonserver.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
 <td><p>_summary_</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dependencies</span></code>()</p></td>
-<td><p>Defines an optional list of column dependencies for this operator.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.export" title="merlin.systems.dag.ops.workflow.TransformWorkflow.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(path, input_schema, output_schema[, …])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.export" title="merlin.systems.dag.ops.workflow.TransformWorkflow.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(path, input_schema, output_schema[, …])</p></td>
 <td><p>Create a directory inside supplied path based on our export name</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
 <td><p>Given a set of columns names returns the names of the transformed columns this operator will produce :param columns: The columns to apply this operator to :type columns: list of str, or list of list of str</p></td>
 </tr>
 </tbody>
@@ -176,25 +173,28 @@ execute feature engineering during ensemble on tritonserver.</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dynamic_dtypes</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dependencies</span></code></p></td>
+<td><p>Defines an optional list of column dependencies for this operator.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dynamic_dtypes</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_name</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_name</span></code></p></td>
 <td><p>Provides a clear common english identifier for this operator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">label</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_dtype</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_dtype</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_properties</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_properties</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tags</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tags</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports</span></code></p></td>
 <td><p>Returns what kind of data representation this operator supports</p></td>
 </tr>
 </tbody>
