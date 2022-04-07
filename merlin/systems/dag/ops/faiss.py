@@ -250,7 +250,6 @@ def setup_faiss(item_vector, output_path: str):
     output_path : string
         target output path
     """
-
     ids = item_vector[:, 0].astype(np.int64)
     item_vectors = np.ascontiguousarray(item_vector[:, 1:].astype(np.float32))
 
@@ -259,5 +258,4 @@ def setup_faiss(item_vector, output_path: str):
 
     index.train(item_vectors)
     index.add_with_ids(item_vectors, ids)
-
     faiss.write_index(index, str(output_path))

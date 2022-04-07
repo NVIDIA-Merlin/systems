@@ -31,3 +31,4 @@ sphinx-multiversion==0.2.4
 recommonmark==0.7.1
 nbsphinx>=0.6
 Jinja2<3.1
+natsort==8.0.1
