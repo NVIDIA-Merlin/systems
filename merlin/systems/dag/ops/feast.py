@@ -33,7 +33,6 @@ class QueryFeast(PipelineableInferenceOperator):
     def from_feature_view(
         cls,
         store: FeatureStore,
-        path: str,
         view: str,
         column: str,
         output_prefix: str = None,
@@ -109,7 +108,7 @@ class QueryFeast(PipelineableInferenceOperator):
                 entity_id, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged
             )
         return QueryFeast(
-            path,
+            str(store.repo_path),
             entity_id,
             view,
             column,
@@ -185,6 +184,7 @@ class QueryFeast(PipelineableInferenceOperator):
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
+        """Compute the output schema for the operator."""
         return self.output_schema
 
     def compute_input_schema(
@@ -194,10 +194,12 @@ class QueryFeast(PipelineableInferenceOperator):
         deps_schema: Schema,
         selector: ColumnSelector,
     ) -> Schema:
+        """Compute the input schema for the operator."""
         return self.input_schema
 
     @classmethod
     def from_config(cls, config):
+        """Create the operator from a config."""
         parameters = json.loads(config.get("params", ""))
         entity_id = parameters["entity_id"]
         entity_view = parameters["entity_view"]
