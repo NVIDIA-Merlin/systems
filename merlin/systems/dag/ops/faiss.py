@@ -23,6 +23,7 @@ from typing import Dict, List, Tuple
 import faiss
 import numpy as np
 
+from merlin.core.dispatch import HAS_GPU
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
@@ -77,7 +78,12 @@ class QueryFaiss(PipelineableInferenceOperator):
         topk = parameters["topk"]
 
         operator = QueryFaiss(index_path, topk=topk)
-        operator._index = faiss.read_index(str(index_path))
+        index = faiss.read_index(str(index_path))
+
+        res = faiss.StandardGpuResources()
+        if HAS_GPU:
+            index = faiss.index_cpu_to_gpu(res, 0, index)
+        operator._index = index
 
         return operator
 
