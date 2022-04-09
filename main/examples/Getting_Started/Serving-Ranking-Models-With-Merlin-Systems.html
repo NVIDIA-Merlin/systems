@@ -378,7 +378,7 @@ div.rendered_html tbody tr:hover {
 </pre></div>
 </div>
 </div>
-<p><img alt="8f9876b36570433c90238ef8f1f30bfc" src="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" /></p>
+<p><img alt="bc77e38ca3db4d1b8da13bfa593f69af" src="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" /></p>
 <div class="section" id="Serving-Ranking-Models-With-Merlin-Systems">
 <h1>Serving Ranking Models With Merlin Systems<a class="headerlink" href="#Serving-Ranking-Models-With-Merlin-Systems" title="Permalink to this headline"></a></h1>
 <div class="section" id="Overview">
@@ -430,13 +430,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-/nvtabular/nvtabular/graph.py:23: FutureWarning: The `nvtabular.graph` module has moved to `merlin.dag`. Support for importing from `nvtabular.graph` is deprecated, and will be removed in a future version. Please update your imports to import from `merlin.dag`.
-  warnings.warn(
-/nvtabular/nvtabular/io.py:23: FutureWarning: The `nvtabular.io` module has moved to `merlin.io`. Support for importing from `nvtabular.io` is deprecated, and will be removed in a future version. Please update your imports to import from `merlin.io`.
-  warnings.warn(
-/nvtabular/nvtabular/utils.py:23: FutureWarning: The `nvtabular.utils` module has moved to `merlin.core.utils`. Support for importing from `nvtabular.utils` is deprecated, and will be removed in a future version. Please update your imports to import from `merlin.core.utils`.
-  warnings.warn(
-/nvtabular/nvtabular/dispatch.py:23: FutureWarning: The `nvtabular.dispatch` module has moved to `merlin.core.dispatch`. Support for importing from `nvtabular.dispatch` is deprecated, and will be removed in a future version. Please update your imports to import from `merlin.core.dispatch`.
+/raid/workshared/nvtabular/nvtabular/workflow/workflow.py:373: UserWarning: Loading workflow generated with cudf version 21.10.00a+345.ge05bd4bf3c.dirty - but we are running cudf 21.12.02. This might cause issues
   warnings.warn(
 </pre></div></div>
 </div>
@@ -458,7 +452,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;nvtabular.workflow.workflow.Workflow at 0x7f442c402550&gt;
+&lt;nvtabular.workflow.workflow.Workflow at 0x7fa3240d10a0&gt;
 </pre></div></div>
 </div>
 </div>
@@ -481,15 +475,12 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2022-03-30 19:38:59.531435: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+2022-04-07 18:59:24.694276: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2022-03-30 19:39:01.547568: I tensorflow/core/common_runtime/gpu/gpu_process_state.cc:214] Using CUDA malloc Async allocator for GPU: 0
-2022-03-30 19:39:01.547720: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 35814 MB memory:  -&gt; device: 0, name: Quadro RTX 8000, pci bus id: 0000:15:00.0, compute capability: 7.5
-2022-03-30 19:39:01.548314: I tensorflow/core/common_runtime/gpu/gpu_process_state.cc:214] Using CUDA malloc Async allocator for GPU: 1
-2022-03-30 19:39:01.548374: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:1 with 43332 MB memory:  -&gt; device: 1, name: Quadro RTX 8000, pci bus id: 0000:2d:00.0, compute capability: 7.5
-2022-03-30 19:39:04.003205: W tensorflow/core/framework/cpu_allocator_impl.cc:82] Allocation of 788046592 exceeds 10% of free system memory.
-2022-03-30 19:39:04.003322: W tensorflow/core/framework/cpu_allocator_impl.cc:82] Allocation of 788046592 exceeds 10% of free system memory.
-2022-03-30 19:39:04.057883: W tensorflow/core/framework/cpu_allocator_impl.cc:82] Allocation of 788046592 exceeds 10% of free system memory.
+2022-04-07 18:59:26.773289: I tensorflow/core/common_runtime/gpu/gpu_process_state.cc:214] Using CUDA malloc Async allocator for GPU: 0
+2022-04-07 18:59:26.773451: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 18864 MB memory:  -&gt; device: 0, name: Quadro RTX 8000, pci bus id: 0000:15:00.0, compute capability: 7.5
+2022-04-07 18:59:26.774073: I tensorflow/core/common_runtime/gpu/gpu_process_state.cc:214] Using CUDA malloc Async allocator for GPU: 1
+2022-04-07 18:59:26.774136: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:1 with 42858 MB memory:  -&gt; device: 1, name: Quadro RTX 8000, pci bus id: 0000:2d:00.0, compute capability: 7.5
 </pre></div></div>
 </div>
 </div>
@@ -557,9 +548,8 @@ To enable them in other operations, rebuild TensorFlow with the appropriate comp
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-2022-03-30 19:39:05.797447: W tensorflow/python/util/util.cc:368] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
+2022-04-07 18:59:31.098398: W tensorflow/python/util/util.cc:368] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
 WARNING:absl:Found untraced functions such as restored_function_body, restored_function_body, restored_function_body, restored_function_body, click/binary_classification_task/output_layer_layer_call_fn while saving (showing 5 of 48). These functions will not be directly callable after loading.
-2022-03-30 19:39:07.239921: W tensorflow/core/framework/cpu_allocator_impl.cc:82] Allocation of 788046592 exceeds 10% of free system memory.
 </pre></div></div>
 </div>
 <div class="nboutput docutils container">
@@ -567,7 +557,7 @@ WARNING:absl:Found untraced functions such as restored_function_body, restored_f
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-INFO:tensorflow:Assets written to: /models/examples/processed/ensemble/1_predicttensorflow/1/model.savedmodel/assets
+INFO:tensorflow:Assets written to: /raid/data/ali/processed/ensemble/1_predicttensorflow/1/model.savedmodel/assets
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -575,7 +565,7 @@ INFO:tensorflow:Assets written to: /models/examples/processed/ensemble/1_predict
 </div>
 <div class="output_area stderr docutils container">
 <div class="highlight"><pre>
-INFO:tensorflow:Assets written to: /models/examples/processed/ensemble/1_predicttensorflow/1/model.savedmodel/assets
+INFO:tensorflow:Assets written to: /raid/data/ali/processed/ensemble/1_predicttensorflow/1/model.savedmodel/assets
 </pre></div></div>
 </div>
 </div>
@@ -595,245 +585,38 @@ INFO:tensorflow:Assets written to: /models/examples/processed/ensemble/1_predict
 <div class="section" id="Retrieving-Recommendations-from-Triton">
 <h2>Retrieving Recommendations from Triton<a class="headerlink" href="#Retrieving-Recommendations-from-Triton" title="Permalink to this headline"></a></h2>
 <p>Now that our tritonserver instance is running, we can send a request to it. This request is composed of values that correspond to the request schema created when exporting the ensemble graph.</p>
-<p>In the code below we create a request to send to triton and send it. We will then analyze the response, to show the full experience.</p>
-<p>First we need to ensure that we have a client connected to the tritonserver instance we launched previously. To do this we rely on the triton http client.</p>
+<p>We load original test data (<code class="docutils literal notranslate"><span class="pre">df_lib</span></code> is cudf if a GPU is available and pandas otherwise) as the <code class="docutils literal notranslate"><span class="pre">input_df</span></code> and we declare the <code class="docutils literal notranslate"><span class="pre">outputs</span></code> expected from the model. With both the <code class="docutils literal notranslate"><span class="pre">input_df</span></code> and <code class="docutils literal notranslate"><span class="pre">outputs</span></code> we can send an inference request to Triton, using <code class="docutils literal notranslate"><span class="pre">send_triton_request</span></code>. This inference response provided by Triton is parsed to return the expected predictions.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tritonhttpclient</span>
-
-<span class="c1"># create triton client</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">triton_client</span> <span class="o">=</span> <span class="n">tritonhttpclient</span><span class="o">.</span><span class="n">InferenceServerClient</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;localhost:8000&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;client created.&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;channel creation failed: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-client created.
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-/usr/local/lib/python3.8/dist-packages/tritonhttpclient/__init__.py:31: DeprecationWarning: The package `tritonhttpclient` is deprecated and will be removed in a future version. Please use instead `tritonclient.http`
-  warnings.warn(
-</pre></div></div>
-</div>
-<p>Once we have created the client and verified it is connected to the tritonserver instance, we can communicate with the server and ensure all the models have been loaded correctly.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ensure triton is in a good state</span>
-<span class="n">triton_client</span><span class="o">.</span><span class="n">is_server_live</span><span class="p">()</span>
-<span class="n">triton_client</span><span class="o">.</span><span class="n">get_model_repository_index</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-GET /v2/health/live, headers None
-&lt;HTTPSocketPoolResponse status=200 headers={&#39;content-length&#39;: &#39;0&#39;, &#39;content-type&#39;: &#39;text/plain&#39;}&gt;
-POST /v2/repository/index, headers None
-
-&lt;HTTPSocketPoolResponse status=200 headers={&#39;content-type&#39;: &#39;application/json&#39;, &#39;content-length&#39;: &#39;179&#39;}&gt;
-bytearray(b&#39;[{&#34;name&#34;:&#34;0_transformworkflow&#34;,&#34;version&#34;:&#34;1&#34;,&#34;state&#34;:&#34;READY&#34;},{&#34;name&#34;:&#34;1_predicttensorflow&#34;,&#34;version&#34;:&#34;1&#34;,&#34;state&#34;:&#34;READY&#34;},{&#34;name&#34;:&#34;ensemble_model&#34;,&#34;version&#34;:&#34;1&#34;,&#34;state&#34;:&#34;READY&#34;}]&#39;)
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-[{&#39;name&#39;: &#39;0_transformworkflow&#39;, &#39;version&#39;: &#39;1&#39;, &#39;state&#39;: &#39;READY&#39;},
- {&#39;name&#39;: &#39;1_predicttensorflow&#39;, &#39;version&#39;: &#39;1&#39;, &#39;state&#39;: &#39;READY&#39;},
- {&#39;name&#39;: &#39;ensemble_model&#39;, &#39;version&#39;: &#39;1&#39;, &#39;state&#39;: &#39;READY&#39;}]
-</pre></div></div>
-</div>
-<p>After verifying the models are correctly loaded by triton we grab some original test data and send it as an inference request to triton. Note: <code class="docutils literal notranslate"><span class="pre">df_lib</span></code> is cudf if a GPU is available and pandas otherwise.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.core.dispatch</span> <span class="kn">import</span> <span class="n">get_lib</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.triton.utils</span> <span class="kn">import</span> <span class="n">send_triton_request</span>
+<span class="kn">from</span> <span class="nn">merlin.core.dispatch</span> <span class="kn">import</span> <span class="n">get_lib</span>
 
 <span class="n">df_lib</span> <span class="o">=</span> <span class="n">get_lib</span><span class="p">()</span>
 <span class="n">original_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;DATA_FOLDER&quot;</span><span class="p">,</span> <span class="s2">&quot;/workspace/data/&quot;</span><span class="p">)</span>
 
 <span class="c1"># read in data for request</span>
-<span class="n">batch</span> <span class="o">=</span> <span class="n">df_lib</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+<span class="n">input_df</span> <span class="o">=</span> <span class="n">df_lib</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
     <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">original_data_path</span><span class="p">,</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;test_0.parquet&quot;</span><span class="p">),</span> <span class="n">num_rows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span>
 <span class="p">)</span>
-<span class="n">batch</span>
+
+<span class="n">outputs</span> <span class="o">=</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
+
+<span class="n">parsed_response</span> <span class="o">=</span> <span class="n">send_triton_request</span><span class="p">(</span><span class="n">input_df</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
+<span class="n">parsed_response</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
-</div>
-<div class="output_area rendered_html docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>user_id</th>
-      <th>item_id</th>
-      <th>item_category</th>
-      <th>item_shop</th>
-      <th>item_brand</th>
-      <th>user_shops</th>
-      <th>user_profile</th>
-      <th>user_group</th>
-      <th>user_gender</th>
-      <th>user_age</th>
-      <th>user_consumption_2</th>
-      <th>user_is_occupied</th>
-      <th>user_geography</th>
-      <th>user_intentions</th>
-      <th>user_brands</th>
-      <th>user_categories</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>31390</td>
-      <td>5587143</td>
-      <td>8315277</td>
-      <td>8801026</td>
-      <td>9181078</td>
-      <td>568260</td>
-      <td>3438658</td>
-      <td>3438762</td>
-      <td>3438769</td>
-      <td>3438774</td>
-      <td>3438782</td>
-      <td>3864885</td>
-      <td>3864887</td>
-      <td>3912301</td>
-      <td>3812616</td>
-      <td>449068</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>31390</td>
-      <td>5662732</td>
-      <td>8316893</td>
-      <td>8987328</td>
-      <td>9206290</td>
-      <td>568260</td>
-      <td>3438658</td>
-      <td>3438762</td>
-      <td>3438769</td>
-      <td>3438774</td>
-      <td>3438782</td>
-      <td>3864885</td>
-      <td>3864887</td>
-      <td>3912301</td>
-      <td>3812616</td>
-      <td>449068</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>31390</td>
-      <td>6539512</td>
-      <td>8315405</td>
-      <td>8546676</td>
-      <td>9273427</td>
-      <td>568260</td>
-      <td>3438658</td>
-      <td>3438762</td>
-      <td>3438769</td>
-      <td>3438774</td>
-      <td>3438782</td>
-      <td>3864885</td>
-      <td>3864887</td>
-      <td>3912301</td>
-      <td>3812616</td>
-      <td>449068</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
-</div>
-<p>Once we isolate our <code class="docutils literal notranslate"><span class="pre">batch</span></code>, we convert the dataframe representation into triton inputs. We also declare the outputs we expect to receive from the model.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.triton</span> <span class="kn">import</span> <span class="n">convert_df_to_triton_input</span>
-<span class="kn">import</span> <span class="nn">tritonclient.grpc</span> <span class="k">as</span> <span class="nn">grpcclient</span>
-<span class="c1"># create inputs and outputs</span>
-
-<span class="n">inputs</span> <span class="o">=</span> <span class="n">convert_df_to_triton_input</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferInput</span><span class="p">)</span>
-
-
-<span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferRequestedOutput</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
-<span class="p">]</span>
-</pre></div>
-</div>
-</div>
-<p>Once our <code class="docutils literal notranslate"><span class="pre">inputs</span></code> and <code class="docutils literal notranslate"><span class="pre">outputs</span></code> are created, we can use the <code class="docutils literal notranslate"><span class="pre">triton_client</span></code> created earlier to send the inference request.</p>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># send request to tritonserver</span>
-<span class="k">with</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferenceServerClient</span><span class="p">(</span><span class="s2">&quot;localhost:8001&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="s2">&quot;ensemble_model&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p>When Triton completes the inference request, it returns a Triton inference response. This response is parsed to get the desired predictions.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># access individual response columns to get values back.</span>
-<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">(</span><span class="n">col</span><span class="p">),</span> <span class="n">response</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">(</span><span class="n">col</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-output_1 [[0.05209467]
- [0.05619942]
- [0.01078821]] (3, 1)
+{&#39;output_1&#39;: array([[0.04845615],
+        [0.05534323],
+        [0.00968392]], dtype=float32)}
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
