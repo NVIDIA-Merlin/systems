@@ -1,0 +1,14 @@
+root: index
+subtrees:
+  - caption: Contents
+    entries:
+      - file: README.md
+        title: Introduction
+      - file: examples/index
+        title: Example Notebooks
+        subtrees:
+          - titlesonly: True
+            entries:
+              - file: examples/Serving-Ranking-Models-With-Merlin-Systems.ipynb
+      - file: api
+        title: API Documentation
