@@ -80,8 +80,8 @@ class QueryFaiss(PipelineableInferenceOperator):
         operator = QueryFaiss(index_path, topk=topk)
         index = faiss.read_index(str(index_path))
 
-        res = faiss.StandardGpuResources()
         if HAS_GPU:
+            res = faiss.StandardGpuResources()
             index = faiss.index_cpu_to_gpu(res, 0, index)
         operator._index = index
 
