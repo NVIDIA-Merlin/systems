@@ -88,17 +88,20 @@ def run_ensemble_on_tritonserver(
     results : dict
         the results of the prediction, parsed by output column name.
     """
-    inputs = triton.convert_df_to_triton_input(df.columns, df)
-    outputs = [grpcclient.InferRequestedOutput(col) for col in output_columns]
     response = None
     with run_triton_server(tmpdir) as client:
-        response = client.infer(model_name, inputs, outputs=outputs)
+        response = send_triton_request(df, output_columns, client=client, triton_model=model_name)
 
     return response
 
 
 def send_triton_request(
-    df, outputs_list, endpoint="localhost:8001", request_id="1", triton_model="ensemble_model"
+    df,
+    outputs_list,
+    client=None,
+    endpoint="localhost:8001",
+    request_id="1",
+    triton_model="ensemble_model",
 ):
     """This function checks if the triton server is available and sends a request to the Triton
     server that has already been started.
@@ -122,21 +125,20 @@ def send_triton_request(
         A dictionary of parsed output column results from the prediction.
 
     """
-    if not endpoint:
-        raise ValueError("No endpoint was provided. Must provide either endpoint or client.")
-    try:
-        triton_client = grpcclient.InferenceServerClient(url=endpoint)
-    except Exception as e:
-        raise e
+    if not client:
+        try:
+            client = grpcclient.InferenceServerClient(url=endpoint)
+        except Exception as e:
+            raise e
 
-    if not triton_client.is_server_live():
+    if not client.is_server_live():
         raise ValueError("Client could not establish commuincation with Triton Inference Server.")
 
     inputs = triton.convert_df_to_triton_input(df.columns, df, grpcclient.InferInput)
 
     outputs = [grpcclient.InferRequestedOutput(col) for col in outputs_list]
-    with triton_client:
-        response = triton_client.infer(triton_model, inputs, request_id=request_id, outputs=outputs)
+    with client:
+        response = client.infer(triton_model, inputs, request_id=request_id, outputs=outputs)
 
     results = {}
     for col in outputs_list:
