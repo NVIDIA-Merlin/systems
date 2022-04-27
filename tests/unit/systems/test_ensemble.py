@@ -43,7 +43,7 @@ export = pytest.importorskip("merlin.systems.dag.ensemble")
 from merlin.systems.dag.ensemble import Ensemble  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
-from tests.unit.systems.inf_test_ops import PlusTwoOp  # noqa
+from tests.unit.systems.utils.ops import PlusTwoOp  # noqa
 from tests.unit.systems.utils.tf import create_tf_model  # noqa
 from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
 
