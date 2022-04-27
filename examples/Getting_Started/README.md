@@ -31,4 +31,4 @@ The container will open a shell when the run command execution is completed.
    jupyter-lab --allow-root --ip='0.0.0.0' --NotebookApp.token='<password>'
    ```
 5. Open any browser to access the jupyter-lab server using <MachineIP>:8888.
-6. Once in the server, navigate to the ```/Merlin/examples``` directory and execute the example notebooks.
+6. Once in the server, navigate to the ```/systems/examples``` directory and execute the example notebooks.
