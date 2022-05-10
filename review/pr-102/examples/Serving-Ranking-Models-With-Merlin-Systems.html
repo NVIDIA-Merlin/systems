@@ -99,27 +99,28 @@
 <img alt="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" src="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" />
 <div class="tex2jax_ignore mathjax_ignore section" id="serving-ranking-models-with-merlin-systems">
 <h1>Serving Ranking Models With Merlin Systems<a class="headerlink" href="#serving-ranking-models-with-merlin-systems" title="Permalink to this headline"></a></h1>
-<p>This notebook is created using the latest stable <a class="reference external" href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow-inference/tags">merlin-tensorflow-inference</a> container. This Jupyter notebook example demonstrates how to deploy a ranking model to <a class="reference external" href="https://github.com/triton-inference-server/server">Triton Inference Server (TIS)</a> and generate prediction results for a given query. As a prerequisite, the ranking model must be trained and saved with Merlin Models. Please read the <a class="reference external" href="https://github.com/NVIDIA-Merlin/systems/blob/main/examples/README.md">README</a> for the guidance and the instructions.</p>
+<p>This notebook is created using the latest stable <a class="reference external" href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow-inference/tags">merlin-tensorflow-inference</a> container. This Jupyter notebook example demonstrates how to deploy a ranking model to Triton Inference Server and generate predictiom results for a given query. As a prerequisite, the ranking model must be trained and saved with Merlin Models. Please read the <a class="reference external" href="https://github.com/NVIDIA-Merlin/systems/blob/main/examples/README.md">README</a> for the instructions.</p>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
 <p>NVIDIA Merlin is an open source framework that accelerates and scales end-to-end recommender system pipelines. The Merlin framework is broken up into several sub components, these include: Merlin-Core, Merlin-Models, NVTabular and Merlin-Systems. Merlin Systems will be the focus of this example.</p>
-<p>The purpose of the Merlin Systems library is to make it easy for Merlin users to quickly deploy their recommender systems from development to <a class="reference external" href="https://github.com/triton-inference-server/server">Triton Inference Server</a>. We extended the same user-friendly API that users are accustomed to in NVTabular and leveraged it to accommodate deploying recommender system components to Triton.</p>
-<p>Before we get started, please ensure that you have an NVTabular workflow and model stored in an accessible location. Merlin Systems takes the data preprocessing workflow defined in NVTabular and load that into Triton as a model. Subsequently it does the same for the trained model. Lets take a closer look at how Merlin Systems makes deploying to Triton simple and effortless in the rest of this notebook.</p>
+<p>The purpose of the Merlin Systems library is to make it easy for Merlin users to quickly deploy their recommender systems from development to <a class="reference external" href="https://github.com/triton-inference-server/server">Triton Inference Server</a>. We extended the same user-friendly API users are accustomed to in NVTabular and leveraged it to accommodate deploying your recommender system components to Triton.</p>
+<p>There are some points we need ensure before we continue with this Notebook. Please ensure you have a working NVTabular workflow and model stored in an accessible location. As previously mentioned, Merlin Systems will take the data preprocessing workflow defined in NVTabular and load that into Triton as a model. Subsequently it will do the same for the trained model. Lets take a closer look in the rest of this notebook at how Merlin systems makes deploying to Triton simple and effortless.</p>
 <div class="section" id="learning-objectives">
 <h3>Learning objectives<a class="headerlink" href="#learning-objectives" title="Permalink to this headline"></a></h3>
-<p>In this notebook, we learn how to deploy an NVTabular Workflow and a Tensorflow model trained with Merlin Models to Triton Inference Server.</p>
+<p>In this notebook, we learn how to deploy a NVTabular Workflow and a trained Tensorflow model from Merlin Models to Triton.</p>
 <ul class="simple">
 <li><p>Load NVTabular Workflow</p></li>
 <li><p>Load Pre-trained Merlin Models model</p></li>
 <li><p>Create Ensemble Graph</p></li>
 <li><p>Export Ensemble Graph</p></li>
 <li><p>Run Tritonserver</p></li>
-<li><p>Send Request to Triton Inference Server</p></li>
+<li><p>Send Request to Tritonserver</p></li>
 </ul>
 </div>
 <div class="section" id="dataset">
 <h3>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline"></a></h3>
-<p>In the <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/04-Exporting-ranking-models.ipynb">04-Exporting-ranking-models.ipynb</a> example notebook, we generated the synthetic train and test datasets that mimic the real <a class="reference external" href="https://tianchi.aliyun.com/dataset/dataDetail?dataId=408#1">Ali-CCP: Alibaba Click and Conversion Prediction</a> dataset to train our recommender system ranking model with. To see how the data is transformed with NVTabular and how a DLRM model is trained with Merlin Models check out the <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/04-Exporting-ranking-models.ipynb">04-Exporting-ranking-models.ipynb</a> example notebook which is a prerequisite for this notebook.</p>
+<p>We use the synthetic train and test datasets generated by mimicking the real <a class="reference external" href="https://tianchi.aliyun.com/dataset/dataDetail?dataId=408#1">Ali-CCP: Alibaba Click and Conversion Prediction</a> dataset to build our recommender system ranking models. To see how the data is transformed with NVTabular and how a DLRM model is trained with Merlin Models check out the <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/04-Exporting-ranking-models.ipynb">04-Exporting-ranking-models.ipynb</a> example notebook which a prerequisite for this notebook.</p>
+<p>It is important to note that the steps take in this notebook are generalized and can be applied to any set of workflow and models.</p>
 </div>
 <div class="section" id="tools">
 <h3>Tools<a class="headerlink" href="#tools" title="Permalink to this headline"></a></h3>
@@ -129,7 +130,6 @@
 <li><p>Merlin Systems</p></li>
 <li><p>Triton Inference Server</p></li>
 </ul>
-<p><strong>It is important to note that the steps take in this notebook are generalized and can be applied to any set of workflow and models.</strong></p>
 </div>
 </div>
 <div class="section" id="install-required-libraries">
@@ -138,6 +138,51 @@
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>pip install tensorflow-gpu
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Looking in indexes: https://pypi.org/simple, https://pypi.ngc.nvidia.com
+Requirement already satisfied: tensorflow-gpu in /usr/local/lib/python3.8/dist-packages (2.8.0)
+Requirement already satisfied: astunparse&gt;=1.6.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.6.3)
+Requirement already satisfied: protobuf&gt;=3.9.2 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (3.20.0)
+Requirement already satisfied: absl-py&gt;=0.4.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.0.0)
+Requirement already satisfied: gast&gt;=0.2.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (0.5.3)
+Requirement already satisfied: grpcio&lt;2.0,&gt;=1.24.3 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.41.0)
+Requirement already satisfied: typing-extensions&gt;=3.6.6 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (4.1.1)
+Requirement already satisfied: wrapt&gt;=1.11.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.14.1)
+Requirement already satisfied: keras&lt;2.9,&gt;=2.8.0rc0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.8.0)
+Requirement already satisfied: numpy&gt;=1.20 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.21.5)
+Requirement already satisfied: tensorflow-io-gcs-filesystem&gt;=0.23.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (0.25.0)
+Requirement already satisfied: flatbuffers&gt;=1.12 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.0)
+Requirement already satisfied: tf-estimator-nightly==2.8.0.dev2021122109 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.8.0.dev2021122109)
+Requirement already satisfied: tensorboard&lt;2.9,&gt;=2.8 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.8.0)
+Requirement already satisfied: setuptools in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (61.0.0)
+Requirement already satisfied: termcolor&gt;=1.1.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.1.0)
+Requirement already satisfied: libclang&gt;=9.0.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (14.0.1)
+Requirement already satisfied: h5py&gt;=2.9.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (3.6.0)
+Requirement already satisfied: opt-einsum&gt;=2.3.2 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (3.3.0)
+Requirement already satisfied: six&gt;=1.12.0 in /usr/lib/python3/dist-packages (from tensorflow-gpu) (1.14.0)
+Requirement already satisfied: google-pasta&gt;=0.1.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (0.2.0)
+Requirement already satisfied: keras-preprocessing&gt;=1.1.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.1.2)
+Requirement already satisfied: wheel&lt;1.0,&gt;=0.23.0 in /usr/local/lib/python3.8/dist-packages (from astunparse&gt;=1.6.0-&gt;tensorflow-gpu) (0.37.1)
+Requirement already satisfied: tensorboard-plugin-wit&gt;=1.6.0 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (1.8.1)
+Requirement already satisfied: tensorboard-data-server&lt;0.7.0,&gt;=0.6.0 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.6.1)
+Requirement already satisfied: google-auth-oauthlib&lt;0.5,&gt;=0.4.1 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.4.6)
+Requirement already satisfied: google-auth&lt;3,&gt;=1.6.3 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (2.6.6)
+Requirement already satisfied: requests&lt;3,&gt;=2.21.0 in /usr/lib/python3/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (2.22.0)
+Requirement already satisfied: markdown&gt;=2.6.8 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (3.3.7)
+Requirement already satisfied: werkzeug&gt;=0.11.15 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (2.1.2)
+Requirement already satisfied: rsa&lt;5,&gt;=3.1.4 in /usr/local/lib/python3.8/dist-packages (from google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (4.8)
+Requirement already satisfied: pyasn1-modules&gt;=0.2.1 in /usr/local/lib/python3.8/dist-packages (from google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.2.8)
+Requirement already satisfied: cachetools&lt;6.0,&gt;=2.0.0 in /usr/local/lib/python3.8/dist-packages (from google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (5.0.0)
+Requirement already satisfied: requests-oauthlib&gt;=0.7.0 in /usr/local/lib/python3.8/dist-packages (from google-auth-oauthlib&lt;0.5,&gt;=0.4.1-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (1.3.1)
+Requirement already satisfied: importlib-metadata&gt;=4.4 in /usr/local/lib/python3.8/dist-packages (from markdown&gt;=2.6.8-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (4.11.3)
+Requirement already satisfied: zipp&gt;=0.5 in /usr/local/lib/python3.8/dist-packages (from importlib-metadata&gt;=4.4-&gt;markdown&gt;=2.6.8-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (3.8.0)
+Requirement already satisfied: pyasn1&lt;0.5.0,&gt;=0.4.6 in /usr/local/lib/python3.8/dist-packages (from pyasn1-modules&gt;=0.2.1-&gt;google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.4.8)
+Requirement already satisfied: oauthlib&gt;=3.0.0 in /usr/local/lib/python3.8/dist-packages (from requests-oauthlib&gt;=0.7.0-&gt;google-auth-oauthlib&lt;0.5,&gt;=0.4.1-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (3.2.0)
+<span class=" -Color -Color-Yellow">WARNING: Running pip as the &#39;root&#39; user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv</span>
+
 </pre></div>
 </div>
 </div>
@@ -897,7 +942,7 @@ bytearray(b&#39;[{&quot;name&quot;:&quot;0_transformworkflow&quot;,&quot;version
 </div>
 <div class="section" id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline"></a></h2>
-<p>This sample notebook started with exporting a saved DLRM model and NVTabular workflow.  We saw how to create an ensemble graph, verify the ensemble artifacts in the file system, and then put the ensemble into production with Triton Inference Server.  Finally, we sent a simple inference request to the server and printed the response.</p>
+<p>This sample notebook started with an exported DLRM model and workflow.  We saw how to create an ensemble graph, verify the ensemble artifacts in the file system, and then put the ensemble into production with Triton Inference Server.  Finally, we sent a simple inference request to the server and printed the response.</p>
 </div>
 </div>
 
