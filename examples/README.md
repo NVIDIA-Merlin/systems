@@ -24,6 +24,8 @@ To run the example notebooks using Docker containers, perform the following step
    ```shell
    docker volume create merlin-examples
    ```
+Note that the saved `dlrm` model, NVT `workflow` and processed synthetic parquet files should be stored in the `merlin-examples` folder so that they can be mounted to the inference container.
+
 
 1. Pull and start the container by running the following command:
 
@@ -52,7 +54,7 @@ To run the example notebooks using Docker containers, perform the following step
 1. Start the JupyterLab server by running the following command:
 
    ```shell
-   jupyter-lab --allow-root --ip='0.0.0.0'
+   jupyter-lab --allow-root --ip='0.0.0.0' --NotebookApp.token=''
    ```
 
    View the messages in your terminal to identify the URL for JupyterLab.
@@ -66,4 +68,4 @@ To run the example notebooks using Docker containers, perform the following step
 
 1. Open a browser and use the `127.0.0.1` URL provided in the messages by JupyterLab.
 
-1. After you log in to JupyterLab, navigate to the `/merlin/examples` directory to try out the example notebooks.
+1. After you log in to JupyterLab, navigate to the `/systems/examples` directory to try out the example notebooks.
