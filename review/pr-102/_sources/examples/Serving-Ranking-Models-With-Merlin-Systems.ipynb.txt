@@ -32,7 +32,7 @@
     "\n",
     "# Serving Ranking Models With Merlin Systems\n",
     "\n",
-    "This notebook is created using the latest stable [merlin-tensorflow-inference](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow-inference/tags) container. This Jupyter notebook example demonstrates how to deploy a ranking model to Triton Inference Server and generate predictiom results for a given query. As a prerequisite, the ranking model must be trained and saved with Merlin Models. Please read the [README](https://github.com/NVIDIA-Merlin/systems/blob/main/examples/README.md) for the instructions.\n",
+    "This notebook is created using the latest stable [merlin-tensorflow-inference](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow-inference/tags) container. This Jupyter notebook example demonstrates how to deploy a ranking model to Triton Inference Server and generate prediction results for a given query. As a prerequisite, the ranking model must be trained and saved with Merlin Models. Please read the [README](https://github.com/NVIDIA-Merlin/systems/blob/main/examples/README.md) for the instructions.\n",
     "\n",
     "## Overview\n",
     "\n",
