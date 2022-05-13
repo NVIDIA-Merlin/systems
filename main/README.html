@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Merlin Systems &mdash; Merlin Systems  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/togglebutton.css" type="text/css" />
+      <link rel="stylesheet" href="_static/mystnb.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -12,11 +14,15 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script >let toggleHintShow = 'Click to show';</script>
+        <script >let toggleHintHide = 'Click to hide';</script>
+        <script >let toggleOpenOnPrint = 'true';</script>
+        <script src="_static/togglebutton.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Merlin Systems Example Notebooks" href="examples/README.html" />
+    <link rel="next" title="Merlin Systems Example Notebook" href="examples/index.html" />
     <link rel="prev" title="Merlin Systems" href="index.html" /> 
 </head>
 
@@ -40,16 +46,11 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#quickstart">Quickstart</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#building-a-four-stage-recommender-pipeline">Building a Four-Stage Recommender Pipeline</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#installing-merlin-systems-using-pip">Installing Merlin Systems Using Pip</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#installing-merlin-systems-from-source">Installing Merlin Systems from Source</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#running-merlin-systems-from-docker">Running Merlin Systems from Docker</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#feedback-and-support">Feedback and Support</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples/README.html">Example Notebooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Example Notebooks</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
 </ul>
 
@@ -76,36 +77,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="merlin-systems">
+  <div class="tex2jax_ignore mathjax_ignore section" id="merlin-systems">
 <h1><a class="reference external" href="https://github.com/NVIDIA-Merlin/systems">Merlin Systems</a><a class="headerlink" href="#merlin-systems" title="Permalink to this headline"></a></h1>
 <p><img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/merlin-systems" />
 <a class="reference external" href="https://pypi.python.org/pypi/merlin-systems/"><img alt="PyPI version shields.io" src="https://img.shields.io/pypi/v/merlin-systems.svg" /></a>
 <img alt="GitHub License" src="https://img.shields.io/github/license/NVIDIA-Merlin/systems" />
-<a class="reference external" href="https://nvidia-merlin.github.io/systems/main/Introduction.html"><img alt="Documentation" src="https://img.shields.io/badge/documentation-blue.svg" /></a></p>
+<a class="reference external" href="https://nvidia-merlin.github.io/systems/main/README.html"><img alt="Documentation" src="https://img.shields.io/badge/documentation-blue.svg" /></a></p>
 <p>Merlin Systems provides tools for combining recommendation models with other elements of production recommender systems like feature stores, nearest neighbor search, and exploration strategies into end-to-end recommendation pipelines that can be served with <a class="reference external" href="https://github.com/triton-inference-server/server">Triton Inference Server</a>.</p>
 <div class="section" id="quickstart">
 <h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline"></a></h2>
@@ -123,8 +100,8 @@
 
 <span class="c1"># Define ensemble pipeline</span>
 <span class="n">pipeline</span> <span class="o">=</span> <span class="p">(</span>
-	<span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span> <span class="o">&gt;&gt;</span> 
-	<span class="n">TransformWorkflow</span><span class="p">(</span><span class="n">workflow</span><span class="p">)</span> <span class="o">&gt;&gt;</span> 
+	<span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span> <span class="o">&gt;&gt;</span>
+	<span class="n">TransformWorkflow</span><span class="p">(</span><span class="n">workflow</span><span class="p">)</span> <span class="o">&gt;&gt;</span>
 	<span class="n">PredictTensorflow</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 <span class="p">)</span>
 
@@ -153,7 +130,7 @@ The notebook shows how to deploy the ensemble and demonstrates sending requests 
     <span class="n">ColumnSchema</span><span class="p">(</span><span class="s2">&quot;user_id&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
 <span class="p">])</span>
 
-<span class="c1"># Fetch user features, use them to a compute user vector with retrieval model, </span>
+<span class="c1"># Fetch user features, use them to a compute user vector with retrieval model,</span>
 <span class="c1"># and find candidate items closest to the user vector with nearest neighbor search</span>
 <span class="n">user_features</span> <span class="o">=</span> <span class="n">request_schema</span><span class="o">.</span><span class="n">column_names</span> <span class="o">&gt;&gt;</span> <span class="n">QueryFeast</span><span class="o">.</span><span class="n">from_feature_view</span><span class="p">(</span>
     <span class="n">store</span><span class="o">=</span><span class="n">feature_store</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;user_features&quot;</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;user_id&quot;</span>
@@ -175,7 +152,7 @@ The notebook shows how to deploy the ensemble and demonstrates sending requests 
     <span class="n">store</span><span class="o">=</span><span class="n">feature_store</span><span class="p">,</span> <span class="n">view</span><span class="o">=</span><span class="s2">&quot;movie_features&quot;</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s2">&quot;filtered_ids&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="c1"># Join user and item features for the candidates and use them to predict relevance scores  </span>
+<span class="c1"># Join user and item features for the candidates and use them to predict relevance scores</span>
 <span class="n">combined_features</span> <span class="o">=</span> <span class="n">item_features</span> <span class="o">&gt;&gt;</span> <span class="n">UnrollFeatures</span><span class="p">(</span>
     <span class="s2">&quot;movie_id&quot;</span><span class="p">,</span> <span class="n">user_features</span><span class="p">,</span> <span class="n">unrolled_prefix</span><span class="o">=</span><span class="s2">&quot;user&quot;</span>
 <span class="p">)</span>
@@ -234,7 +211,8 @@ The notebook shows how to deploy the ensemble and demonstrates sending requests 
 <td>Merlin frameworks selected for only Tensorflow support and Triton Inference Server</td>
 </tr>
 </tbody>
-</table><p>If you want to add support for GPU-accelerated workflows, you will first need to install the <a class="reference external" href="https://github.com/NVIDIA/nvidia-docker">NVIDIA Container Toolkit</a> to provide GPU support for Docker. You can use the NGC links referenced in the table above to obtain more information about how to launch and run these containers.</p>
+</table>
+<p>If you want to add support for GPU-accelerated workflows, you will first need to install the <a class="reference external" href="https://github.com/NVIDIA/nvidia-docker">NVIDIA Container Toolkit</a> to provide GPU support for Docker. You can use the NGC links referenced in the table above to obtain more information about how to launch and run these containers.</p>
 </div>
 </div>
 <div class="section" id="feedback-and-support">
@@ -248,7 +226,7 @@ The notebook shows how to deploy the ensemble and demonstrates sending requests 
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Merlin Systems" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="examples/README.html" class="btn btn-neutral float-right" title="Merlin Systems Example Notebooks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="examples/index.html" class="btn btn-neutral float-right" title="Merlin Systems Example Notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
@@ -267,7 +245,25 @@ The notebook shows how to deploy the ensemble and demonstrates sending requests 
       </div>
     </section>
   </div>
-  <script>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    v: main
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    <dl>
+      <dt>Tags</dt>
+      <dd><a href="../v0.1.0/index.html">v0.1.0</a></dd>
+      <dd><a href="../v0.2.0/index.html">v0.2.0</a></dd>
+    </dl>
+    <dl>
+      <dt>Branches</dt>
+      <dd><a href="README.html">main</a></dd>
+    </dl>
+  </div>
+</div><script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
