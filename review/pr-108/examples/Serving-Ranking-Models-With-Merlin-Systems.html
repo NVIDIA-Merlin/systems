@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Serving Ranking Models With Merlin Systems &mdash; Merlin Systems  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script >let toggleHintShow = 'Click to show';</script>
+        <script >let toggleHintHide = 'Click to hide';</script>
+        <script >let toggleOpenOnPrint = 'true';</script>
+        <script src="../_static/togglebutton.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Documentation" href="../api.html" />
+    <link rel="prev" title="Merlin Systems Example Notebook" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Merlin Systems
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Example Notebooks</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#running-the-example-notebook">Running the Example Notebook</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Serving Ranking Models With Merlin Systems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Merlin Systems</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="index.html">Merlin Systems Example Notebook</a> &raquo;</li>
+      <li>Serving Ranking Models With Merlin Systems</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copyright 2022 NVIDIA Corporation. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># ==============================================================================</span>
+</pre></div>
+</div>
+</div>
+</div>
+<img alt="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" src="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" />
+<div class="tex2jax_ignore mathjax_ignore section" id="serving-ranking-models-with-merlin-systems">
+<h1>Serving Ranking Models With Merlin Systems<a class="headerlink" href="#serving-ranking-models-with-merlin-systems" title="Permalink to this headline"></a></h1>
+<p>This notebook is created using the latest stable <a class="reference external" href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow-inference/tags">merlin-tensorflow-inference</a> container. This Jupyter notebook example demonstrates how to deploy a ranking model to Triton Inference Server (TIS) and generate prediction results for a given query. As a prerequisite, the ranking model must be trained and saved with Merlin Models. Please read the <a class="reference external" href="https://github.com/NVIDIA-Merlin/systems/blob/main/examples/README.md">README</a> for the instructions.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<p>NVIDIA Merlin is an open source framework that accelerates and scales end-to-end recommender system pipelines. The Merlin framework is broken up into several sub components, these include: Merlin-Core, Merlin-Models, NVTabular and Merlin-Systems. Merlin Systems will be the focus of this example.</p>
+<p>The purpose of the Merlin Systems library is to make it easy for Merlin users to quickly deploy their recommender systems from development to <a class="reference external" href="https://github.com/triton-inference-server/server">Triton Inference Server</a>. We extended the same user-friendly API users are accustomed to in NVTabular and leveraged it to accommodate deploying recommender system components to TIS.</p>
+<p>There are some points we need ensure before we continue with this Notebook. Please ensure you have a working NVTabular workflow and model stored in an accessible location. Merlin Systems take the data preprocessing workflow defined in NVTabular and load that into Triton Inference Server as a model. Subsequently it does the same for the trained model. Lets take a closer look at how Merlin Systems makes deploying to TIS simple and effortless, in the rest of this notebook.</p>
+<div class="section" id="learning-objectives">
+<h3>Learning objectives<a class="headerlink" href="#learning-objectives" title="Permalink to this headline"></a></h3>
+<p>In this notebook, we learn how to deploy a NVTabular Workflow and a trained Tensorflow model from Merlin Models to Triton.</p>
+<ul class="simple">
+<li><p>Load NVTabular Workflow</p></li>
+<li><p>Load Pre-trained Merlin Models model</p></li>
+<li><p>Create Ensemble Graph</p></li>
+<li><p>Export Ensemble Graph</p></li>
+<li><p>Run Tritonserver</p></li>
+<li><p>Send Request to Tritonserver</p></li>
+</ul>
+</div>
+<div class="section" id="dataset">
+<h3>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline"></a></h3>
+<p>We use the synthetic train and test datasets generated by mimicking the real <a class="reference external" href="https://tianchi.aliyun.com/dataset/dataDetail?dataId=408#1">Ali-CCP: Alibaba Click and Conversion Prediction</a> dataset to build our recommender system ranking models. To see how the data is transformed with NVTabular and how a DLRM model is trained with Merlin Models check out the <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/04-Exporting-ranking-models.ipynb">04-Exporting-ranking-models.ipynb</a> example notebook which is a prerequisite for this notebook.</p>
+<p>It is important to note that the steps take in this notebook are generalized and can be applied to any set of workflow and models.</p>
+</div>
+<div class="section" id="tools">
+<h3>Tools<a class="headerlink" href="#tools" title="Permalink to this headline"></a></h3>
+<ul class="simple">
+<li><p>NVTabular</p></li>
+<li><p>Merlin Models</p></li>
+<li><p>Merlin Systems</p></li>
+<li><p>Triton Inference Server</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="install-required-libraries">
+<h2>Install Required Libraries<a class="headerlink" href="#install-required-libraries" title="Permalink to this headline"></a></h2>
+<p>Install TensorFlow so we can read the saved model from disk.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>pip install tensorflow-gpu
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Looking in indexes: https://pypi.org/simple, https://pypi.ngc.nvidia.com
+Requirement already satisfied: tensorflow-gpu in /usr/local/lib/python3.8/dist-packages (2.8.0)
+Requirement already satisfied: astunparse&gt;=1.6.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.6.3)
+Requirement already satisfied: protobuf&gt;=3.9.2 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (3.20.0)
+Requirement already satisfied: absl-py&gt;=0.4.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.0.0)
+Requirement already satisfied: gast&gt;=0.2.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (0.5.3)
+Requirement already satisfied: grpcio&lt;2.0,&gt;=1.24.3 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.41.0)
+Requirement already satisfied: typing-extensions&gt;=3.6.6 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (4.1.1)
+Requirement already satisfied: wrapt&gt;=1.11.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.14.1)
+Requirement already satisfied: keras&lt;2.9,&gt;=2.8.0rc0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.8.0)
+Requirement already satisfied: numpy&gt;=1.20 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.21.5)
+Requirement already satisfied: tensorflow-io-gcs-filesystem&gt;=0.23.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (0.25.0)
+Requirement already satisfied: flatbuffers&gt;=1.12 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.0)
+Requirement already satisfied: tf-estimator-nightly==2.8.0.dev2021122109 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.8.0.dev2021122109)
+Requirement already satisfied: tensorboard&lt;2.9,&gt;=2.8 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.8.0)
+Requirement already satisfied: setuptools in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (61.0.0)
+Requirement already satisfied: termcolor&gt;=1.1.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.1.0)
+Requirement already satisfied: libclang&gt;=9.0.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (14.0.1)
+Requirement already satisfied: h5py&gt;=2.9.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (3.6.0)
+Requirement already satisfied: opt-einsum&gt;=2.3.2 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (3.3.0)
+Requirement already satisfied: six&gt;=1.12.0 in /usr/lib/python3/dist-packages (from tensorflow-gpu) (1.14.0)
+Requirement already satisfied: google-pasta&gt;=0.1.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (0.2.0)
+Requirement already satisfied: keras-preprocessing&gt;=1.1.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.1.2)
+Requirement already satisfied: wheel&lt;1.0,&gt;=0.23.0 in /usr/local/lib/python3.8/dist-packages (from astunparse&gt;=1.6.0-&gt;tensorflow-gpu) (0.37.1)
+Requirement already satisfied: tensorboard-plugin-wit&gt;=1.6.0 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (1.8.1)
+Requirement already satisfied: tensorboard-data-server&lt;0.7.0,&gt;=0.6.0 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.6.1)
+Requirement already satisfied: google-auth-oauthlib&lt;0.5,&gt;=0.4.1 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.4.6)
+Requirement already satisfied: google-auth&lt;3,&gt;=1.6.3 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (2.6.6)
+Requirement already satisfied: requests&lt;3,&gt;=2.21.0 in /usr/lib/python3/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (2.22.0)
+Requirement already satisfied: markdown&gt;=2.6.8 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (3.3.7)
+Requirement already satisfied: werkzeug&gt;=0.11.15 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (2.1.2)
+Requirement already satisfied: rsa&lt;5,&gt;=3.1.4 in /usr/local/lib/python3.8/dist-packages (from google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (4.8)
+Requirement already satisfied: pyasn1-modules&gt;=0.2.1 in /usr/local/lib/python3.8/dist-packages (from google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.2.8)
+Requirement already satisfied: cachetools&lt;6.0,&gt;=2.0.0 in /usr/local/lib/python3.8/dist-packages (from google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (5.0.0)
+Requirement already satisfied: requests-oauthlib&gt;=0.7.0 in /usr/local/lib/python3.8/dist-packages (from google-auth-oauthlib&lt;0.5,&gt;=0.4.1-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (1.3.1)
+Requirement already satisfied: importlib-metadata&gt;=4.4 in /usr/local/lib/python3.8/dist-packages (from markdown&gt;=2.6.8-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (4.11.3)
+Requirement already satisfied: zipp&gt;=0.5 in /usr/local/lib/python3.8/dist-packages (from importlib-metadata&gt;=4.4-&gt;markdown&gt;=2.6.8-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (3.8.0)
+Requirement already satisfied: pyasn1&lt;0.5.0,&gt;=0.4.6 in /usr/local/lib/python3.8/dist-packages (from pyasn1-modules&gt;=0.2.1-&gt;google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.4.8)
+Requirement already satisfied: oauthlib&gt;=3.0.0 in /usr/local/lib/python3.8/dist-packages (from requests-oauthlib&gt;=0.7.0-&gt;google-auth-oauthlib&lt;0.5,&gt;=0.4.1-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (3.2.0)
+<span class=" -Color -Color-Yellow">WARNING: Running pip as the &#39;root&#39; user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv</span>
+
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="load-an-nvtabular-workflow">
+<h2>Load an NVTabular Workflow<a class="headerlink" href="#load-an-nvtabular-workflow" title="Permalink to this headline"></a></h2>
+<p>First, we load the <code class="docutils literal notranslate"><span class="pre">nvtabular.Workflow</span></code> that we created in with this <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/04-Exporting-ranking-models.ipynb">example</a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;TF_GPU_ALLOCATOR&quot;</span><span class="p">]</span><span class="o">=</span><span class="s2">&quot;cuda_malloc_async&quot;</span>
+<span class="kn">from</span> <span class="nn">nvtabular.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
+
+<span class="n">input_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;INPUT_FOLDER&quot;</span><span class="p">,</span> <span class="s2">&quot;/workspace/data/&quot;</span><span class="p">)</span>
+
+<span class="n">workflow_stored_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="s2">&quot;workflow&quot;</span><span class="p">)</span>
+
+<span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">workflow_stored_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>After we load the workflow, we remove the label columns from it’s inputs. This removes all columns with the <code class="docutils literal notranslate"><span class="pre">TARGET</span></code> tag from the workflow. We do this because we need to set the workflow to only  require the features needed to predict, not train, when creating an inference pipeline.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.schema.tags</span> <span class="kn">import</span> <span class="n">Tags</span>
+
+<span class="n">label_columns</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">select_by_tag</span><span class="p">(</span><span class="n">Tags</span><span class="o">.</span><span class="n">TARGET</span><span class="p">)</span><span class="o">.</span><span class="n">column_names</span>
+<span class="n">workflow</span><span class="o">.</span><span class="n">remove_inputs</span><span class="p">(</span><span class="n">label_columns</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;nvtabular.workflow.workflow.Workflow at 0x7fe149fdff70&gt;
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="load-the-tensorflow-model">
+<h2>Load the Tensorflow Model<a class="headerlink" href="#load-the-tensorflow-model" title="Permalink to this headline"></a></h2>
+<p>After loading the workflow, we load the model. This model was trained with the output of the workflow from the <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/04-Exporting-ranking-models.ipynb">Exporting Ranking Models</a> example from Merlin Models.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="n">tf_model_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="s2">&quot;dlrm&quot;</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="n">tf_model_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-05-09 21:15:55.345619: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-05-09 21:15:56.445641: I tensorflow/core/common_runtime/gpu/gpu_process_state.cc:214] Using CUDA malloc Async allocator for GPU: 0
+2022-05-09 21:15:56.445851: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 30322 MB memory:  -&gt; device: 0, name: Quadro GV100, pci bus id: 0000:2d:00.0, compute capability: 7.0
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="create-the-ensemble-graph">
+<h2>Create the Ensemble Graph<a class="headerlink" href="#create-the-ensemble-graph" title="Permalink to this headline"></a></h2>
+<p>After we have both the model and the workflow loaded, we can create the ensemble graph. You create the graph. The goal is to illustrate the path of data through your full system. In this example we only serve a workflow with a model, but you can add other components that help you meet your business logic requirements.</p>
+<p>Because this example has two components—a model and a workflow—we require two operators. These operators, also known as inference operators, are meant to abstract away all the “hard parts” of loading a specific component, such as a workflow or model, into Triton Inference Server.</p>
+<p>The following code block shows how to use two inference operators:</p>
+<dl>
+    <dt><code>TransformWorkflow</code></dt>
+    <dd>This operator ensures that the workflow is correctly saved and packaged with the required config so the server will know how to load it.</dd>
+    <dt><code>PredictTensorflow</code></dt>
+    <dd>This operator will do something similar with the model, loaded before.</dd>
+</dl>
+<p>Let’s give it a try.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.workflow</span> <span class="kn">import</span> <span class="n">TransformWorkflow</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.tensorflow</span> <span class="kn">import</span> <span class="n">PredictTensorflow</span>
+
+<span class="n">serving_operators</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span> <span class="o">&gt;&gt;</span> <span class="n">TransformWorkflow</span><span class="p">(</span><span class="n">workflow</span><span class="p">)</span> <span class="o">&gt;&gt;</span> <span class="n">PredictTensorflow</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="export-graph-as-ensemble">
+<h2>Export Graph as Ensemble<a class="headerlink" href="#export-graph-as-ensemble" title="Permalink to this headline"></a></h2>
+<p>The last step is to create the ensemble artifacts that Triton Inference Server can consume.
+To make these artifacts, we import the <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code> class.
+The class is responsible for interpreting the graph and exporting the correct files for the server.</p>
+<p>After you run the following cell, you’ll see that we create a <code class="docutils literal notranslate"><span class="pre">ColumnSchema</span></code> for the expected inputs to the workflow.
+The workflow is a <code class="docutils literal notranslate"><span class="pre">Schema</span></code>.</p>
+<p>When you are creating an <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code> object you supply the graph and a schema representing the starting input of the graph. the inputs to the ensemble graph are the inputs to the first operator of your graph.</p>
+<p>After you have created the <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code> you export the graph, supplying an export path for the <code class="docutils literal notranslate"><span class="pre">Ensemble.export</span></code> function.</p>
+<p>This returns an ensemble config which represents the entire inference pipeline and a list of node-specific configs.</p>
+<p>Let’s take a look below.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">workflow</span><span class="o">.</span><span class="n">output_schema</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>name</th>
+      <th>tags</th>
+      <th>dtype</th>
+      <th>is_list</th>
+      <th>is_ragged</th>
+      <th>properties.num_buckets</th>
+      <th>properties.freq_threshold</th>
+      <th>properties.max_size</th>
+      <th>properties.start_index</th>
+      <th>properties.cat_path</th>
+      <th>properties.domain.min</th>
+      <th>properties.domain.max</th>
+      <th>properties.domain.name</th>
+      <th>properties.embedding_sizes.cardinality</th>
+      <th>properties.embedding_sizes.dimension</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>user_id</td>
+      <td>(Tags.CATEGORICAL, Tags.USER_ID, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_id.parquet</td>
+      <td>0</td>
+      <td>759</td>
+      <td>user_id</td>
+      <td>759</td>
+      <td>66</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>item_id</td>
+      <td>(Tags.CATEGORICAL, Tags.ITEM_ID, Tags.ITEM)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.item_id.parquet</td>
+      <td>0</td>
+      <td>776</td>
+      <td>item_id</td>
+      <td>776</td>
+      <td>66</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>item_category</td>
+      <td>(Tags.CATEGORICAL, Tags.ITEM)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.item_category.parquet</td>
+      <td>0</td>
+      <td>776</td>
+      <td>item_category</td>
+      <td>776</td>
+      <td>66</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>item_shop</td>
+      <td>(Tags.CATEGORICAL, Tags.ITEM)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.item_shop.parquet</td>
+      <td>0</td>
+      <td>776</td>
+      <td>item_shop</td>
+      <td>776</td>
+      <td>66</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>item_brand</td>
+      <td>(Tags.CATEGORICAL, Tags.ITEM)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.item_brand.parquet</td>
+      <td>0</td>
+      <td>776</td>
+      <td>item_brand</td>
+      <td>776</td>
+      <td>66</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>user_shops</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_shops.parquet</td>
+      <td>0</td>
+      <td>759</td>
+      <td>user_shops</td>
+      <td>759</td>
+      <td>66</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>user_profile</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_profile.parquet</td>
+      <td>0</td>
+      <td>66</td>
+      <td>user_profile</td>
+      <td>66</td>
+      <td>17</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>user_group</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_group.parquet</td>
+      <td>0</td>
+      <td>14</td>
+      <td>user_group</td>
+      <td>14</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>user_gender</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_gender.parquet</td>
+      <td>0</td>
+      <td>3</td>
+      <td>user_gender</td>
+      <td>3</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>user_age</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_age.parquet</td>
+      <td>0</td>
+      <td>8</td>
+      <td>user_age</td>
+      <td>8</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>user_consumption_2</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_consumption_2.parquet</td>
+      <td>0</td>
+      <td>4</td>
+      <td>user_consumption_2</td>
+      <td>4</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>user_is_occupied</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_is_occupied.parquet</td>
+      <td>0</td>
+      <td>3</td>
+      <td>user_is_occupied</td>
+      <td>3</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>user_geography</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_geography.parquet</td>
+      <td>0</td>
+      <td>5</td>
+      <td>user_geography</td>
+      <td>5</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>user_intentions</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_intentions.parquet</td>
+      <td>0</td>
+      <td>759</td>
+      <td>user_intentions</td>
+      <td>759</td>
+      <td>66</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>user_brands</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_brands.parquet</td>
+      <td>0</td>
+      <td>759</td>
+      <td>user_brands</td>
+      <td>759</td>
+      <td>66</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>user_categories</td>
+      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>int64</td>
+      <td>False</td>
+      <td>False</td>
+      <td>None</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>.//categories/unique.user_categories.parquet</td>
+      <td>0</td>
+      <td>759</td>
+      <td>user_categories</td>
+      <td>759</td>
+      <td>66</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.dag.ensemble</span> <span class="kn">import</span> <span class="n">Ensemble</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">ensemble</span> <span class="o">=</span> <span class="n">Ensemble</span><span class="p">(</span><span class="n">serving_operators</span><span class="p">,</span> <span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="p">)</span>
+
+<span class="n">export_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">)</span>
+
+<span class="n">ens_conf</span><span class="p">,</span> <span class="n">node_confs</span> <span class="o">=</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">export_path</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-05-09 21:00:32.417657: W tensorflow/python/util/util.cc:368] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
+WARNING:absl:Found untraced functions such as restored_function_body, restored_function_body, restored_function_body, restored_function_body, click/binary_classification_task/output_layer_layer_call_fn while saving (showing 5 of 48). These functions will not be directly callable after loading.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:tensorflow:Assets written to: /workspace/data/ensemble/1_predicttensorflow/1/model.savedmodel/assets
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:tensorflow:Assets written to: /workspace/data/ensemble/1_predicttensorflow/1/model.savedmodel/assets
+</pre></div>
+</div>
+</div>
+</div>
+<p>Display the path to the directory with the ensemble.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">export_path</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&#39;/workspace/data/ensemble&#39;
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="verification-of-ensemble-artifacts">
+<h2>Verification of Ensemble Artifacts<a class="headerlink" href="#verification-of-ensemble-artifacts" title="Permalink to this headline"></a></h2>
+<p>After we export the ensemble, we can check the export path for the graph’s artifacts. The directory structure represents an ordering number followed by an operator identifier such as <code class="docutils literal notranslate"><span class="pre">1_transformworkflow</span></code>, <code class="docutils literal notranslate"><span class="pre">2_predicttensorflow</span></code>, and so on.</p>
+<p>Inside each of those directories, the <code class="docutils literal notranslate"><span class="pre">export</span></code> method writes a <code class="docutils literal notranslate"><span class="pre">config.pbtxt</span></code> file and a directory with a number. The number indicates the version and begins at 1. The artifacts for each operator are found inside the <code class="docutils literal notranslate"><span class="pre">version</span></code> folder. These artifacts vary depending on the operator in use.</p>
+<p>Install the <code class="docutils literal notranslate"><span class="pre">seedir</span></code> python package so we can view some of the directory contents.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># install seedir</span>
+<span class="o">!</span>pip install seedir
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">seedir</span> <span class="k">as</span> <span class="nn">sd</span>
+
+<span class="n">sd</span><span class="o">.</span><span class="n">seedir</span><span class="p">(</span><span class="n">export_path</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&#39;lines&#39;</span><span class="p">,</span> <span class="n">itemlimit</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">depthlimit</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">exclude_folders</span><span class="o">=</span><span class="s1">&#39;.ipynb_checkpoints&#39;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ensemble/
+├─0_transformworkflow/
+│ ├─1/
+│ │ └─workflow/
+│ └─config.pbtxt
+├─1_predicttensorflow/
+│ ├─1/
+│ │ └─model.savedmodel/
+│ └─config.pbtxt
+└─ensemble_model/
+  ├─1/
+  └─config.pbtxt
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="starting-triton-inference-server">
+<h2>Starting Triton Inference Server<a class="headerlink" href="#starting-triton-inference-server" title="Permalink to this headline"></a></h2>
+<p>After we export the ensemble, we are ready to start the Triton Inference Server. The server is installed in all the Merlin inference containers.  If you are not using one of our containers, then ensure it is installed in your environment. For more information, see the Triton Inference Server <a class="reference external" href="https://github.com/triton-inference-server/server/blob/r22.03/README.md#documentation">documentation</a>.</p>
+<p>You can start the server by running the following command:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tritonserver --model-repository<span class="o">=</span>/workspace/data/ensemble --backend-config<span class="o">=</span>tensorflow,version<span class="o">=</span><span class="m">2</span>
+</pre></div>
+</div>
+<p>For the <code class="docutils literal notranslate"><span class="pre">--model-repository</span></code> argument, specify the same value as the <code class="docutils literal notranslate"><span class="pre">export_path</span></code> that you specified previously in the <code class="docutils literal notranslate"><span class="pre">ensemble.export</span></code> method.</p>
+<p>After you run the <code class="docutils literal notranslate"><span class="pre">tritonserver</span></code> command, wait until your terminal shows messages like the following example:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>I0414 <span class="m">18</span>:29:50.741833 <span class="m">4067</span> grpc_server.cc:4421<span class="o">]</span> Started GRPCInferenceService at <span class="m">0</span>.0.0.0:8001
+I0414 <span class="m">18</span>:29:50.742197 <span class="m">4067</span> http_server.cc:3113<span class="o">]</span> Started HTTPService at <span class="m">0</span>.0.0.0:8000
+I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_server.cc:178<span class="o">]</span> Started Metrics Service at <span class="m">0</span>.0.0.0:8002
+</pre></div>
+</div>
+</div>
+<div class="section" id="retrieving-recommendations-from-triton-inference-server">
+<h2>Retrieving Recommendations from Triton Inference Server<a class="headerlink" href="#retrieving-recommendations-from-triton-inference-server" title="Permalink to this headline"></a></h2>
+<p>Now that our server is running, we can send requests to it. This request is composed of values that correspond to the request schema that was created when we exported the ensemble graph.</p>
+<p>In the code below we create a request to send to triton and send it. We will then analyze the response, to show the full experience.</p>
+<p>First we need to ensure that we have a client connected to the server that we started. To do this, we use the Triton HTTP client library.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tritonclient.http</span> <span class="k">as</span> <span class="nn">client</span>
+
+<span class="c1"># Create a triton client</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">triton_client</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">InferenceServerClient</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;localhost:8000&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;client created.&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;channel creation failed: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>client created.
+</pre></div>
+</div>
+</div>
+</div>
+<p>After we create the client and verified it is connected to the server instance, we can communicate with the server and ensure all the models are loaded correctly.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ensure triton is in a good state</span>
+<span class="n">triton_client</span><span class="o">.</span><span class="n">is_server_live</span><span class="p">()</span>
+<span class="n">triton_client</span><span class="o">.</span><span class="n">get_model_repository_index</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>GET /v2/health/live, headers None
+&lt;HTTPSocketPoolResponse status=200 headers={&#39;content-length&#39;: &#39;0&#39;, &#39;content-type&#39;: &#39;text/plain&#39;}&gt;
+POST /v2/repository/index, headers None
+
+&lt;HTTPSocketPoolResponse status=200 headers={&#39;content-type&#39;: &#39;application/json&#39;, &#39;content-length&#39;: &#39;179&#39;}&gt;
+bytearray(b&#39;[{&quot;name&quot;:&quot;0_transformworkflow&quot;,&quot;version&quot;:&quot;1&quot;,&quot;state&quot;:&quot;READY&quot;},{&quot;name&quot;:&quot;1_predicttensorflow&quot;,&quot;version&quot;:&quot;1&quot;,&quot;state&quot;:&quot;READY&quot;},{&quot;name&quot;:&quot;ensemble_model&quot;,&quot;version&quot;:&quot;1&quot;,&quot;state&quot;:&quot;READY&quot;}]&#39;)
+</pre></div>
+</div>
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[{&#39;name&#39;: &#39;0_transformworkflow&#39;, &#39;version&#39;: &#39;1&#39;, &#39;state&#39;: &#39;READY&#39;},
+ {&#39;name&#39;: &#39;1_predicttensorflow&#39;, &#39;version&#39;: &#39;1&#39;, &#39;state&#39;: &#39;READY&#39;},
+ {&#39;name&#39;: &#39;ensemble_model&#39;, &#39;version&#39;: &#39;1&#39;, &#39;state&#39;: &#39;READY&#39;}]
+</pre></div>
+</div>
+</div>
+</div>
+<p>After verifying the models are correctly loaded by the server, we use some original validation data and send it as an inference request to the server. Here the <code class="docutils literal notranslate"><span class="pre">valid</span></code> folder was generated after <code class="docutils literal notranslate"><span class="pre">04-Exporting-ranking-models.ipynb</span></code> notebook is run.</p>
+<blockquote>
+<div><p>The <code class="docutils literal notranslate"><span class="pre">df_lib</span></code> object is <code class="docutils literal notranslate"><span class="pre">cudf</span></code> if a GPU is available and <code class="docutils literal notranslate"><span class="pre">pandas</span></code> otherwise.</p>
+</div></blockquote>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.core.dispatch</span> <span class="kn">import</span> <span class="n">get_lib</span>
+
+<span class="n">df_lib</span> <span class="o">=</span> <span class="n">get_lib</span><span class="p">()</span>
+
+<span class="n">original_data_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;INPUT_FOLDER&quot;</span><span class="p">,</span> <span class="s2">&quot;/workspace/data/&quot;</span><span class="p">)</span>
+
+<span class="c1"># read in data for request</span>
+<span class="n">batch</span> <span class="o">=</span> <span class="n">df_lib</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">original_data_path</span><span class="p">,</span><span class="s2">&quot;valid&quot;</span><span class="p">,</span> <span class="s2">&quot;part.0.parquet&quot;</span><span class="p">),</span> <span class="n">num_rows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span>
+<span class="p">)</span>
+<span class="n">batch</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>user_id</th>
+      <th>item_id</th>
+      <th>item_category</th>
+      <th>item_shop</th>
+      <th>item_brand</th>
+      <th>user_shops</th>
+      <th>user_profile</th>
+      <th>user_group</th>
+      <th>user_gender</th>
+      <th>user_age</th>
+      <th>user_consumption_2</th>
+      <th>user_is_occupied</th>
+      <th>user_geography</th>
+      <th>user_intentions</th>
+      <th>user_brands</th>
+      <th>user_categories</th>
+    </tr>
+    <tr>
+      <th>__null_dask_index__</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>700000</th>
+      <td>18</td>
+      <td>42</td>
+      <td>150</td>
+      <td>10511</td>
+      <td>3620</td>
+      <td>1003</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>291</td>
+      <td>499</td>
+      <td>53</td>
+    </tr>
+    <tr>
+      <th>700001</th>
+      <td>23</td>
+      <td>15</td>
+      <td>51</td>
+      <td>3590</td>
+      <td>1237</td>
+      <td>1298</td>
+      <td>2</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>376</td>
+      <td>645</td>
+      <td>68</td>
+    </tr>
+    <tr>
+      <th>700002</th>
+      <td>31</td>
+      <td>11</td>
+      <td>37</td>
+      <td>2564</td>
+      <td>883</td>
+      <td>1769</td>
+      <td>2</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>512</td>
+      <td>879</td>
+      <td>93</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p>After we isolate our <code class="docutils literal notranslate"><span class="pre">batch</span></code>, we convert the dataframe representation into inputs for Triton. We also declare the outputs that we expect to receive from the model.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.triton</span> <span class="kn">import</span> <span class="n">convert_df_to_triton_input</span>
+<span class="kn">import</span> <span class="nn">tritonclient.grpc</span> <span class="k">as</span> <span class="nn">grpcclient</span>
+<span class="c1"># create inputs and outputs</span>
+
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">convert_df_to_triton_input</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferInput</span><span class="p">)</span>
+
+<span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferRequestedOutput</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now that our <code class="docutils literal notranslate"><span class="pre">inputs</span></code> and <code class="docutils literal notranslate"><span class="pre">outputs</span></code> are created, we can use the <code class="docutils literal notranslate"><span class="pre">triton_client</span></code> that we created earlier to send the inference request.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># send request to tritonserver</span>
+<span class="k">with</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferenceServerClient</span><span class="p">(</span><span class="s2">&quot;localhost:8001&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="s2">&quot;ensemble_model&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">request_id</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>When the server completes the inference request, it returns a response. This response is parsed to get the desired predictions.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># access individual response columns to get values back.</span>
+<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">response</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">(</span><span class="n">col</span><span class="p">),</span> <span class="n">response</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">(</span><span class="n">col</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>output_1 [[0.49797073]
+ [0.49776396]
+ [0.49809718]] (3, 1)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline"></a></h2>
+<p>This sample notebook started with an exported DLRM model and workflow.  We saw how to create an ensemble graph, verify the ensemble artifacts in the file system, and then put the ensemble into production with Triton Inference Server.  Finally, we sent a simple inference request to the server and printed the response.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Merlin Systems Example Notebook" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api.html" class="btn btn-neutral float-right" title="API Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, NVIDIA.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
