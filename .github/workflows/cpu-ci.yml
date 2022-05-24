@@ -51,7 +51,7 @@ jobs:
         codespell
     - name: Build
       run: |
-        python setup.py develop
+        pip install .
     - name: Run unittests
       run: |
         python -m pytest -rxs tests/unit/
