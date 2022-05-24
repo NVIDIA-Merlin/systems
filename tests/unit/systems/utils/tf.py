@@ -13,27 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from distutils.spawn import find_executable
-
 import pytest
 
-torch = pytest.importorskip("torch")  # noqa
 loader_tf_utils = pytest.importorskip("nvtabular.loader.tf_utils")  # noqa
 loader_tf_utils.configure_tensorflow()
+tf = pytest.importorskip("tensorflow")
 
 import nvtabular.framework_utils.tensorflow.layers as layers  # noqa
-from nvtabular.framework_utils.torch.models import Model  # noqa
-
-triton = pytest.importorskip("merlin.systems.triton")
-data_conversions = pytest.importorskip("merlin.systems.triton.conversions")
-
-tritonclient = pytest.importorskip("tritonclient")
-grpcclient = pytest.importorskip("tritonclient.grpc")
-
-TRITON_SERVER_PATH = find_executable("tritonserver")
-from merlin.systems.triton.utils import run_triton_server  # noqa
-
-tf = pytest.importorskip("tensorflow")
 
 
 def create_tf_model(cat_columns: list, cat_mh_columns: list, embed_tbl_shapes: dict):
@@ -66,31 +52,3 @@ def create_tf_model(cat_columns: list, cat_mh_columns: list, embed_tbl_shapes: d
     model = tf.keras.Model(inputs=inputs, outputs=x)
     model.compile("sgd", "binary_crossentropy")
     return model
-
-
-def create_pytorch_model(cat_columns: list, cat_mh_columns: list, embed_tbl_shapes: dict):
-    single_hot = {k: v for k, v in embed_tbl_shapes.items() if k in cat_columns}
-    multi_hot = {k: v for k, v in embed_tbl_shapes.items() if k in cat_mh_columns}
-    model = Model(
-        embedding_table_shapes=(single_hot, multi_hot),
-        num_continuous=0,
-        emb_dropout=0.0,
-        layer_hidden_dims=[128, 128, 128],
-        layer_dropout_rates=[0.0, 0.0, 0.0],
-    ).to("cuda")
-    return model
-
-
-def _run_ensemble_on_tritonserver(
-    tmpdir,
-    output_columns,
-    df,
-    model_name,
-):
-    inputs = triton.convert_df_to_triton_input(df.columns, df)
-    outputs = [grpcclient.InferRequestedOutput(col) for col in output_columns]
-    response = None
-    with run_triton_server(tmpdir) as client:
-        response = client.infer(model_name, inputs, outputs=outputs)
-
-    return response
