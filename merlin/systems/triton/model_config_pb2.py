@@ -16,7 +16,7 @@ _sym_db = _symbol_database.Default()
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
-    name="model_config.proto",
+    name="systems_model_config.proto",
     package="inference",
     syntax="proto3",
     serialized_options=None,
