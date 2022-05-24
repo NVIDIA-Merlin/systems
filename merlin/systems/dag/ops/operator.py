@@ -9,7 +9,7 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
 
-import merlin.systems.triton.model_config_pb2 as model_config  # noqa
+import nvtabular.inference.triton.model_config_pb2 as model_config  # noqa
 from merlin.dag import BaseOperator  # noqa
 from merlin.dag.selector import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa

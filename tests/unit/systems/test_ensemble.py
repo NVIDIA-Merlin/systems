@@ -48,7 +48,7 @@ from tests.unit.systems.utils.tf import create_tf_model  # noqa
 from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
 
 tritonclient = pytest.importorskip("tritonclient")
-import merlin.systems.triton.model_config_pb2 as model_config  # noqa
+import nvtabular.inference.triton.model_config_pb2 as model_config  # noqa
 
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
