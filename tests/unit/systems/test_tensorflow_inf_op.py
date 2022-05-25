@@ -28,7 +28,7 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
 
-model_config = pytest.importorskip("nvtabular.inference.triton.model_config_pb2")
+model_config = pytest.importorskip("nvtabular.inference.triton.model_config_util")
 tf_op = pytest.importorskip("merlin.systems.dag.ops.tensorflow")
 
 tf = pytest.importorskip("tensorflow")
