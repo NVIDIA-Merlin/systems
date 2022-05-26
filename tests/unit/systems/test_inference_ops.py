@@ -28,7 +28,7 @@ from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
 
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")
-model_config = pytest.importorskip("nvtabular.inference.triton.model_config_pb2")
+model_config = pytest.importorskip("tritonclient.grpc.model_config_pb2")
 workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
 
 
