@@ -24,8 +24,6 @@ class FILPredict(InferenceOperator):
             An XGBoost model.
         """
         self.model = model
-        self.input_schema = Schema([ColumnSchema("input__0", dtype=np.int32)])
-        self.output_schema = Schema([ColumnSchema("output__0", dtype=np.int32)])
         super().__init__()
 
     def compute_input_schema(
@@ -35,12 +33,12 @@ class FILPredict(InferenceOperator):
         deps_schema: Schema,
         selector: ColumnSelector,
     ) -> Schema:
-        return self.input_schema
+        return Schema([ColumnSchema("input__0", dtype=np.int32)])
 
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
-        return self.output_schema
+        return Schema([ColumnSchema("output__0", dtype=np.int32)])
 
     def export(self, path, input_schema, output_schema, node_id=None, version=1):
         """Export the model to the supplied path."""
