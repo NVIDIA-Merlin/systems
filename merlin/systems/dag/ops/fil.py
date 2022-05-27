@@ -33,12 +33,12 @@ class FILPredict(InferenceOperator):
         deps_schema: Schema,
         selector: ColumnSelector,
     ) -> Schema:
-        return Schema([ColumnSchema("input__0", dtype=np.int32)])
+        return Schema([ColumnSchema("input__0", dtype=np.float32)])
 
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
-        return Schema([ColumnSchema("output__0", dtype=np.int32)])
+        return Schema([ColumnSchema("output__0", dtype=np.float32)])
 
     def export(self, path, input_schema, output_schema, node_id=None, version=1):
         """Export the model to the supplied path."""
