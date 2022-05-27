@@ -1,9 +1,9 @@
 import pathlib
 
 import numpy as np
+import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
-import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator
