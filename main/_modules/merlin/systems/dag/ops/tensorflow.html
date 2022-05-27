@@ -95,9 +95,9 @@
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;python&quot;</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>  <span class="c1"># noqa</span>
+<span class="kn">import</span> <span class="nn">tritonclient.grpc.model_config_pb2</span> <span class="k">as</span> <span class="nn">model_config</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">google.protobuf</span> <span class="kn">import</span> <span class="n">text_format</span>  <span class="c1"># noqa</span>
 
-<span class="kn">import</span> <span class="nn">merlin.systems.triton.model_config_pb2</span> <span class="k">as</span> <span class="nn">model_config</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">ColumnSelector</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">ColumnSchema</span><span class="p">,</span> <span class="n">Schema</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">InferenceOperator</span>  <span class="c1"># noqa</span>
