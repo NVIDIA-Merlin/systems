@@ -40,7 +40,7 @@ def test_fil_op_exports_own_config(tmpdir):
     model = xgb.train(params, data)
 
     # Triton
-    triton_op = fil_op.FILPredict(model)
+    triton_op = fil_op.FIL(model)
     triton_op.export(tmpdir, None, None)
 
     # Export creates directory
@@ -70,7 +70,7 @@ def test_fil_op_compute_schema():
     model = xgb.train(params, data)
 
     # Triton
-    triton_op = fil_op.FILPredict(model)
+    triton_op = fil_op.FIL(model)
 
     out_schema = triton_op.compute_output_schema(
         Schema(["input__0"]), ColumnSelector(["input__0"]), None
@@ -86,7 +86,7 @@ def test_fil_schema_validation():
     model = xgb.train(params, data)
 
     # Triton
-    fil_node = [] >> fil_op.FILPredict(model)
+    fil_node = [] >> fil_op.FIL(model)
     fil_graph = Graph(fil_node)
 
     with pytest.raises(ValueError) as exception_info:

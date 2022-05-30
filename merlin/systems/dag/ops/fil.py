@@ -9,7 +9,7 @@ from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator
 
 
-class FILPredict(InferenceOperator):
+class FIL(InferenceOperator):
     """Operator for Forest Inference Library (FIL) models.
 
     Packages up XGBoost models to run on Triton inference server using the fil backend.
