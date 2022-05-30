@@ -34,7 +34,7 @@ model_config = pytest.importorskip("tritonclient.grpc.model_config_pb2")
 
 def test_fil_op_exports_own_config(tmpdir):
     params = {"objective": "binary:logistic"}
-    X = [[1, 2, 3]]
+    X = [[1, 2], [2, 4], [3, 5]]
     y = [0, 1, 0]
     data = xgb.DMatrix(X, label=y)
     model = xgb.train(params, data)
@@ -64,7 +64,7 @@ def test_fil_op_exports_own_config(tmpdir):
 
 def test_fil_op_compute_schema():
     params = {"objective": "binary:logistic"}
-    X = [[1, 2, 3]]
+    X = [[1, 2], [2, 4], [3, 5]]
     y = [0, 1, 0]
     data = xgb.DMatrix(X, label=y)
     model = xgb.train(params, data)
@@ -80,7 +80,7 @@ def test_fil_op_compute_schema():
 
 def test_fil_schema_validation():
     params = {"objective": "binary:logistic"}
-    X = [[1, 2, 3]]
+    X = [[1, 2], [2, 4], [3, 5]]
     y = [0, 1, 0]
     data = xgb.DMatrix(X, label=y)
     model = xgb.train(params, data)
