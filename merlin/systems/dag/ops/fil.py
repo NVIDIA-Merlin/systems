@@ -417,9 +417,10 @@ def fil_config(
     if output_class and predict_proba:
         output_dim = num_classes
 
-        # edge case where classifier has not specified the number of classes correctly
-        if output_dim < 1:
-            output_dim = 2
+        # where classifier has not specified the number of classes
+        # and we're requesting to output class probabilities
+        # assume this is a binary classifier
+        output_dim = max(output_dim, 2)
 
     parameters = {
         "model_type": model_type,
