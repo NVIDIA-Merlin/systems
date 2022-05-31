@@ -59,6 +59,24 @@ def test_xgboost_multiclass(tmpdir, xgboost_mutli_classifier):
     assert config.parameters["threshold"].string_value == "0.7500"
 
 
+def test_lightgbm_binary(tmpdir, lightgbm_binary_classifier):
+    triton_op = fil_op.FIL(lightgbm_binary_classifier, threshold=0.75)
+    config = export_op(tmpdir, triton_op)
+    assert config.parameters["model_type"].string_value == "lightgbm"
+    assert config.parameters["output_class"].string_value == "false"
+    assert config.parameters["predict_proba"].string_value == "false"
+    assert config.parameters["threshold"].string_value == "0.7500"
+
+
+def test_sklearn_binary(tmpdir, sklearn_binary_classifier):
+    triton_op = fil_op.FIL(sklearn_binary_classifier, threshold=0.75)
+    config = export_op(tmpdir, triton_op)
+    assert config.parameters["model_type"].string_value == "treelite_checkpoint"
+    assert config.parameters["output_class"].string_value == "false"
+    assert config.parameters["predict_proba"].string_value == "false"
+    assert config.parameters["threshold"].string_value == "0.7500"
+
+
 def test_proba(tmpdir, xgboost_mutli_classifier):
     triton_op = fil_op.FIL(xgboost_mutli_classifier, predict_proba=True)
     config = export_op(tmpdir, triton_op)
