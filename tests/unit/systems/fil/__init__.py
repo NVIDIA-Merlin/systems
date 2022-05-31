@@ -19,3 +19,4 @@ import pytest
 pytest.importorskip("xgboost")
 pytest.importorskip("sklearn")
 pytest.importorskip("lightgbm")
+pytest.importorskip("cuml")
