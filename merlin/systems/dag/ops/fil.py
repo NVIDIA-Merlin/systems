@@ -1,8 +1,7 @@
 import json
 import pathlib
 import pickle
-import sys
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 import numpy as np
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
@@ -10,6 +9,7 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
+from merlin.systems.dag.ops.compat import lightgbm, sklearn, xgboost
 from merlin.systems.dag.ops.operator import InferenceOperator
 
 
@@ -33,30 +33,61 @@ class FIL(InferenceOperator):
         blocks_per_sm=0,
         transfer_threshold=0,
     ):
-        """Instantiate a FILPredict inference operator.
+        """Instantiate a FIL inference operator.
 
         Parameters
         ----------
         model : Forest model
             A forest model class. Supports XGBoost, LightGBM, and Scikit-Learn.
         max_batch_size : int
-           The maximum number of samples to process in a batch. In general, FIL's efficient handling of even large forest models means that this value can be quite high, but this may need to be reduced for your particular hardware configuration if you find that you are exhausting system resources (such as GPU or system RAM).
+           The maximum number of samples to process in a batch. In general, FIL's
+           efficient handling of even large forest models means that this value can be
+           quite high, but this may need to be reduced for your particular hardware
+           configuration if you find that you are exhausting system resources (such as GPU
+           or system RAM).
         predict_proba : bool
-            If using a classification model. Specifies whether the desired output is a score for each class or merely the predicted class ID. Changes the output size to NUMBER_OF_CLASSES.
+            If using a classification model. Specifies whether the desired output is a
+            score for each class or merely the predicted class ID. Changes the output size
+            to NUMBER_OF_CLASSES.
         output_class : bool
-            Is the model a classification model? If set to True will output class ID, unless predict_proba is also to True.
+            Is the model a classification model? If set to True will output class ID,
+            unless predict_proba is also to True.
         threshold : float
-            If using a classification model. The threshold score used for class prediction. Defaults to 0.5.
+            If using a classification model. The threshold score used for class
+            prediction. Defaults to 0.5.
         algo : str
-            One of "ALGO_AUTO", "NAIVE", "TREE_REORG" or "BATCH_TREE_REORG" indicating which FIL inference algorithm to use. More details are available in the cuML documentation. If you are uncertain of what algorithm to use, we recommend selecting "ALGO_AUTO", since it is a safe choice for all models.
+            One of "ALGO_AUTO", "NAIVE", "TREE_REORG" or "BATCH_TREE_REORG" indicating
+            which FIL inference algorithm to use. More details are available in the cuML
+            documentation. If you are uncertain of what algorithm to use, we recommend
+            selecting "ALGO_AUTO", since it is a safe choice for all models.
         storage_type : str
-            One of "AUTO", "DENSE", "SPARSE", and "SPARSE8", indicating the storage format that should be used to represent the imported model. "AUTO" indicates that the storage format should be automatically chosen. "SPARSE8" is currently experimental.
+            One of "AUTO", "DENSE", "SPARSE", and "SPARSE8", indicating the storage format
+            that should be used to represent the imported model. "AUTO" indicates that the
+            storage format should be automatically chosen. "SPARSE8" is currently
+            experimental.
         threads_per_tree : int
-            Determines number of threads used to use for inference on a single tree. Increasing this above 1 can improve memory bandwidth near the tree root but use more shared memory. In general, network latency will significantly overshadow any speedup from tweaking this setting, but it is provided for cases where maximizing throughput is essential. for a more thorough explanation of this parameter and how it may be used.
+            Determines number of threads used to use for inference on a single
+            tree. Increasing this above 1 can improve memory bandwidth near the tree root
+            but use more shared memory. In general, network latency will significantly
+            overshadow any speedup from tweaking this setting, but it is provided for
+            cases where maximizing throughput is essential. for a more thorough
+            explanation of this parameter and how it may be used.
         blocks_per_sm : int
-             If set to any nonzero value (generally between 2 and 7), this provides a limit to improve the cache hit rate for large forest models. In general, network latency will significantly overshadow any speedup from tweaking this setting, but it is provided for cases where maximizing throughput is essential. Please see the cuML documentation for a more thorough explanation of this parameter and how it may be used.
+             If set to any nonzero value (generally between 2 and 7), this provides a
+             limit to improve the cache hit rate for large forest models. In general,
+             network latency will significantly overshadow any speedup from tweaking this
+             setting, but it is provided for cases where maximizing throughput is
+             essential. Please see the cuML documentation for a more thorough explanation
+             of this parameter and how it may be used.
         transfer_threshold : int
-             If the number of samples in a batch exceeds this value and the model is deployed on the GPU, then GPU inference will be used. Otherwise, CPU inference will be used for batches received in host memory with a number of samples less than or equal to this threshold. For most models and systems, the default transfer threshold of 0 (meaning that data is always transferred to the GPU for processing) will provide optimal latency and throughput, but for low-latency deployments with the use_experimental_optimizations flag set to true, higher values may be desirable.
+             If the number of samples in a batch exceeds this value and the model is
+             deployed on the GPU, then GPU inference will be used. Otherwise, CPU
+             inference will be used for batches received in host memory with a number of
+             samples less than or equal to this threshold. For most models and systems,
+             the default transfer threshold of 0 (meaning that data is always transferred
+             to the GPU for processing) will provide optimal latency and throughput, but
+             for low-latency deployments with the use_experimental_optimizations flag set
+             to true, higher values may be desirable.
         """
         self.max_batch_size = max_batch_size
         self.parameters = dict(
@@ -78,6 +109,7 @@ class FIL(InferenceOperator):
         deps_schema: Schema,
         selector: ColumnSelector,
     ) -> Schema:
+        """Returns input schema for FIL op"""
         return Schema([ColumnSchema("input__0", dtype=np.float32)])
 
     def compute_output_schema(
@@ -86,6 +118,7 @@ class FIL(InferenceOperator):
         col_selector: ColumnSelector,
         prev_output_schema: Schema = None,
     ) -> Schema:
+        """Returns output schema for FIL op"""
         return Schema([ColumnSchema("output__0", dtype=np.float32)])
 
     def export(self, path, input_schema, output_schema, node_id=None, version=1):
@@ -112,8 +145,8 @@ class FIL(InferenceOperator):
         return config
 
 
-class FILModel(metaclass=ABCMeta):
-    """Interface for a FIL Model. Methods implment required information to construct a FIL
+class FILModel(ABC):
+    """Interface for a FIL Model. Methods implement required information to construct a FIL
     model configuration file"""
 
     def __init__(self, model):
@@ -129,7 +162,7 @@ class FILModel(metaclass=ABCMeta):
     @abstractmethod
     def num_classes(self):
         """
-        The number of classses
+        The number of classes
         """
 
     @property
@@ -165,30 +198,34 @@ def get_fil_model(model) -> FILModel:
             - LightGBM {Booster}
             - Scikit-Learn {RandomForestClassifier, RandomForestRegressor}
     """
-    if "xgboost" in sys.modules and isinstance(model, sys.modules["xgboost"].Booster):
+    if xgboost and isinstance(model, xgboost.Booster):
         fil_model = XGBoost(model)
-    elif "xgboost" in sys.modules and isinstance(
-        model, (sys.modules["xgboost"].XGBClassifier, sys.modules["xgboost"].XGBRegressor)
-    ):
+    elif xgboost and isinstance(model, (xgboost.XGBClassifier, xgboost.XGBRegressor)):
         fil_model = XGBoost(model.get_booster())
-    elif "lightgbm" in sys.modules and isinstance(model, sys.modules["lightgbm"].Booster):
+    elif lightgbm and isinstance(model, lightgbm.Booster):
         fil_model = LightGBM(model)
-    elif "sklearn" in sys.modules and isinstance(
+    elif sklearn and isinstance(
         model,
         (
-            sys.modules["sklearn"].ensemble.RandomForestClassifier,
-            sys.modules["sklearn"].ensemble.RandomForestRegressor,
+            sklearn.ensemble.RandomForestClassifier,
+            sklearn.ensemble.RandomForestRegressor,
         ),
     ):
         fil_model = SKLearnRandomForest(model)
     else:
         raise ValueError(
-            "Model type not supported. Must be one of {xgboost.Booster, lightgbm.Booster, sklearn.ensemble.RandomForestClassifier, sklearn.ensemble.RandomForestRegressor}"
+            "Model type not supported. Must be one of"
+            "{"
+            "xgboost.Booster, lightgbm.Booster, "
+            "sklearn.ensemble.RandomForestClassifier, sklearn.ensemble.RandomForestRegressor"
+            "}"
         )
     return fil_model
 
 
 class XGBoost(FILModel):
+    """XGBoost Wrapper for FIL."""
+
     model_type = "xgboost_json"
     model_filename = "xgboost.json"
 
@@ -200,7 +237,9 @@ class XGBoost(FILModel):
         objective = learner["objective"]["name"]
         if objective == "binary:hinge":
             raise ValueError(
-                "Objective binary:hinge is not supported. Only sigmoid and identity values of pred_transform are supported for binary classification"
+                "Objective binary:hinge is not supported."
+                "Only sigmoid and identity values of pred_transform are supported"
+                " for binary classification."
             )
 
         learner_model_param = learner["learner_model_param"]
@@ -209,7 +248,10 @@ class XGBoost(FILModel):
         if num_targets > 1:
             raise ValueError("Only single target objectives are supported.")
 
+        super().__init__(model)
+
     def save(self, version_path) -> None:
+        """Save model to version_path."""
         model_path = pathlib.Path(version_path) / self.model_filename
         self.model.save_model(model_path)
 
@@ -236,10 +278,13 @@ class XGBoost(FILModel):
 
 
 class LightGBM(FILModel):
+    """LightGBM Wrapper for FIL."""
+
     model_type = "lightgbm"
     model_filename = "model.txt"
 
     def save(self, version_path):
+        """Save model to version_path."""
         model_path = pathlib.Path(version_path) / self.model_filename
         self.model.save_model(model_path)
 
@@ -256,11 +301,14 @@ class LightGBM(FILModel):
         return 1
 
 
-class SKLearnRandomForest:
+class SKLearnRandomForest(FILModel):
+    """Scikit-Learn RandomForest Wrapper for FIL."""
+
     model_type = "treelite_checkpoint"
     model_filename = "model.pkl"
 
     def save(self, version_path):
+        """Save model to version_path."""
         model_path = pathlib.Path(version_path) / self.model_filename
         with open(model_path, "wb") as model_file:
             pickle.dump(self.model, model_file)
@@ -294,7 +342,71 @@ def fil_config(
     threads_per_tree=1,
     transfer_threshold=0,
 ) -> model_config.ModelConfig:
+    """Construct and return a FIL ModelConfig protobuf object.
 
+    Parameters
+    ----------
+    name : str
+        The name of the model
+    model_type : str
+        The type of model. One of {xgboost, xgboost_json, lightgbm, treelite_checkpoint}
+    num_features : int
+        The number of input features to the model.
+    num_classes : int
+        If the model is a classifier. The number of classes.
+    max_batch_size : int
+       The maximum number of samples to process in a batch. In general, FIL's
+       efficient handling of even large forest models means that this value can be
+       quite high, but this may need to be reduced for your particular hardware
+       configuration if you find that you are exhausting system resources (such as GPU
+       or system RAM).
+    predict_proba : bool
+        If using a classification model. Specifies whether the desired output is a
+        score for each class or merely the predicted class ID. Changes the output size
+        to NUMBER_OF_CLASSES.
+    output_class : bool
+        Is the model a classification model? If set to True will output class ID,
+        unless predict_proba is also to True.
+    threshold : float
+        If using a classification model. The threshold score used for class
+        prediction. Defaults to 0.5.
+    algo : str
+        One of "ALGO_AUTO", "NAIVE", "TREE_REORG" or "BATCH_TREE_REORG" indicating
+        which FIL inference algorithm to use. More details are available in the cuML
+        documentation. If you are uncertain of what algorithm to use, we recommend
+        selecting "ALGO_AUTO", since it is a safe choice for all models.
+    storage_type : str
+        One of "AUTO", "DENSE", "SPARSE", and "SPARSE8", indicating the storage format
+        that should be used to represent the imported model. "AUTO" indicates that the
+        storage format should be automatically chosen. "SPARSE8" is currently
+        experimental.
+    threads_per_tree : int
+        Determines number of threads used to use for inference on a single
+        tree. Increasing this above 1 can improve memory bandwidth near the tree root
+        but use more shared memory. In general, network latency will significantly
+        overshadow any speedup from tweaking this setting, but it is provided for
+        cases where maximizing throughput is essential. for a more thorough
+        explanation of this parameter and how it may be used.
+    blocks_per_sm : int
+         If set to any nonzero value (generally between 2 and 7), this provides a
+         limit to improve the cache hit rate for large forest models. In general,
+         network latency will significantly overshadow any speedup from tweaking this
+         setting, but it is provided for cases where maximizing throughput is
+         essential. Please see the cuML documentation for a more thorough explanation
+         of this parameter and how it may be used.
+    transfer_threshold : int
+         If the number of samples in a batch exceeds this value and the model is
+         deployed on the GPU, then GPU inference will be used. Otherwise, CPU
+         inference will be used for batches received in host memory with a number of
+         samples less than or equal to this threshold. For most models and systems,
+         the default transfer threshold of 0 (meaning that data is always transferred
+         to the GPU for processing) will provide optimal latency and throughput, but
+         for low-latency deployments with the use_experimental_optimizations flag set
+         to true, higher values may be desirable.
+
+    Returns
+        model_config.ModelConfig
+    """
     input_dim = num_features
     output_dim = 1
 
