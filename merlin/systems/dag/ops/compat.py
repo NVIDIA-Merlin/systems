@@ -20,9 +20,9 @@ try:
 except ImportError:
     xgboost = None
 try:
-    import sklearn
+    import sklearn.ensemble as sklearn_ensemble
 except ImportError:
-    sklearn = None
+    sklearn_ensemble = None
 try:
     import lightgbm
 except ImportError:

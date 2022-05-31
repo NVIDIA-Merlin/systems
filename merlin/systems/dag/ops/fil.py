@@ -9,7 +9,7 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag.ops.compat import lightgbm, sklearn, xgboost
+from merlin.systems.dag.ops.compat import lightgbm, sklearn_ensemble, xgboost
 from merlin.systems.dag.ops.operator import InferenceOperator
 
 
@@ -204,11 +204,11 @@ def get_fil_model(model) -> FILModel:
         fil_model = XGBoost(model.get_booster())
     elif lightgbm and isinstance(model, lightgbm.Booster):
         fil_model = LightGBM(model)
-    elif sklearn and isinstance(
+    elif sklearn_ensemble and isinstance(
         model,
         (
-            sklearn.ensemble.RandomForestClassifier,
-            sklearn.ensemble.RandomForestRegressor,
+            sklearn_ensemble.RandomForestClassifier,
+            sklearn_ensemble.RandomForestRegressor,
         ),
     ):
         fil_model = SKLearnRandomForest(model)
