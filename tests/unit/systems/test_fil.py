@@ -18,7 +18,6 @@ import pathlib
 from copy import deepcopy
 
 import pytest
-import xgboost as xgb
 
 import merlin.systems.dag.ops.fil as fil_op
 from merlin.dag import ColumnSelector, Graph
@@ -32,19 +31,11 @@ from google.protobuf import text_format  # noqa
 model_config = pytest.importorskip("tritonclient.grpc.model_config_pb2")
 
 
-def test_fil_op_exports_own_config(tmpdir):
-    params = {"objective": "binary:logistic"}
-    X = [[1, 2], [2, 4], [3, 5]]
-    y = [0, 1, 0]
-    data = xgb.DMatrix(X, label=y)
-    model = xgb.train(params, data)
-
-    # Triton
-    triton_op = fil_op.FIL(model)
-    triton_op.export(tmpdir, None, None)
+def export_op(export_dir, triton_op) -> model_config.ModelConfig:
+    triton_op.export(export_dir, None, None)
 
     # Export creates directory
-    export_path = pathlib.Path(tmpdir) / triton_op.export_name
+    export_path = pathlib.Path(export_dir) / triton_op.export_name
     assert export_path.exists()
 
     # Export creates the config file
@@ -56,18 +47,43 @@ def test_fil_op_exports_own_config(tmpdir):
         config = model_config.ModelConfig()
         raw_config = f.read()
         parsed = text_format.Parse(raw_config, config)
-
-        # The config file contents are correct
-        assert parsed.name == triton_op.export_name
-        assert parsed.backend == "fil"
+        return parsed
 
 
-def test_fil_op_compute_schema():
-    params = {"objective": "binary:logistic"}
-    X = [[1, 2], [2, 4], [3, 5]]
-    y = [0, 1, 0]
-    data = xgb.DMatrix(X, label=y)
-    model = xgb.train(params, data)
+def test_xgboost_multiclass(tmpdir, xgboost_mutli_classifier):
+    triton_op = fil_op.FIL(xgboost_mutli_classifier, threshold=0.75)
+    config = export_op(tmpdir, triton_op)
+    assert config.parameters["model_type"].string_value == "xgboost_json"
+    assert config.parameters["output_class"].string_value == "true"
+    assert config.parameters["predict_proba"].string_value == "false"
+    assert config.parameters["threshold"].string_value == "0.7500"
+
+
+def test_proba(tmpdir, xgboost_mutli_classifier):
+    triton_op = fil_op.FIL(xgboost_mutli_classifier, predict_proba=True)
+    config = export_op(tmpdir, triton_op)
+    assert config.parameters["model_type"].string_value == "xgboost_json"
+    assert config.parameters["output_class"].string_value == "true"
+    assert config.parameters["predict_proba"].string_value == "true"
+
+
+def test_fil_op_exports_own_config(tmpdir, xgboost_binary_classifier):
+    model = xgboost_binary_classifier
+
+    # Triton
+    triton_op = fil_op.FIL(model)
+    config = export_op(tmpdir, triton_op)
+
+    assert config.name == triton_op.export_name
+    assert config.backend == "fil"
+    assert config.max_batch_size == 8192
+    assert config.input[0].name == "input__0"
+    assert config.output[0].name == "output__0"
+    assert config.output[0].dims == [1]
+
+
+def test_fil_op_compute_schema(xgboost_binary_classifier):
+    model = xgboost_binary_classifier
 
     # Triton
     triton_op = fil_op.FIL(model)
@@ -78,12 +94,8 @@ def test_fil_op_compute_schema():
     assert out_schema.column_names == ["output__0"]
 
 
-def test_fil_schema_validation():
-    params = {"objective": "binary:logistic"}
-    X = [[1, 2], [2, 4], [3, 5]]
-    y = [0, 1, 0]
-    data = xgb.DMatrix(X, label=y)
-    model = xgb.train(params, data)
+def test_fil_schema_validation(xgboost_binary_classifier):
+    model = xgboost_binary_classifier
 
     # Triton
     fil_node = [] >> fil_op.FIL(model)
