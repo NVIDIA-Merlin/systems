@@ -33,7 +33,6 @@ jobs:
         python -m pip install --upgrade pip setuptools==59.4.0 wheel 
         python -m pip install -r requirements-dev.txt
         python -m pip install tensorflow
-        python -m pip install xgboost lightgbm scikit-learn cuml
     - name: Lint with flake8
       run: |
         flake8 .
