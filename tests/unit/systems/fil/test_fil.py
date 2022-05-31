@@ -17,7 +17,11 @@ import os
 import pathlib
 from copy import deepcopy
 
+import cuml
+import lightgbm
 import pytest
+import sklearn.ensemble
+import xgboost
 
 import merlin.systems.dag.ops.fil as fil_op
 from merlin.dag import ColumnSelector, Graph
@@ -50,43 +54,198 @@ def export_op(export_dir, triton_op) -> model_config.ModelConfig:
         return parsed
 
 
-def test_xgboost_multiclass(tmpdir, xgboost_mutli_classifier):
-    triton_op = fil_op.FIL(xgboost_mutli_classifier, threshold=0.75)
-    config = export_op(tmpdir, triton_op)
-    assert config.parameters["model_type"].string_value == "xgboost_json"
-    assert config.parameters["output_class"].string_value == "true"
-    assert config.parameters["predict_proba"].string_value == "false"
-    assert config.parameters["threshold"].string_value == "0.7500"
+def get_classification_data(classes=2, rows=200, cols=16):
+    with cuml.using_output_type("numpy"):
+        return cuml.datasets.make_classification(
+            n_samples=rows,
+            n_features=cols,
+            n_informative=cols // 3,
+            n_classes=classes,
+            random_state=0,
+        )
 
 
-def test_lightgbm_binary(tmpdir, lightgbm_binary_classifier):
-    triton_op = fil_op.FIL(lightgbm_binary_classifier, threshold=0.75)
+def get_regression_data(rows=200, cols=16, **kwargs):
+    with cuml.using_output_type("numpy"):
+        X, y = cuml.datasets.make_regression(
+            n_samples=rows, n_features=cols, n_informative=cols // 3, random_state=0, **kwargs
+        )
+        return X, y
+
+
+def xgboost_train(X, y, **params):
+    data = xgboost.DMatrix(X, label=y)
+    model = xgboost.train(params, data)
+    return model
+
+
+def xgboost_regressor(X, y, **params):
+    model = xgboost.XGBRegressor(**params)
+    model.fit(X, y)
+    return model
+
+
+def xgboost_classifier(X, y, **params):
+    model = xgboost.XGBClassifier(**params)
+    model.fit(X, y)
+    return model
+
+
+def lightgbm_train(X, y, **params):
+    data = lightgbm.Dataset(X, label=y.ravel())
+    model = lightgbm.train({**params, "verbose": -1}, data, 100)
+    return model
+
+
+def lightgbm_classifier(X, y, **params):
+    model = lightgbm.LGBMClassifier(**params)
+    model.fit(X, y)
+    return model
+
+
+def lightgbm_regressor(X, y, **params):
+    model = lightgbm.LGBMRegressor(**params)
+    model.fit(X, y.ravel())
+    return model
+
+
+def sklearn_forest_classifier(X, y, **params):
+    params = {
+        "max_depth": 25,
+        "n_estimators": 100,
+        "random_state": 0,
+        **params,
+    }
+    model = sklearn.ensemble.RandomForestClassifier(**params)
+    model.fit(X, y)
+    return model
+
+
+def sklearn_forest_regressor(X, y, **params):
+    params = {
+        "max_depth": 25,
+        "n_estimators": 100,
+        "random_state": 0,
+        **params,
+    }
+    model = sklearn.ensemble.RandomForestRegressor(**params)
+    model.fit(X, y.ravel())
+    return model
+
+
+def cuml_forest_classifier(X, y, **params):
+    params = {
+        "max_depth": 25,
+        "n_estimators": 100,
+        "random_state": 0,
+        "n_streams": 1,
+        **params,
+    }
+    model = cuml.ensemble.RandomForestClassifier(**params)
+    model.fit(X, y)
+    return model
+
+
+def cuml_forest_regressor(X, y, **params):
+    params = {
+        "max_depth": 25,
+        "n_estimators": 100,
+        "random_state": 0,
+        "n_streams": 1,
+        **params,
+    }
+    model = cuml.ensemble.RandomForestRegressor(**params)
+    model.fit(X, y)
+    return model
+
+
+@pytest.mark.parametrize(
+    ["get_model_fn", "get_model_params"],
+    [
+        (xgboost_train, {"objective": "binary:logistic"}),
+        (xgboost_classifier, {}),
+        (lightgbm_train, {"objective": "binary"}),
+        (lightgbm_classifier, {}),
+        (sklearn_forest_classifier, {}),
+        (cuml_forest_classifier, {}),
+    ],
+)
+def test_binary_classifier_default(get_model_fn, get_model_params, tmpdir):
+    X, y = get_classification_data(classes=2)
+    model = get_model_fn(X, y, **get_model_params)
+    triton_op = fil_op.FIL(model)
     config = export_op(tmpdir, triton_op)
-    assert config.parameters["model_type"].string_value == "lightgbm"
     assert config.parameters["output_class"].string_value == "false"
     assert config.parameters["predict_proba"].string_value == "false"
-    assert config.parameters["threshold"].string_value == "0.7500"
+    assert config.output[0].dims == [1]
 
 
-def test_sklearn_binary(tmpdir, sklearn_binary_classifier):
-    triton_op = fil_op.FIL(sklearn_binary_classifier, threshold=0.75)
+@pytest.mark.parametrize(
+    ["get_model_fn", "get_model_params"],
+    [
+        (xgboost_train, {"objective": "binary:logistic"}),
+        (xgboost_classifier, {}),
+        (lightgbm_train, {"objective": "binary"}),
+        (lightgbm_classifier, {}),
+        (sklearn_forest_classifier, {}),
+        (cuml_forest_classifier, {}),
+    ],
+)
+def test_binary_classifier_with_proba(get_model_fn, get_model_params, tmpdir):
+    X, y = get_classification_data(classes=2)
+    model = get_model_fn(X, y, **get_model_params)
+    triton_op = fil_op.FIL(model, predict_proba=True, output_class=True)
     config = export_op(tmpdir, triton_op)
-    assert config.parameters["model_type"].string_value == "treelite_checkpoint"
-    assert config.parameters["output_class"].string_value == "false"
-    assert config.parameters["predict_proba"].string_value == "false"
-    assert config.parameters["threshold"].string_value == "0.7500"
-
-
-def test_proba(tmpdir, xgboost_mutli_classifier):
-    triton_op = fil_op.FIL(xgboost_mutli_classifier, predict_proba=True)
-    config = export_op(tmpdir, triton_op)
-    assert config.parameters["model_type"].string_value == "xgboost_json"
     assert config.parameters["output_class"].string_value == "true"
     assert config.parameters["predict_proba"].string_value == "true"
+    assert config.output[0].dims == [2]
 
 
-def test_fil_op_exports_own_config(tmpdir, xgboost_binary_classifier):
-    model = xgboost_binary_classifier
+@pytest.mark.parametrize(
+    ["get_model_fn", "get_model_params"],
+    [
+        (xgboost_train, {"objective": "multi:softmax", "num_class": 8}),
+        (xgboost_classifier, {}),
+        (lightgbm_train, {"objective": "multiclass", "num_class": 8}),
+        (lightgbm_classifier, {}),
+        (sklearn_forest_classifier, {}),
+        (cuml_forest_classifier, {}),
+    ],
+)
+def test_multi_classifier(get_model_fn, get_model_params, tmpdir):
+    X, y = get_classification_data(classes=8)
+    model = get_model_fn(X, y, **get_model_params)
+    triton_op = fil_op.FIL(model, predict_proba=True, output_class=True)
+    config = export_op(tmpdir, triton_op)
+    assert config.parameters["output_class"].string_value == "true"
+    assert config.parameters["predict_proba"].string_value == "true"
+    assert config.output[0].dims == [8]
+
+
+@pytest.mark.parametrize(
+    ["get_model_fn", "get_model_params"],
+    [
+        (xgboost_train, {"objective": "reg:squarederror"}),
+        (xgboost_regressor, {}),
+        (lightgbm_train, {"objective": "regression"}),
+        (lightgbm_regressor, {}),
+        (sklearn_forest_regressor, {}),
+        (cuml_forest_regressor, {}),
+    ],
+)
+def test_regressor(get_model_fn, get_model_params, tmpdir):
+    X, y = get_regression_data()
+    model = get_model_fn(X, y, **get_model_params)
+    triton_op = fil_op.FIL(model)
+    config = export_op(tmpdir, triton_op)
+    assert config.parameters["output_class"].string_value == "false"
+    assert config.parameters["predict_proba"].string_value == "false"
+    assert config.output[0].dims == [1]
+
+
+def test_fil_op_exports_own_config(tmpdir):
+    X, y = get_regression_data()
+    model = xgboost_train(X, y, objective="reg:squarederror")
 
     # Triton
     triton_op = fil_op.FIL(model)
@@ -100,8 +259,9 @@ def test_fil_op_exports_own_config(tmpdir, xgboost_binary_classifier):
     assert config.output[0].dims == [1]
 
 
-def test_fil_op_compute_schema(xgboost_binary_classifier):
-    model = xgboost_binary_classifier
+def test_fil_op_compute_schema():
+    X, y = get_regression_data()
+    model = xgboost_train(X, y, objective="reg:squarederror")
 
     # Triton
     triton_op = fil_op.FIL(model)
@@ -112,8 +272,9 @@ def test_fil_op_compute_schema(xgboost_binary_classifier):
     assert out_schema.column_names == ["output__0"]
 
 
-def test_fil_schema_validation(xgboost_binary_classifier):
-    model = xgboost_binary_classifier
+def test_fil_schema_validation():
+    X, y = get_regression_data()
+    model = xgboost_train(X, y, objective="reg:squarederror")
 
     # Triton
     fil_node = [] >> fil_op.FIL(model)
