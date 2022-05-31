@@ -9,7 +9,7 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag.ops.compat import lightgbm, sklearn_ensemble, xgboost
+from merlin.systems.dag.ops.compat import cuml_ensemble, lightgbm, sklearn_ensemble, xgboost
 from merlin.systems.dag.ops.operator import InferenceOperator
 
 
@@ -200,10 +200,20 @@ def get_fil_model(model) -> FILModel:
     """
     if xgboost and isinstance(model, xgboost.Booster):
         fil_model = XGBoost(model)
-    elif xgboost and isinstance(model, (xgboost.XGBClassifier, xgboost.XGBRegressor)):
+    elif xgboost and isinstance(model, xgboost.XGBModel):
         fil_model = XGBoost(model.get_booster())
     elif lightgbm and isinstance(model, lightgbm.Booster):
         fil_model = LightGBM(model)
+    elif lightgbm and isinstance(model, lightgbm.LGBMModel):
+        fil_model = LightGBM(model.booster_)
+    elif cuml_ensemble and isinstance(
+        model,
+        (
+            cuml_ensemble.RandomForestClassifier,
+            cuml_ensemble.RandomForestRegressor,
+        ),
+    ):
+        fil_model = CUMLRandomForest(model)
     elif sklearn_ensemble and isinstance(
         model,
         (
@@ -213,12 +223,18 @@ def get_fil_model(model) -> FILModel:
     ):
         fil_model = SKLearnRandomForest(model)
     else:
+        supported_model_types = {
+            "xgboost.Booster",
+            "xgboost.XGBModel",
+            "lightgbm.Booster",
+            "lightgbm.LGBMModel",
+            "sklearn.ensemble.RandomForestClassifier",
+            "sklearn.ensemble.RandomForestRegressor",
+            "cuml.ensemble.RandomForestClassifier",
+            "cuml.ensemble.RandomForestRegressor",
+        }
         raise ValueError(
-            "Model type not supported. Must be one of"
-            "{"
-            "xgboost.Booster, lightgbm.Booster, "
-            "sklearn.ensemble.RandomForestClassifier, sklearn.ensemble.RandomForestRegressor"
-            "}"
+            f"Model type not supported. {type(model)} " f"Must be one of: {supported_model_types}"
         )
     return fil_model
 
@@ -298,6 +314,7 @@ class LightGBM(FILModel):
 
     @property
     def num_targets(self):
+        # only supports one target
         return 1
 
 
@@ -319,11 +336,44 @@ class SKLearnRandomForest(FILModel):
 
     @property
     def num_classes(self):
-        return self.model.n_classes_
+        try:
+            return self.model.n_classes_
+        except AttributeError:
+            # n_classes_ is not defined for RandomForestRegressor
+            return 0
 
     @property
     def num_targets(self):
         return self.model.n_outputs_
+
+
+class CUMLRandomForest(FILModel):
+
+    model_type = "treelite_checkpoint"
+    model_filename = "model.pkl"
+
+    def save(self, version_path):
+        """Save model to version_path."""
+        model_path = pathlib.Path(version_path) / self.model_filename
+        with open(model_path, "wb") as model_file:
+            pickle.dump(self.model, model_file)
+
+    @property
+    def num_features(self):
+        return self.model.n_features_in_
+
+    @property
+    def num_classes(self):
+        try:
+            return self.model.num_classes
+        except AttributeError:
+            # num_classes is not defined for RandomForestRegressor
+            return 0
+
+    @property
+    def num_targets(self):
+        # Only supports one target
+        return 1
 
 
 def fil_config(

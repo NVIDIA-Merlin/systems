@@ -27,3 +27,7 @@ try:
     import lightgbm
 except ImportError:
     lightgbm = None
+try:
+    import cuml.ensemble as cuml_ensemble
+except ImportError:
+    cuml_ensemble = None
