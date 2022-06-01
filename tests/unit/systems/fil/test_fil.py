@@ -20,6 +20,7 @@ from copy import deepcopy
 import cuml
 import lightgbm
 import pytest
+import sklearn.datasets
 import sklearn.ensemble
 import xgboost
 
@@ -55,22 +56,19 @@ def export_op(export_dir, triton_op) -> model_config.ModelConfig:
 
 
 def get_classification_data(classes=2, rows=200, cols=16):
-    with cuml.using_output_type("numpy"):
-        return cuml.datasets.make_classification(
-            n_samples=rows,
-            n_features=cols,
-            n_informative=cols // 3,
-            n_classes=classes,
-            random_state=0,
-        )
+    return sklearn.datasets.make_classification(
+        n_samples=rows,
+        n_features=cols,
+        n_informative=cols // 3,
+        n_classes=classes,
+        random_state=0,
+    )
 
 
 def get_regression_data(rows=200, cols=16, **kwargs):
-    with cuml.using_output_type("numpy"):
-        X, y = cuml.datasets.make_regression(
-            n_samples=rows, n_features=cols, n_informative=cols // 3, random_state=0, **kwargs
-        )
-        return X, y
+    return sklearn.datasets.make_regression(
+        n_samples=rows, n_features=cols, n_informative=cols // 3, random_state=0, **kwargs
+    )
 
 
 def xgboost_train(X, y, **params):
@@ -167,7 +165,6 @@ def cuml_forest_regressor(X, y, **params):
         (lightgbm_train, {"objective": "binary"}),
         (lightgbm_classifier, {}),
         (sklearn_forest_classifier, {}),
-        (cuml_forest_classifier, {}),
     ],
 )
 def test_binary_classifier_default(get_model_fn, get_model_params, tmpdir):
@@ -188,7 +185,6 @@ def test_binary_classifier_default(get_model_fn, get_model_params, tmpdir):
         (lightgbm_train, {"objective": "binary"}),
         (lightgbm_classifier, {}),
         (sklearn_forest_classifier, {}),
-        (cuml_forest_classifier, {}),
     ],
 )
 def test_binary_classifier_with_proba(get_model_fn, get_model_params, tmpdir):
@@ -209,7 +205,6 @@ def test_binary_classifier_with_proba(get_model_fn, get_model_params, tmpdir):
         (lightgbm_train, {"objective": "multiclass", "num_class": 8}),
         (lightgbm_classifier, {}),
         (sklearn_forest_classifier, {}),
-        (cuml_forest_classifier, {}),
     ],
 )
 def test_multi_classifier(get_model_fn, get_model_params, tmpdir):
@@ -230,7 +225,6 @@ def test_multi_classifier(get_model_fn, get_model_params, tmpdir):
         (lightgbm_train, {"objective": "regression"}),
         (lightgbm_regressor, {}),
         (sklearn_forest_regressor, {}),
-        (cuml_forest_regressor, {}),
     ],
 )
 def test_regressor(get_model_fn, get_model_params, tmpdir):

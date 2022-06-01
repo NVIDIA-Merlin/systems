@@ -32,9 +32,6 @@ jobs:
       - name: Install FIL pip dependencies
         run: |
           python -m pip install xgboost lightgbm sklearn
-      - name: Install conda dependencies
-        run: |
-          conda install -c rapidsai -c nvidia -c conda-forge cuml=22.04
       - name: Build
         run: |
           python setup.py develop
