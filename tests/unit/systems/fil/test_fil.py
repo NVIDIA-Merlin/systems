@@ -17,7 +17,6 @@ import os
 import pathlib
 from copy import deepcopy
 
-import cuml
 import lightgbm
 import pytest
 import sklearn.datasets
@@ -128,32 +127,6 @@ def sklearn_forest_regressor(X, y, **params):
     }
     model = sklearn.ensemble.RandomForestRegressor(**params)
     model.fit(X, y.ravel())
-    return model
-
-
-def cuml_forest_classifier(X, y, **params):
-    params = {
-        "max_depth": 25,
-        "n_estimators": 100,
-        "random_state": 0,
-        "n_streams": 1,
-        **params,
-    }
-    model = cuml.ensemble.RandomForestClassifier(**params)
-    model.fit(X, y)
-    return model
-
-
-def cuml_forest_regressor(X, y, **params):
-    params = {
-        "max_depth": 25,
-        "n_estimators": 100,
-        "random_state": 0,
-        "n_streams": 1,
-        **params,
-    }
-    model = cuml.ensemble.RandomForestRegressor(**params)
-    model.fit(X, y)
     return model
 
 
