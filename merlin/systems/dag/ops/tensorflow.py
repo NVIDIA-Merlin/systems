@@ -79,7 +79,7 @@ class PredictTensorflow(InferenceOperator):
         outputs = list(default_signature.structured_outputs.values())
 
         input_col_names = [col.name.split("/")[0] for col in inputs]
-        output_col_names = [col.name.split("/")[0] for col in outputs]
+        output_col_names = [col.name for col in outputs]
 
         self.input_schema = Schema()
         for col, input_col in zip(input_col_names, inputs):
@@ -173,7 +173,7 @@ class PredictTensorflow(InferenceOperator):
             # this assumes the list columns are 1D tensors both for cats and conts
             config.output.append(
                 model_config.ModelOutput(
-                    name=col.name.split("/")[0],
+                    name=col.name,
                     data_type=_convert_dtype(col.dtype),
                     dims=[-1, col.shape[1]],
                 )
