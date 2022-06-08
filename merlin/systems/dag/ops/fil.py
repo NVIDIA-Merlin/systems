@@ -32,6 +32,7 @@ class FIL(InferenceOperator):
         threads_per_tree=1,
         blocks_per_sm=0,
         transfer_threshold=0,
+        instance_group="AUTO",
     ):
         """Instantiate a FIL inference operator.
 
@@ -88,6 +89,9 @@ class FIL(InferenceOperator):
              to the GPU for processing) will provide optimal latency and throughput, but
              for low-latency deployments with the use_experimental_optimizations flag set
              to true, higher values may be desirable.
+        instance_group : str
+             One of "AUTO", "GPU", "CPU". Default value is "AUTO". Specifies whether
+             inference will take place on the GPU or CPU.
         """
         self.max_batch_size = max_batch_size
         self.parameters = dict(
@@ -98,6 +102,7 @@ class FIL(InferenceOperator):
             blocks_per_sm=blocks_per_sm,
             storage_type=storage_type,
             threshold=threshold,
+            instance_group=instance_group,
         )
         self.fil_model = get_fil_model(model)
         super().__init__()
@@ -399,6 +404,7 @@ def fil_config(
     blocks_per_sm=0,
     threads_per_tree=1,
     transfer_threshold=0,
+    instance_group="AUTO",
 ) -> model_config.ModelConfig:
     """Construct and return a FIL ModelConfig protobuf object.
 
@@ -461,6 +467,9 @@ def fil_config(
          to the GPU for processing) will provide optimal latency and throughput, but
          for low-latency deployments with the use_experimental_optimizations flag set
          to true, higher values may be desirable.
+    instance_group : str
+         One of "AUTO", "GPU", "CPU". Default value is "AUTO". Specifies whether
+         inference will take place on the GPU or CPU.
 
     Returns
         model_config.ModelConfig
@@ -493,6 +502,17 @@ def fil_config(
         "transfer_threshold": f"{transfer_threshold:d}",
     }
 
+    supported_instance_groups = {"auto", "cpu", "gpu"}
+    instance_group = instance_group.lower() if isinstance(instance_group, str) else instance_group
+    if instance_group == "auto":
+        instance_group_kind = model_config.ModelInstanceGroup.Kind.KIND_AUTO
+    elif instance_group == "cpu":
+        instance_group_kind = model_config.ModelInstanceGroup.Kind.KIND_CPU
+    elif instance_group == "gpu":
+        instance_group_kind = model_config.ModelInstanceGroup.Kind.KIND_GPU
+    else:
+        raise ValueError(f"instance_group must be one of {supported_instance_groups}")
+
     config = model_config.ModelConfig(
         name=name,
         backend="fil",
@@ -509,9 +529,7 @@ def fil_config(
                 name="output__0", data_type=model_config.TYPE_FP32, dims=[output_dim]
             )
         ],
-        instance_group=[
-            model_config.ModelInstanceGroup(kind=model_config.ModelInstanceGroup.Kind.KIND_AUTO)
-        ],
+        instance_group=[model_config.ModelInstanceGroup(kind=instance_group_kind)],
     )
 
     for parameter_key, parameter_value in parameters.items():
