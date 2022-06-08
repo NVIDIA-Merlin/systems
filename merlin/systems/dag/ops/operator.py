@@ -166,6 +166,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
+        backend: str = "python",
     ):
         """
         Export the class object as a config and all related files to the user-defined path.
@@ -200,7 +201,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         node_export_path = pathlib.Path(path) / node_name
         node_export_path.mkdir(parents=True, exist_ok=True)
 
-        config = model_config.ModelConfig(name=node_name, backend="python", platform="op_runner")
+        config = model_config.ModelConfig(name=node_name, backend=backend, platform="op_runner")
 
         config.parameters["operator_names"].string_value = json.dumps([node_name])
 
