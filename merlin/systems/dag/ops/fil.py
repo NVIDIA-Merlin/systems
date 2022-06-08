@@ -121,7 +121,15 @@ class FIL(InferenceOperator):
         """Returns output schema for FIL op"""
         return Schema([ColumnSchema("output__0", dtype=np.float32)])
 
-    def export(self, path, input_schema, output_schema, node_id=None, version=1):
+    def export(
+        self,
+        path,
+        input_schema,
+        output_schema,
+        params: dict = None,
+        node_id=None,
+        version=1,
+    ):
         """Export the model to the supplied path. Returns the config"""
         node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
         node_export_path = pathlib.Path(path) / node_name
