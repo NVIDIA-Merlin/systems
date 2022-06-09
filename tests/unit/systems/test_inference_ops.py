@@ -79,4 +79,4 @@ def test_workflow_op_exports_own_config(tmpdir, dataset, engine):
 
         # The config file contents are correct
         assert parsed.name == triton_op.export_name
-        assert parsed.backend == "python"
+        assert parsed.backend == "nvtabular"

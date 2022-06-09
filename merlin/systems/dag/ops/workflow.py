@@ -91,7 +91,7 @@ class TransformWorkflow(InferenceOperator):
             modified_workflow,
             node_name,
             node_export_path,
-            backend="python",
+            backend="nvtabular",
             sparse_max=self.sparse_max,
             max_batch_size=self.max_batch_size,
             cats=self.cats,

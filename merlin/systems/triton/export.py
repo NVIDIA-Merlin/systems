@@ -39,7 +39,7 @@ def export_tensorflow_ensemble(
     label_columns=None,
     sparse_max=None,
     version=1,
-    nvtabular_backend="python",
+    nvtabular_backend="nvtabular",
     cats=None,
     conts=None,
 ):
