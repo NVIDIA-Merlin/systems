@@ -200,7 +200,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         node_export_path = pathlib.Path(path) / node_name
         node_export_path.mkdir(parents=True, exist_ok=True)
 
-        config = model_config.ModelConfig(name=node_name, backend="nvtabular", platform="op_runner")
+        config = model_config.ModelConfig(name=node_name, backend="python", platform="op_runner")
 
         config.parameters["operator_names"].string_value = json.dumps([node_name])
 
@@ -225,7 +225,7 @@ class PipelineableInferenceOperator(InferenceOperator):
             # this assumes the list columns are 1D tensors both for cats and conts
             config.output.append(
                 model_config.ModelOutput(
-                    name=col_name.split("/")[0],
+                    name=col_name,
                     data_type=_convert_dtype(col_dict["dtype"]),
                     dims=[-1, -1],
                 )

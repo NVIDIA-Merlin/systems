@@ -65,7 +65,6 @@ class PredictTensorflow(InferenceOperator):
 
         signatures = getattr(self.model, "signatures", {}) or {}
         default_signature = signatures.get("serving_default")
-
         if not default_signature:
             # roundtrip saved self.model to disk to generate signature if it doesn't exist
 
@@ -75,22 +74,16 @@ class PredictTensorflow(InferenceOperator):
                 reloaded = tf.keras.models.load_model(tf_model_path)
                 default_signature = reloaded.signatures["serving_default"]
 
-        inputs = list(default_signature.structured_input_signature[1].values())
-        outputs = list(default_signature.structured_outputs.values())
-
-        input_col_names = [col.name.split("/")[0] for col in inputs]
-        output_col_names = [col.name.split("/")[0] for col in outputs]
-
         self.input_schema = Schema()
-        for col, input_col in zip(input_col_names, inputs):
-            self.input_schema.column_schemas[col] = ColumnSchema(
-                col, dtype=input_col.dtype.as_numpy_dtype
+        for col_name, col in default_signature.structured_input_signature[1].items():
+            self.input_schema.column_schemas[col_name] = ColumnSchema(
+                col_name, dtype=col.dtype.as_numpy_dtype
             )
 
         self.output_schema = Schema()
-        for col, output_col in zip(output_col_names, outputs):
-            self.output_schema.column_schemas[col] = ColumnSchema(
-                col, dtype=output_col.dtype.as_numpy_dtype
+        for col_name, col in default_signature.structured_outputs.items():
+            self.output_schema.column_schemas[col_name] = ColumnSchema(
+                col_name, dtype=col.dtype.as_numpy_dtype
             )
         super().__init__()
 
@@ -121,11 +114,17 @@ class PredictTensorflow(InferenceOperator):
         deps_schema: Schema,
         selector: ColumnSelector,
     ) -> Schema:
+        """
+        Use the input schema supplied during object creation.
+        """
         return self.input_schema
 
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
+        """
+        Use the output schema supplied during object creation.
+        """
         return self.output_schema
 
     def _export_model(self, model, name, output_path, version=1):
@@ -145,35 +144,28 @@ class PredictTensorflow(InferenceOperator):
             name=name, backend="tensorflow", platform="tensorflow_savedmodel"
         )
 
-        inputs, outputs = model.inputs, model.outputs
-
-        if not inputs or not outputs:
-            signatures = getattr(model, "signatures", {}) or {}
-            default_signature = signatures.get("serving_default")
-            if not default_signature:
-                # roundtrip saved model to disk to generate signature if it doesn't exist
-
-                reloaded = tf.keras.models.load_model(tf_model_path)
-                default_signature = reloaded.signatures["serving_default"]
-
-            inputs = list(default_signature.structured_input_signature[1].values())
-            outputs = list(default_signature.structured_outputs.values())
+        signatures = getattr(model, "signatures", {}) or {}
+        default_signature = signatures.get("serving_default")
+        if not default_signature:
+            # roundtrip saved model to disk to generate signature if it doesn't exist
+            reloaded = tf.keras.models.load_model(tf_model_path)
+            default_signature = reloaded.signatures["serving_default"]
 
         config.parameters["TF_GRAPH_TAG"].string_value = "serve"
         config.parameters["TF_SIGNATURE_DEF"].string_value = "serving_default"
 
-        for col in inputs:
+        for col_name, col in default_signature.structured_input_signature[1].items():
             config.input.append(
                 model_config.ModelInput(
-                    name=f"{col.name}", data_type=_convert_dtype(col.dtype), dims=[-1, col.shape[1]]
+                    name=col_name, data_type=_convert_dtype(col.dtype), dims=[-1, col.shape[1]]
                 )
             )
 
-        for col in outputs:
+        for col_name, col in default_signature.structured_outputs.items():
             # this assumes the list columns are 1D tensors both for cats and conts
             config.output.append(
                 model_config.ModelOutput(
-                    name=col.name.split("/")[0],
+                    name=col_name,
                     data_type=_convert_dtype(col.dtype),
                     dims=[-1, col.shape[1]],
                 )
