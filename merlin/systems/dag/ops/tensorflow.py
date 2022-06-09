@@ -65,7 +65,6 @@ class PredictTensorflow(InferenceOperator):
 
         signatures = getattr(self.model, "signatures", {}) or {}
         default_signature = signatures.get("serving_default")
-
         if not default_signature:
             # roundtrip saved self.model to disk to generate signature if it doesn't exist
 
@@ -78,8 +77,8 @@ class PredictTensorflow(InferenceOperator):
         inputs = list(default_signature.structured_input_signature[1].values())
         outputs = list(default_signature.structured_outputs.values())
 
-        input_col_names = [col.name.split("/")[0] for col in inputs]
-        output_col_names = [col.name for col in outputs]
+        input_col_names = [*default_signature.structured_input_signature[1].keys()]
+        output_col_names = [*default_signature.structured_outputs.keys()]
 
         self.input_schema = Schema()
         for col, input_col in zip(input_col_names, inputs):
@@ -145,35 +144,37 @@ class PredictTensorflow(InferenceOperator):
             name=name, backend="tensorflow", platform="tensorflow_savedmodel"
         )
 
-        inputs, outputs = model.inputs, model.outputs
+        # inputs, outputs = model.inputs, [model.outputs]
 
-        if not inputs or not outputs:
-            signatures = getattr(model, "signatures", {}) or {}
-            default_signature = signatures.get("serving_default")
-            if not default_signature:
-                # roundtrip saved model to disk to generate signature if it doesn't exist
+        signatures = getattr(model, "signatures", {}) or {}
+        default_signature = signatures.get("serving_default")
+        if not default_signature:
+            # roundtrip saved model to disk to generate signature if it doesn't exist
 
-                reloaded = tf.keras.models.load_model(tf_model_path)
-                default_signature = reloaded.signatures["serving_default"]
+            reloaded = tf.keras.models.load_model(tf_model_path)
+            default_signature = reloaded.signatures["serving_default"]
 
-            inputs = list(default_signature.structured_input_signature[1].values())
-            outputs = list(default_signature.structured_outputs.values())
+        inputs = list(default_signature.structured_input_signature[1].values())
+        outputs = list(default_signature.structured_outputs.values())
+
+        input_col_names = [*default_signature.structured_input_signature[1].keys()]
+        output_col_names = [*default_signature.structured_outputs.keys()]
 
         config.parameters["TF_GRAPH_TAG"].string_value = "serve"
         config.parameters["TF_SIGNATURE_DEF"].string_value = "serving_default"
 
-        for col in inputs:
+        for col, col_name in zip(inputs, input_col_names):
             config.input.append(
                 model_config.ModelInput(
-                    name=f"{col.name}", data_type=_convert_dtype(col.dtype), dims=[-1, col.shape[1]]
+                    name=col_name, data_type=_convert_dtype(col.dtype), dims=[-1, col.shape[1]]
                 )
             )
 
-        for col in outputs:
+        for col, col_name in zip(outputs, output_col_names):
             # this assumes the list columns are 1D tensors both for cats and conts
             config.output.append(
                 model_config.ModelOutput(
-                    name=col.name,
+                    name=col_name,
                     data_type=_convert_dtype(col.dtype),
                     dims=[-1, col.shape[1]],
                 )

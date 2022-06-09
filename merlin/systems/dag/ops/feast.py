@@ -67,10 +67,10 @@ class QueryFeast(PipelineableInferenceOperator):
         entity_dtype = np.int64
         ent_is_list = False
         ent_is_ragged = False
-        for entity in store.list_entities():
+        for idx, entity in enumerate(store.list_entities()):
             if entity.name == entity_id:
                 entity_dtype, ent_is_list, ent_is_ragged = feast_2_numpy[
-                    store.list_entities()[0].value_type
+                    store.list_entities()[idx].value_type
                 ]
 
         features = []
