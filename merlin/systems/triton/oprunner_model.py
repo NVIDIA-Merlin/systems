@@ -104,14 +104,15 @@ class TritonPythonModel:
 
                 raw_tensor_tuples = self.runner.execute(inf_df)
 
-                tensors = {
-                    name: (data.get() if hasattr(data, "get") else data)
-                    for name, data in raw_tensor_tuples
-                }
+                output_tensors = []
+                for name, data in raw_tensor_tuples:
+                    if isinstance(data, Tensor):
+                        output_tensors.append(data)
+                    data = data.get() if hasattr(data, "get") else data
+                    tensor = Tensor(name, data)
+                    output_tensors.append(tensor)
 
-                result = [Tensor(name, data) for name, data in tensors.items()]
-
-                responses.append(InferenceResponse(result))
+                responses.append(InferenceResponse(output_tensors))
 
             except Exception:  # pylint: disable=broad-except
                 exc_type, exc_value, exc_traceback = sys.exc_info()
