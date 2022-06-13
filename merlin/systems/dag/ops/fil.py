@@ -139,7 +139,7 @@ class Forest(PipelineableInferenceOperator):
         )
         inference_response = inference_request.exec()
         output0 = pb_utils.get_output_tensor_by_name(inference_response, "output__0")
-        return InferenceDataFrame({"output__0": output0.as_numpy()})
+        return InferenceDataFrame({"output__0": output0})
 
 
 class FIL(InferenceOperator):
