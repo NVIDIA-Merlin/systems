@@ -16,13 +16,20 @@
 import json
 
 import numpy as np
+import pandas as pd
 import pytest
 import sklearn.datasets
 import xgboost
 from google.protobuf import text_format
 
+from merlin.dag import ColumnSelector
+from merlin.io import Dataset
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.fil import Forest
+from merlin.systems.dag.ops.workflow import TransformWorkflow
+from nvtabular import Workflow
+from nvtabular import ops as wf_ops
 
 tritonclient = pytest.importorskip("tritonclient")
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
@@ -85,3 +92,54 @@ def test_export(tmpdir):
     parsed_config = read_config(config_path)
     assert parsed_config.name == "2_fil"
     assert parsed_config.backend == "fil"
+
+
+def test_ensemble(tmpdir):
+    rows = 200
+    num_features = 16
+    X, y = sklearn.datasets.make_regression(
+        n_samples=rows,
+        n_features=num_features,
+        n_informative=num_features // 3,
+        random_state=0,
+    )
+    feature_names = [str(i) for i in range(num_features)]
+    df = pd.DataFrame(X, columns=feature_names)
+    dataset = Dataset(df)
+
+    # Fit GBDT Model
+    model = xgboost.XGBRegressor()
+    model.fit(X, y)
+
+    input_schema = Schema([ColumnSchema(col, dtype=np.float32) for col in feature_names])
+    selector = ColumnSelector(feature_names)
+
+    workflow_ops = ["0", "1", "2"] >> wf_ops.LogOp()
+    workflow = Workflow(workflow_ops)
+    workflow.fit(dataset)
+
+    triton_chain = selector >> TransformWorkflow(workflow) >> Forest(model, input_schema)
+
+    triton_ens = Ensemble(triton_chain, input_schema)
+
+    triton_ens.export(tmpdir)
+
+    config_path = tmpdir / "1_forest" / "config.pbtxt"
+    parsed_config = read_config(config_path)
+    assert parsed_config.name == "0_forest"
+    assert parsed_config.backend == "python"
+
+    config_path = tmpdir / "1_fil" / "config.pbtxt"
+    parsed_config = read_config(config_path)
+    assert parsed_config.name == "0_fil"
+    assert parsed_config.backend == "fil"
+
+    config_path = tmpdir / "0_transformworkflow" / "config.pbtxt"
+    parsed_config = read_config(config_path)
+    assert parsed_config.name == "0_transformworkflow"
+    assert parsed_config.backend == "nvtabular"
+
+    config_path = tmpdir / "ensemble_model" / "config.pbtxt"
+    parsed_config = read_config(config_path)
+    assert parsed_config.name == "ensemble_model"
+    assert parsed_config.platform == "ensemble"
