@@ -10,7 +10,136 @@ from google.protobuf import text_format  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops.compat import cuml_ensemble, lightgbm, sklearn_ensemble, xgboost
-from merlin.systems.dag.ops.operator import InferenceOperator
+from merlin.systems.dag.ops.operator import (
+    InferenceDataFrame,
+    InferenceOperator,
+    PipelineableInferenceOperator,
+)
+
+try:
+    import triton_python_backend_utils as pb_utils
+except ImportError:
+    pb_utils = None
+
+
+class Forest(PipelineableInferenceOperator):
+    """Operator for running Forest models.
+
+    Uses the Forest Inference Library (FIL) backend for inference.
+    """
+
+    def __init__(self, model, input_schema, *, backend="python", **fil_params):
+        """Instantiate a FIL inference operator.
+
+        Parameters
+        ----------
+        model : Forest Model Instance
+            A forest model class. Supports XGBoost, LightGBM, and Scikit-Learn.
+        input_schema : merlin.schema.Schema
+            The schema representing the input columns expected by the model.
+        backend : str
+            The Triton backend to use to when running this operator.
+        **fil_params
+            The parameters to pass to the FIL operator.
+        """
+        if model is not None:
+            self.fil_op = FIL(model, **fil_params)
+        self.backend = backend
+        self.input_schema = input_schema
+        self._fil_model_name = None
+
+    def compute_output_schema(
+        self,
+        input_schema: Schema,
+        col_selector: ColumnSelector,
+        prev_output_schema: Schema = None,
+    ) -> Schema:
+        """Return the output schema representing the columns this operator returns."""
+        return self.fil_op.compute_output_schema(
+            input_schema, col_selector, prev_output_schema=prev_output_schema
+        )
+
+    def compute_input_schema(
+        self,
+        root_schema: Schema,
+        parents_schema: Schema,
+        deps_schema: Schema,
+        selector: ColumnSelector,
+    ) -> Schema:
+        """Return the input schema representing the input columns this operator expects to use."""
+        return self.input_schema
+
+    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+        """Export the class and related files to the path specified."""
+        fil_model_config = self.fil_op.export(
+            path,
+            input_schema,
+            output_schema,
+            params=params,
+            node_id=node_id,
+            version=version,
+        )
+        params = params or {}
+        params = {**params, "fil_model_name": fil_model_config.name}
+        return super().export(
+            path,
+            input_schema,
+            output_schema,
+            params=params,
+            node_id=node_id,
+            version=version,
+            backend=self.backend,
+        )
+
+    @classmethod
+    def from_config(cls, config: dict) -> "Forest":
+        """Instantiate the class from a dictionary representation.
+
+        Expected structure:
+        {
+            "input_dict": str  # JSON dict with input names and schemas
+            "params": str  # JSON dict with params saved at export
+        }
+
+        """
+        column_schemas = [
+            ColumnSchema(name, **schema_properties)
+            for name, schema_properties in json.loads(config["input_dict"]).items()
+        ]
+        input_schema = Schema(column_schemas)
+        cls_instance = cls(None, input_schema)
+        params = json.loads(config["params"])
+        cls_instance.set_fil_model_name(params["fil_model_name"])
+        return cls_instance
+
+    @property
+    def fil_model_name(self):
+        return self._fil_model_name
+
+    def set_fil_model_name(self, fil_model_name):
+        self._fil_model_name = fil_model_name
+
+    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+        """Transform the dataframe by applying this FIL operator to the set of input columns.
+
+        Parameters
+        -----------
+        df: InferenceDataFrame
+            A pandas or cudf dataframe that this operator will work on
+
+        Returns
+        -------
+        InferenceDataFrame
+            Returns a transformed dataframe for this operator"""
+        input0 = np.array([x.ravel() for x in df.tensors.values()]).astype(np.float32).T
+        inference_request = pb_utils.InferenceRequest(
+            model_name=self.fil_model_name,
+            requested_output_names=["output__0"],
+            inputs=[pb_utils.Tensor("input__0", input0)],
+        )
+        inference_response = inference_request.exec()
+        output0 = pb_utils.get_output_tensor_by_name(inference_response, "output__0")
+        return InferenceDataFrame({"output__0": output0.as_numpy()})
 
 
 class FIL(InferenceOperator):
