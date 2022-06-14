@@ -1,3 +1,18 @@
+#
+# Copyright (c) 2022, NVIDIA CORPORATION.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 import json
 import pathlib
 import pickle
@@ -9,8 +24,142 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag.ops.compat import cuml_ensemble, lightgbm, sklearn_ensemble, xgboost
-from merlin.systems.dag.ops.operator import InferenceOperator
+from merlin.systems.dag.ops.compat import (
+    cuml_ensemble,
+    lightgbm,
+    pb_utils,
+    sklearn_ensemble,
+    xgboost,
+)
+from merlin.systems.dag.ops.operator import (
+    InferenceDataFrame,
+    InferenceOperator,
+    PipelineableInferenceOperator,
+)
+
+
+class PredictForest(PipelineableInferenceOperator):
+    """Operator for running inference on Forest models.
+
+    This works for gradient-boosted decision trees (GBDTs) and Random forests (RF).
+    While RF and GBDT algorithms differ in the way they train the models,
+    they both produce a decision forest as their output.
+
+    Uses the Forest Inference Library (FIL) backend for inference.
+    """
+
+    def __init__(self, model, input_schema, *, backend="python", **fil_params):
+        """Instantiate a FIL inference operator.
+
+        Parameters
+        ----------
+        model : Forest Model Instance
+            A forest model class. Supports XGBoost, LightGBM, and Scikit-Learn.
+        input_schema : merlin.schema.Schema
+            The schema representing the input columns expected by the model.
+        backend : str
+            The Triton backend to use to when running this operator.
+        **fil_params
+            The parameters to pass to the FIL operator.
+        """
+        if model is not None:
+            self.fil_op = FIL(model, **fil_params)
+        self.backend = backend
+        self.input_schema = input_schema
+        self._fil_model_name = None
+
+    def compute_output_schema(
+        self,
+        input_schema: Schema,
+        col_selector: ColumnSelector,
+        prev_output_schema: Schema = None,
+    ) -> Schema:
+        """Return the output schema representing the columns this operator returns."""
+        return self.fil_op.compute_output_schema(
+            input_schema, col_selector, prev_output_schema=prev_output_schema
+        )
+
+    def compute_input_schema(
+        self,
+        root_schema: Schema,
+        parents_schema: Schema,
+        deps_schema: Schema,
+        selector: ColumnSelector,
+    ) -> Schema:
+        """Return the input schema representing the input columns this operator expects to use."""
+        return self.input_schema
+
+    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+        """Export the class and related files to the path specified."""
+        fil_model_config = self.fil_op.export(
+            path,
+            input_schema,
+            output_schema,
+            params=params,
+            node_id=node_id,
+            version=version,
+        )
+        params = params or {}
+        params = {**params, "fil_model_name": fil_model_config.name}
+        return super().export(
+            path,
+            input_schema,
+            output_schema,
+            params=params,
+            node_id=node_id,
+            version=version,
+            backend=self.backend,
+        )
+
+    @classmethod
+    def from_config(cls, config: dict) -> "PredictForest":
+        """Instantiate the class from a dictionary representation.
+
+        Expected structure:
+        {
+            "input_dict": str  # JSON dict with input names and schemas
+            "params": str  # JSON dict with params saved at export
+        }
+
+        """
+        column_schemas = [
+            ColumnSchema(name, **schema_properties)
+            for name, schema_properties in json.loads(config["input_dict"]).items()
+        ]
+        input_schema = Schema(column_schemas)
+        cls_instance = cls(None, input_schema)
+        params = json.loads(config["params"])
+        cls_instance.set_fil_model_name(params["fil_model_name"])
+        return cls_instance
+
+    @property
+    def fil_model_name(self):
+        return self._fil_model_name
+
+    def set_fil_model_name(self, fil_model_name):
+        self._fil_model_name = fil_model_name
+
+    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+        """Transform the dataframe by applying this FIL operator to the set of input columns.
+
+        Parameters
+        -----------
+        df: InferenceDataFrame
+            A pandas or cudf dataframe that this operator will work on
+
+        Returns
+        -------
+        InferenceDataFrame
+            Returns a transformed dataframe for this operator"""
+        input0 = np.array([x.ravel() for x in df.tensors.values()]).astype(np.float32).T
+        inference_request = pb_utils.InferenceRequest(
+            model_name=self.fil_model_name,
+            requested_output_names=["output__0"],
+            inputs=[pb_utils.Tensor("input__0", input0)],
+        )
+        inference_response = inference_request.exec()
+        output0 = pb_utils.get_output_tensor_by_name(inference_response, "output__0")
+        return InferenceDataFrame({"output__0": output0})
 
 
 class FIL(InferenceOperator):
@@ -32,6 +181,7 @@ class FIL(InferenceOperator):
         threads_per_tree=1,
         blocks_per_sm=0,
         transfer_threshold=0,
+        instance_group="AUTO",
     ):
         """Instantiate a FIL inference operator.
 
@@ -88,6 +238,9 @@ class FIL(InferenceOperator):
              to the GPU for processing) will provide optimal latency and throughput, but
              for low-latency deployments with the use_experimental_optimizations flag set
              to true, higher values may be desirable.
+        instance_group : str
+             One of "AUTO", "GPU", "CPU". Default value is "AUTO". Specifies whether
+             inference will take place on the GPU or CPU.
         """
         self.max_batch_size = max_batch_size
         self.parameters = dict(
@@ -98,6 +251,7 @@ class FIL(InferenceOperator):
             blocks_per_sm=blocks_per_sm,
             storage_type=storage_type,
             threshold=threshold,
+            instance_group=instance_group,
         )
         self.fil_model = get_fil_model(model)
         super().__init__()
@@ -121,7 +275,15 @@ class FIL(InferenceOperator):
         """Returns output schema for FIL op"""
         return Schema([ColumnSchema("output__0", dtype=np.float32)])
 
-    def export(self, path, input_schema, output_schema, node_id=None, version=1):
+    def export(
+        self,
+        path,
+        input_schema,
+        output_schema,
+        params: dict = None,
+        node_id=None,
+        version=1,
+    ):
         """Export the model to the supplied path. Returns the config"""
         node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
         node_export_path = pathlib.Path(path) / node_name
@@ -391,6 +553,7 @@ def fil_config(
     blocks_per_sm=0,
     threads_per_tree=1,
     transfer_threshold=0,
+    instance_group="AUTO",
 ) -> model_config.ModelConfig:
     """Construct and return a FIL ModelConfig protobuf object.
 
@@ -453,6 +616,9 @@ def fil_config(
          to the GPU for processing) will provide optimal latency and throughput, but
          for low-latency deployments with the use_experimental_optimizations flag set
          to true, higher values may be desirable.
+    instance_group : str
+         One of "AUTO", "GPU", "CPU". Default value is "AUTO". Specifies whether
+         inference will take place on the GPU or CPU.
 
     Returns
         model_config.ModelConfig
@@ -485,6 +651,17 @@ def fil_config(
         "transfer_threshold": f"{transfer_threshold:d}",
     }
 
+    supported_instance_groups = {"auto", "cpu", "gpu"}
+    instance_group = instance_group.lower() if isinstance(instance_group, str) else instance_group
+    if instance_group == "auto":
+        instance_group_kind = model_config.ModelInstanceGroup.Kind.KIND_AUTO
+    elif instance_group == "cpu":
+        instance_group_kind = model_config.ModelInstanceGroup.Kind.KIND_CPU
+    elif instance_group == "gpu":
+        instance_group_kind = model_config.ModelInstanceGroup.Kind.KIND_GPU
+    else:
+        raise ValueError(f"instance_group must be one of {supported_instance_groups}")
+
     config = model_config.ModelConfig(
         name=name,
         backend="fil",
@@ -501,9 +678,7 @@ def fil_config(
                 name="output__0", data_type=model_config.TYPE_FP32, dims=[output_dim]
             )
         ],
-        instance_group=[
-            model_config.ModelInstanceGroup(kind=model_config.ModelInstanceGroup.Kind.KIND_AUTO)
-        ],
+        instance_group=[model_config.ModelInstanceGroup(kind=instance_group_kind)],
     )
 
     for parameter_key, parameter_value in parameters.items():

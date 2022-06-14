@@ -31,3 +31,7 @@ try:
     import cuml.ensemble as cuml_ensemble
 except ImportError:
     cuml_ensemble = None
+try:
+    import triton_python_backend_utils as pb_utils
+except ImportError:
+    pb_utils = None
