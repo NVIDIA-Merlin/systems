@@ -1,0 +1,45 @@
+﻿merlin.systems.dag.ops.session\_filter.FilterCandidates
+=======================================================
+
+.. currentmodule:: merlin.systems.dag.ops.session_filter
+
+.. autoclass:: FilterCandidates
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~FilterCandidates.__init__
+      ~FilterCandidates.column_mapping
+      ~FilterCandidates.compute_column_schema
+      ~FilterCandidates.compute_input_schema
+      ~FilterCandidates.compute_output_schema
+      ~FilterCandidates.compute_selector
+      ~FilterCandidates.create_node
+      ~FilterCandidates.export
+      ~FilterCandidates.from_config
+      ~FilterCandidates.output_column_names
+      ~FilterCandidates.transform
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~FilterCandidates.dependencies
+      ~FilterCandidates.dynamic_dtypes
+      ~FilterCandidates.export_name
+      ~FilterCandidates.label
+      ~FilterCandidates.output_dtype
+      ~FilterCandidates.output_properties
+      ~FilterCandidates.output_tags
+      ~FilterCandidates.supports
+   
+   
