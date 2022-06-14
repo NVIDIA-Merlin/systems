@@ -24,21 +24,26 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag.ops.compat import cuml_ensemble, lightgbm, sklearn_ensemble, xgboost
+from merlin.systems.dag.ops.compat import (
+    cuml_ensemble,
+    lightgbm,
+    pb_utils,
+    sklearn_ensemble,
+    xgboost,
+)
 from merlin.systems.dag.ops.operator import (
     InferenceDataFrame,
     InferenceOperator,
     PipelineableInferenceOperator,
 )
 
-try:
-    import triton_python_backend_utils as pb_utils
-except ImportError:
-    pb_utils = None
 
+class PredictForest(PipelineableInferenceOperator):
+    """Operator for running inference on Forest models.
 
-class Forest(PipelineableInferenceOperator):
-    """Operator for running Forest models.
+    This works for gradient-boosted decision trees (GBDTs) and Random forests (RF).
+    While RF and GBDT algorithms differ in the way they train the models,
+    they both produce a decision forest as their output.
 
     Uses the Forest Inference Library (FIL) backend for inference.
     """
@@ -107,7 +112,7 @@ class Forest(PipelineableInferenceOperator):
         )
 
     @classmethod
-    def from_config(cls, config: dict) -> "Forest":
+    def from_config(cls, config: dict) -> "PredictForest":
         """Instantiate the class from a dictionary representation.
 
         Expected structure:

@@ -26,7 +26,7 @@ from merlin.dag import ColumnSelector
 from merlin.io import Dataset
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
-from merlin.systems.dag.ops.fil import Forest
+from merlin.systems.dag.ops.fil import PredictForest
 from merlin.systems.dag.ops.workflow import TransformWorkflow
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
@@ -49,14 +49,16 @@ def test_load_from_config(tmpdir):
     feature_names = [str(i) for i in range(num_features)]
     input_schema = Schema([ColumnSchema(col, dtype=np.float32) for col in feature_names])
     output_schema = Schema([ColumnSchema("output__0", dtype=np.float32)])
-    config = Forest(model, input_schema).export(tmpdir, input_schema, output_schema, node_id=2)
+    config = PredictForest(model, input_schema).export(
+        tmpdir, input_schema, output_schema, node_id=2
+    )
     node_config = json.loads(config.parameters[config.name].string_value)
 
     assert json.loads(node_config["output_dict"]) == {
         "output__0": {"dtype": "float32", "is_list": False, "is_ragged": False}
     }
 
-    cls = Forest.from_config(node_config)
+    cls = PredictForest.from_config(node_config)
     assert cls.fil_model_name == "2_fil"
 
 
@@ -81,7 +83,7 @@ def test_export(tmpdir):
     feature_names = [str(i) for i in range(num_features)]
     input_schema = Schema([ColumnSchema(col, dtype=np.float32) for col in feature_names])
     output_schema = Schema([ColumnSchema("output__0", dtype=np.float32)])
-    _ = Forest(model, input_schema).export(tmpdir, input_schema, output_schema, node_id=2)
+    _ = PredictForest(model, input_schema).export(tmpdir, input_schema, output_schema, node_id=2)
 
     config_path = tmpdir / "2_forest" / "config.pbtxt"
     parsed_config = read_config(config_path)
@@ -118,7 +120,7 @@ def test_ensemble(tmpdir):
     workflow = Workflow(workflow_ops)
     workflow.fit(dataset)
 
-    triton_chain = selector >> TransformWorkflow(workflow) >> Forest(model, input_schema)
+    triton_chain = selector >> TransformWorkflow(workflow) >> PredictForest(model, input_schema)
 
     triton_ens = Ensemble(triton_chain, input_schema)
 
