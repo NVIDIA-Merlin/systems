@@ -43,7 +43,6 @@ export = pytest.importorskip("merlin.systems.dag.ensemble")
 from merlin.systems.dag.ensemble import Ensemble  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
-from tests.unit.systems.utils.ops import PlusTwoOp  # noqa
 from tests.unit.systems.utils.tf import create_tf_model  # noqa
 from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
 
@@ -177,58 +176,3 @@ def test_graph_traverse_algo():
     assert len(ordered_list) == 5
     assert isinstance(ordered_list[0].op, SelectionOp)
     assert isinstance(ordered_list[-1].op, ConcatColumns)
-
-
-@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize("engine", ["parquet"])
-def test_workflow_tf_e2e_multi_op_plus_2_run(tmpdir, dataset, engine):
-    # Create a Workflow
-    schema = dataset.schema
-    for name in ["x", "y", "id"]:
-        dataset.schema.column_schemas[name] = dataset.schema.column_schemas[name].with_tags(
-            [Tags.USER]
-        )
-
-    workflow_ops = ["name-cat"] >> wf_ops.Categorify(cat_cache="host")
-    workflow = Workflow(workflow_ops)
-    workflow.fit(dataset)
-
-    embedding_shapes_1 = wf_ops.get_embedding_sizes(workflow)
-
-    cats = ["name-string"] >> wf_ops.Categorify(cat_cache="host")
-    workflow_2 = Workflow(cats)
-    workflow_2.fit(dataset)
-
-    embedding_shapes = wf_ops.get_embedding_sizes(workflow_2)
-    embedding_shapes_1.update(embedding_shapes)
-    embedding_shapes_1["name-string_plus_2"] = embedding_shapes_1["name-string"]
-
-    # Create Tensorflow Model
-    model = create_tf_model(["name-cat", "name-string_plus_2"], [], embedding_shapes_1)
-
-    # Creating Triton Ensemble
-    triton_chain_1 = ["name-cat"] >> TransformWorkflow(workflow)
-    triton_chain_2 = ["name-string"] >> TransformWorkflow(workflow_2) >> PlusTwoOp()
-    triton_chain = (triton_chain_1 + triton_chain_2) >> PredictTensorflow(model)
-
-    triton_ens = Ensemble(triton_chain, schema)
-
-    # Creating Triton Ensemble Config
-    ensemble_config, nodes_config = triton_ens.export(str(tmpdir))
-    config_path = tmpdir / "ensemble_model" / "config.pbtxt"
-
-    # Checking Triton Ensemble Config
-    with open(config_path, "rb") as f:
-        config = model_config.ModelConfig()
-        raw_config = f.read()
-        parsed = text_format.Parse(raw_config, config)
-
-        # The config file contents are correct
-        assert parsed.name == "ensemble_model"
-        assert parsed.platform == "ensemble"
-        assert hasattr(parsed, "ensemble_scheduling")
-
-    df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
-
-    response = _run_ensemble_on_tritonserver(str(tmpdir), ["output"], df, triton_ens.name)
-    assert len(response.as_numpy("output")) == df.shape[0]
