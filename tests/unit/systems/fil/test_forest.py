@@ -126,12 +126,12 @@ def test_ensemble(tmpdir):
 
     config_path = tmpdir / "1_forest" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "0_forest"
+    assert parsed_config.name == "1_forest"
     assert parsed_config.backend == "python"
 
     config_path = tmpdir / "1_fil" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "0_fil"
+    assert parsed_config.name == "1_fil"
     assert parsed_config.backend == "fil"
 
     config_path = tmpdir / "0_transformworkflow" / "config.pbtxt"
