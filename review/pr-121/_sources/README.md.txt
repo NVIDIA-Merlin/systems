@@ -128,7 +128,6 @@ The following table lists the containers that include Triton Inference Server fo
 | --------------------| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `merlin-hugectr`    | <https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-hugectr>    | Merlin frameworks, HugeCTR, and Triton Inference Server                            |
 | `merlin-tensorflow` | <https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow> | Merlin frameworks selected for only Tensorflow support and Triton Inference Server |
-| `merlin-pytorch`    | <https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-pytorch>    | Merlin frameworks selected for only PyTorch support and Triton Inference Server    |
 
 If you want to add support for GPU-accelerated workflows, you will first need to install the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) to provide GPU support for Docker. You can use the NGC links referenced in the table above to obtain more information about how to launch and run these containers.
 
