@@ -43,18 +43,10 @@ Note that the saved `dlrm` model, NVT `workflow` and processed synthetic parquet
    root@2efa5b50b909:
    ```
 
-1. Install JupyterLab with `pip` by running the following command:
-
-   ```shell
-   pip install jupyterlab
-   ```
-
-   For more information, see the JupyterLab [Installation Guide](https://jupyterlab.readthedocs.io/en/stable/getting_started/installation.html).
-
 1. Start the JupyterLab server by running the following command:
 
    ```shell
-   jupyter-lab --allow-root --ip='0.0.0.0' --NotebookApp.token=''
+   jupyter-lab --allow-root --ip='0.0.0.0'
    ```
 
    View the messages in your terminal to identify the URL for JupyterLab.
