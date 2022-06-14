@@ -139,7 +139,7 @@ def test_ensemble(tmpdir):
     config_path = tmpdir / "0_transformworkflow" / "config.pbtxt"
     parsed_config = read_config(config_path)
     assert parsed_config.name == "0_transformworkflow"
-    assert parsed_config.backend == "nvtabular"
+    assert parsed_config.backend == "python"
 
     config_path = tmpdir / "ensemble_model" / "config.pbtxt"
     parsed_config = read_config(config_path)
