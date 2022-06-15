@@ -92,7 +92,7 @@
 <span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">ColumnSelector</span>
 <span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">Schema</span>
 <span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">InferenceOperator</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.triton.export</span> <span class="kn">import</span> <span class="n">_generate_nvtabular_config</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.triton.export</span> <span class="kn">import</span> <span class="n">generate_nvtabular_model</span>
 
 
 <div class="viewcode-block" id="TransformWorkflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow">[docs]</a><span class="k">class</span> <span class="nc">TransformWorkflow</span><span class="p">(</span><span class="n">InferenceOperator</span><span class="p">):</span>
@@ -146,6 +146,7 @@
 <div class="viewcode-block" id="TransformWorkflow.compute_output_schema"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow.compute_output_schema">[docs]</a>    <span class="k">def</span> <span class="nf">compute_output_schema</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">prev_output_schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns output schema of operator&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">output_schema</span></div>
 
 <div class="viewcode-block" id="TransformWorkflow.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="n">output_schema</span><span class="p">,</span> <span class="n">node_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -157,14 +158,10 @@
         <span class="n">node_export_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">node_name</span>
         <span class="n">node_export_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">workflow_export_path</span> <span class="o">=</span> <span class="n">node_export_path</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;workflow&quot;</span>
-        <span class="n">modified_workflow</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">workflow_export_path</span><span class="p">))</span>
-
-        <span class="k">return</span> <span class="n">_generate_nvtabular_config</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">generate_nvtabular_model</span><span class="p">(</span>
             <span class="n">modified_workflow</span><span class="p">,</span>
             <span class="n">node_name</span><span class="p">,</span>
             <span class="n">node_export_path</span><span class="p">,</span>
-            <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;nvtabular&quot;</span><span class="p">,</span>
             <span class="n">sparse_max</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_max</span><span class="p">,</span>
             <span class="n">max_batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_batch_size</span><span class="p">,</span>
             <span class="n">cats</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cats</span><span class="p">,</span>
@@ -204,6 +201,7 @@
       <dt>Tags</dt>
       <dd><a href="../../../../../../v0.1.0/index.html">v0.1.0</a></dd>
       <dd><a href="../../../../../../v0.2.0/index.html">v0.2.0</a></dd>
+      <dd><a href="../../../../../../v0.3.0/index.html">v0.3.0</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>

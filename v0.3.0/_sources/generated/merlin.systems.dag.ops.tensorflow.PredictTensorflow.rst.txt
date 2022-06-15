@@ -1,0 +1,43 @@
+﻿merlin.systems.dag.ops.tensorflow.PredictTensorflow
+===================================================
+
+.. currentmodule:: merlin.systems.dag.ops.tensorflow
+
+.. autoclass:: PredictTensorflow
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~PredictTensorflow.__init__
+      ~PredictTensorflow.column_mapping
+      ~PredictTensorflow.compute_column_schema
+      ~PredictTensorflow.compute_input_schema
+      ~PredictTensorflow.compute_output_schema
+      ~PredictTensorflow.compute_selector
+      ~PredictTensorflow.create_node
+      ~PredictTensorflow.export
+      ~PredictTensorflow.output_column_names
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~PredictTensorflow.dependencies
+      ~PredictTensorflow.dynamic_dtypes
+      ~PredictTensorflow.export_name
+      ~PredictTensorflow.label
+      ~PredictTensorflow.output_dtype
+      ~PredictTensorflow.output_properties
+      ~PredictTensorflow.output_tags
+      ~PredictTensorflow.supports
+   
+   
