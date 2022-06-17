@@ -15,7 +15,6 @@
 #
 import json
 import pathlib
-import pickle
 from abc import ABC, abstractmethod
 
 import numpy as np
@@ -29,6 +28,7 @@ from merlin.systems.dag.ops.compat import (
     lightgbm,
     pb_utils,
     sklearn_ensemble,
+    treelite_sklearn,
     xgboost,
 )
 from merlin.systems.dag.ops.operator import (
@@ -484,13 +484,18 @@ class SKLearnRandomForest(FILModel):
     """Scikit-Learn RandomForest Wrapper for FIL."""
 
     model_type = "treelite_checkpoint"
-    model_filename = "model.pkl"
+    model_filename = "checkpoint.tl"
 
     def save(self, version_path):
         """Save model to version_path."""
         model_path = pathlib.Path(version_path) / self.model_filename
-        with open(model_path, "wb") as model_file:
-            pickle.dump(self.model, model_file)
+        if treelite_sklearn is None:
+            raise RuntimeError(
+                "Both 'treelite' and 'treelite_runtime' "
+                "are required to save an sklearn random forest model."
+            )
+        treelite_model = treelite_sklearn.import_model(self.model)
+        treelite_model.serialize(str(model_path))
 
     @property
     def num_features(self):
@@ -512,13 +517,12 @@ class SKLearnRandomForest(FILModel):
 class CUMLRandomForest(FILModel):
 
     model_type = "treelite_checkpoint"
-    model_filename = "model.pkl"
+    model_filename = "checkpoint.tl"
 
     def save(self, version_path):
         """Save model to version_path."""
         model_path = pathlib.Path(version_path) / self.model_filename
-        with open(model_path, "wb") as model_file:
-            pickle.dump(self.model, model_file)
+        self.model.convert_to_treelite_model().to_treelite_checkpoint(str(model_path))
 
     @property
     def num_features(self):
