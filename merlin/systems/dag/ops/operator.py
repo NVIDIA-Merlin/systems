@@ -7,9 +7,9 @@ from shutil import copyfile
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
+import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
-import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 from merlin.dag import BaseOperator  # noqa
 from merlin.dag.selector import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
@@ -166,6 +166,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
+        backend: str = "python",
     ):
         """
         Export the class object as a config and all related files to the user-defined path.
@@ -200,7 +201,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         node_export_path = pathlib.Path(path) / node_name
         node_export_path.mkdir(parents=True, exist_ok=True)
 
-        config = model_config.ModelConfig(name=node_name, backend="nvtabular", platform="op_runner")
+        config = model_config.ModelConfig(name=node_name, backend=backend, platform="op_runner")
 
         config.parameters["operator_names"].string_value = json.dumps([node_name])
 
@@ -225,7 +226,7 @@ class PipelineableInferenceOperator(InferenceOperator):
             # this assumes the list columns are 1D tensors both for cats and conts
             config.output.append(
                 model_config.ModelOutput(
-                    name=col_name.split("/")[0],
+                    name=col_name,
                     data_type=_convert_dtype(col_dict["dtype"]),
                     dims=[-1, -1],
                 )

@@ -19,7 +19,7 @@ from typing import List
 from merlin.dag import ColumnSelector
 from merlin.schema import Schema
 from merlin.systems.dag.ops.operator import InferenceOperator
-from merlin.systems.triton.export import _generate_nvtabular_config
+from merlin.systems.triton.export import generate_nvtabular_model
 
 
 class TransformWorkflow(InferenceOperator):
@@ -73,6 +73,7 @@ class TransformWorkflow(InferenceOperator):
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
+        """Returns output schema of operator"""
         return self.workflow.output_schema
 
     def export(self, path, input_schema, output_schema, node_id=None, version=1):
@@ -84,14 +85,10 @@ class TransformWorkflow(InferenceOperator):
         node_export_path = pathlib.Path(path) / node_name
         node_export_path.mkdir(parents=True, exist_ok=True)
 
-        workflow_export_path = node_export_path / str(version) / "workflow"
-        modified_workflow.save(str(workflow_export_path))
-
-        return _generate_nvtabular_config(
+        return generate_nvtabular_model(
             modified_workflow,
             node_name,
             node_export_path,
-            backend="nvtabular",
             sparse_max=self.sparse_max,
             max_batch_size=self.max_batch_size,
             cats=self.cats,
