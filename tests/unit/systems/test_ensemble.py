@@ -184,6 +184,7 @@ def test_graph_traverse_algo():
     assert isinstance(ordered_list[-1].op, ConcatColumns)
 
 
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 def test_workflow_with_forest_inference(tmpdir):
     rows = 200
     num_features = 16
