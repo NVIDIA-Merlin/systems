@@ -12,42 +12,10 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import BaseOperator  # noqa
 from merlin.dag.selector import ColumnSelector  # noqa
+from merlin.features.df import VirtualDataFrame  # noqa
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.node import InferenceNode  # noqa
 from merlin.systems.triton.export import _convert_dtype  # noqa
-
-
-class InferenceDataFrame:
-    def __init__(self, tensors=None):
-        """
-        This is a dictionary that has a set of key (column name) and value (tensor)
-
-        Parameters
-        ----------
-        tensors : Dictionary, optional
-            A dictionary consisting of column name (key), tensor vector (value) , by default None
-        """
-        self.tensors = tensors or {}
-
-    def __getitem__(self, col_items):
-        if isinstance(col_items, list):
-            results = {name: self.tensors[name] for name in col_items}
-            return InferenceDataFrame(results)
-        else:
-            return self.tensors[col_items]
-
-    def __len__(self):
-        return len(self.tensors)
-
-    def __iter__(self):
-        for name, tensor in self.tensors.items():
-            yield name, tensor
-
-    def __repr__(self):
-        dict_rep = {}
-        for k, v in self.tensors.items():
-            dict_rep[k] = v
-        return str(dict_rep)
 
 
 class InferenceOperator(BaseOperator):
@@ -144,7 +112,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         """
 
     @abstractmethod
-    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+    def transform(self, df: VirtualDataFrame) -> VirtualDataFrame:
         """Transform the dataframe by applying this operator to the set of input columns
 
         Parameters

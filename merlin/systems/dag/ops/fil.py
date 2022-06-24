@@ -22,6 +22,7 @@ import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
+from merlin.features.df import VirtualDataFrame  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops.compat import (
     cuml_ensemble,
@@ -31,11 +32,7 @@ from merlin.systems.dag.ops.compat import (
     treelite_sklearn,
     xgboost,
 )
-from merlin.systems.dag.ops.operator import (
-    InferenceDataFrame,
-    InferenceOperator,
-    PipelineableInferenceOperator,
-)
+from merlin.systems.dag.ops.operator import InferenceOperator, PipelineableInferenceOperator
 
 
 class PredictForest(PipelineableInferenceOperator):
@@ -67,6 +64,7 @@ class PredictForest(PipelineableInferenceOperator):
         self.backend = backend
         self.input_schema = input_schema
         self._fil_model_name = None
+        super().__init__()
 
     def compute_output_schema(
         self,
@@ -139,17 +137,17 @@ class PredictForest(PipelineableInferenceOperator):
     def set_fil_model_name(self, fil_model_name):
         self._fil_model_name = fil_model_name
 
-    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+    def transform(self, df: VirtualDataFrame) -> VirtualDataFrame:
         """Transform the dataframe by applying this FIL operator to the set of input columns.
 
         Parameters
         -----------
-        df: InferenceDataFrame
+        df: VirtualDataFrame
             A pandas or cudf dataframe that this operator will work on
 
         Returns
         -------
-        InferenceDataFrame
+        VirtualDataFrame
             Returns a transformed dataframe for this operator"""
         input0 = np.array([x.ravel() for x in df.tensors.values()]).astype(np.float32).T
         inference_request = pb_utils.InferenceRequest(
@@ -159,7 +157,7 @@ class PredictForest(PipelineableInferenceOperator):
         )
         inference_response = inference_request.exec()
         output0 = pb_utils.get_output_tensor_by_name(inference_response, "output__0")
-        return InferenceDataFrame({"output__0": output0})
+        return VirtualDataFrame({"output__0": output0})
 
 
 class FIL(InferenceOperator):

@@ -4,8 +4,9 @@ import numpy as np
 
 from merlin.dag.node import Node
 from merlin.dag.selector import ColumnSelector
+from merlin.features.df import VirtualDataFrame
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 
 class SoftmaxSampling(PipelineableInferenceOperator):
@@ -91,7 +92,7 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         """Describe the operator's outputs"""
         return Schema([ColumnSchema("ordered_ids", dtype=np.int32, is_list=True, is_ragged=True)])
 
-    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+    def transform(self, df: VirtualDataFrame) -> VirtualDataFrame:
         """Transform the dataframe by applying this operator to the set of input columns"""
         # Extract parameters from the request
         candidate_ids = df[self._input_col_name].reshape(-1)
@@ -124,4 +125,4 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         topk_movie_ids = candidate_ids[sorted_indices][: self.topk]
         ordered_movie_ids = topk_movie_ids.reshape(1, -1).T
 
-        return InferenceDataFrame({"ordered_ids": ordered_movie_ids})
+        return VirtualDataFrame({"ordered_ids": ordered_movie_ids})

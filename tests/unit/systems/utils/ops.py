@@ -16,16 +16,18 @@
 
 import pytest
 
+from merlin.features.df import VirtualDataFrame
+
 inf_op = pytest.importorskip("merlin.systems.dag.ops.operator")
 
 
 class PlusTwoOp(inf_op.PipelineableInferenceOperator):
-    def transform(self, df: inf_op.InferenceDataFrame) -> inf_op.InferenceDataFrame:
+    def transform(self, df: VirtualDataFrame) -> VirtualDataFrame:
         focus_df = df
-        new_df = inf_op.InferenceDataFrame()
+        new_df = VirtualDataFrame()
 
-        for name, data in focus_df:
-            new_df.tensors[f"{name}_plus_2"] = data + 2
+        for col_name in focus_df:
+            new_df[f"{col_name}_plus_2"] = focus_df[col_name] + 2
 
         return new_df
 

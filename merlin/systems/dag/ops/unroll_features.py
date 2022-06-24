@@ -19,8 +19,9 @@ import numpy as np
 
 from merlin.dag import Node
 from merlin.dag.selector import ColumnSelector
+from merlin.features.df import VirtualDataFrame
 from merlin.schema import Schema
-from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 
 class UnrollFeatures(PipelineableInferenceOperator):
@@ -71,7 +72,7 @@ class UnrollFeatures(PipelineableInferenceOperator):
 
         return schema
 
-    def transform(self, df: InferenceDataFrame):
+    def transform(self, df: VirtualDataFrame):
         num_items = df[self.item_id_col].shape[0]
         outputs = {}
         for col_name, col_value in df.tensors.items():
@@ -82,7 +83,7 @@ class UnrollFeatures(PipelineableInferenceOperator):
             col_name = f"{self.unrolled_prefix}_{col}" if self.unrolled_prefix else col
             outputs[col_name] = np.repeat(target, num_items, axis=0)
 
-        return InferenceDataFrame(outputs)
+        return VirtualDataFrame(outputs)
 
     @property
     def _unroll_col_names(self):
