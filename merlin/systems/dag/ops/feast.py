@@ -93,7 +93,7 @@ class QueryFeast(PipelineableInferenceOperator):
                     values_name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
                 )
                 output_schema[nnzs_name] = ColumnSchema(
-                    nnzs_name, dtype=feature.dtype, is_list=True, is_ragged=False
+                    nnzs_name, dtype=np.int32, is_list=True, is_ragged=False
                 )
             else:
                 features.append(feature.name)

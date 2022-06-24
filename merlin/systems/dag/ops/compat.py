@@ -24,6 +24,10 @@ try:
 except ImportError:
     sklearn_ensemble = None
 try:
+    import treelite.sklearn as treelite_sklearn
+except ImportError:
+    treelite_sklearn = None
+try:
     import lightgbm
 except ImportError:
     lightgbm = None
