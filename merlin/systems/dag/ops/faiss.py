@@ -25,7 +25,7 @@ import numpy as np
 
 from merlin.core.dispatch import HAS_GPU
 from merlin.dag import ColumnSelector
-from merlin.features.df import VirtualDataFrame
+from merlin.features.df import DataFrame
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
@@ -143,28 +143,28 @@ class QueryFaiss(PipelineableInferenceOperator):
         self.index_path = str(new_index_path)
         return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
-    def transform(self, df: VirtualDataFrame) -> VirtualDataFrame:
+    def transform(self, df: DataFrame) -> DataFrame:
         """
         Transform input dataframe to output dataframe using function logic.
 
         Parameters
         ----------
-        df : VirtualDataFrame
+        df : DataFrame
             Input tensor dictionary, data that will be manipulated
 
         Returns
         -------
-        VirtualDataFrame
+        DataFrame
             Transformed tensor dictionary
         """
-        user_vector = list(df.tensors.values())[0]
+        user_vector = df[df.columns[0]]
 
         _, indices = self._index.search(user_vector, self.topk)
         # distances, indices = self.index.search(user_vector, self.topk)
 
         candidate_ids = np.array(indices).T.astype(np.int32)
 
-        return VirtualDataFrame({"candidate_ids": candidate_ids})
+        return type(df)({"candidate_ids": candidate_ids})
 
     def compute_input_schema(
         self,

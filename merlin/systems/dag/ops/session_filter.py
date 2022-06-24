@@ -19,7 +19,7 @@ import json
 import numpy as np
 
 from merlin.dag import ColumnSelector, Node
-from merlin.features.df import VirtualDataFrame
+from merlin.features.df import DataFrame
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
@@ -158,25 +158,25 @@ class FilterCandidates(PipelineableInferenceOperator):
         """
         return Schema([ColumnSchema("filtered_ids", dtype=np.int32, is_list=False)])
 
-    def transform(self, df: VirtualDataFrame):
+    def transform(self, df: DataFrame) -> DataFrame:
         """
-        Transform input dataframe to output dataframe using function logic.
+         Transform input dataframe to output dataframe using function logic.
 
-        Parameters
-        ----------
-        df : VirtualDataFrame
-            Input tensor dictionary, data that will be manipulated
+         Parameters
+         ----------
+         df :DataFrame
+             Input tensor dictionary, data that will be manipulated
 
-        Returns
-        -------
-        VirtualDataFrame
-            Transformed tensor dictionary
+         Returns
+         -------
+        DataFrame
+             Transformed tensor dictionary
         """
         candidate_ids = df[self._input_col]
         filter_ids = df[self._filter_out_col]
 
         filtered_results = np.array([candidate_ids[~np.isin(candidate_ids, filter_ids)]]).T
-        return VirtualDataFrame({"filtered_ids": filtered_results})
+        return type(df)({"filtered_ids": filtered_results})
 
     def export(
         self,

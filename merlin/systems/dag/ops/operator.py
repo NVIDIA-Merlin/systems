@@ -12,7 +12,7 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import BaseOperator  # noqa
 from merlin.dag.selector import ColumnSelector  # noqa
-from merlin.features.df import VirtualDataFrame  # noqa
+from merlin.features.df import DataFrame  # noqa
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.node import InferenceNode  # noqa
 from merlin.systems.triton.export import _convert_dtype  # noqa
@@ -112,7 +112,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         """
 
     @abstractmethod
-    def transform(self, df: VirtualDataFrame) -> VirtualDataFrame:
+    def transform(self, df: DataFrame) -> DataFrame:
         """Transform the dataframe by applying this operator to the set of input columns
 
         Parameters

@@ -5,7 +5,7 @@ import numpy as np
 from feast import FeatureStore, ValueType
 
 from merlin.dag import ColumnSelector
-from merlin.features.df import VirtualDataFrame
+from merlin.features.df import DataFrame
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
@@ -261,18 +261,18 @@ class QueryFeast(PipelineableInferenceOperator):
         self_params.update(params)
         return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
-    def transform(self, df: VirtualDataFrame) -> VirtualDataFrame:
+    def transform(self, df: DataFrame) -> DataFrame:
         """
         Transform input dataframe to output dataframe using function logic.
 
         Parameters
         ----------
-        df : VirtualDataFrame
+        df : DataFrame
             Input tensor dictionary, data that will be manipulated
 
         Returns
         -------
-        VirtualDataFrame
+        DataFrame
             Transformed tensor dictionary
         """
         entity_ids = df[self.entity_column]
@@ -332,7 +332,7 @@ class QueryFeast(PipelineableInferenceOperator):
             output_tensors[feature_out_name] = feature_array
             output_tensors[feature_out_nnz] = feature_nnzs
 
-        return VirtualDataFrame(output_tensors)
+        return type(df)(output_tensors)
 
     @classmethod
     def _prefixed_name(cls, output_prefix, col_name):
