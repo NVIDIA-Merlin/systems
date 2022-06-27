@@ -23,6 +23,7 @@ import pytest
 import nvtabular as nvt
 import nvtabular.ops as wf_ops
 from merlin.dag import Graph
+from merlin.features.df import VirtualDataFrame
 from merlin.schema import Tags
 from tests.unit.systems.utils.ops import PlusTwoOp
 
@@ -143,11 +144,13 @@ def test_op_runner_loads_multiple_ops_same_execute(tmpdir, dataset, engine):
 
     inputs = {}
     for col_name in schema.column_names:
-        inputs[col_name] = np.random.randint(10)
+        inputs[col_name] = np.random.randint(0, 10, 5)
 
-    outputs = runner.execute(inf_op.InferenceDataFrame(inputs))
+    df = VirtualDataFrame(inputs)
 
-    assert outputs["x_plus_2_plus_2"] == inputs["x"] + 4
+    outputs = runner.execute(df)
+
+    assert (outputs["x_plus_2_plus_2"] == inputs["x"] + 4).all()
 
 
 @pytest.mark.parametrize("engine", ["parquet"])

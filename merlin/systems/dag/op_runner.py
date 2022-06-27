@@ -16,6 +16,8 @@
 import importlib
 import json
 
+from merlin.features.df import VirtualDataFrame
+
 
 class OperatorRunner:
     def __init__(self, config, repository="./", version=1, kind=""):
@@ -33,10 +35,14 @@ class OperatorRunner:
             operator = op_class.from_config(op_config)
             self.operators.append(operator)
 
-    def execute(self, tensors):
+    def execute(self, df):
+        if not isinstance(df, VirtualDataFrame):
+            df = VirtualDataFrame.from_df(df)
+
         for operator in self.operators:
-            tensors = operator.transform(tensors)
-        return tensors
+            df = operator.transform(df)
+
+        return df
 
     def fetch_json_param(self, model_config, param_name):
         string_value = model_config["parameters"][param_name]["string_value"]

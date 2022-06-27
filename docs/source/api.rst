@@ -24,7 +24,6 @@ Ensemble Operator Constructors
    :toctree: generated
 
    workflow.TransformWorkflow
-   operator.InferenceDataFrame
    tensorflow.PredictTensorflow
    softmax_sampling.SoftmaxSampling
    session_filter.FilterCandidates

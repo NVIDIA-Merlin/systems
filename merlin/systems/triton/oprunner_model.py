@@ -37,8 +37,8 @@ from triton_python_backend_utils import (
     get_input_tensor_by_name,
 )
 
+from merlin.features.df import VirtualDataFrame
 from merlin.systems.dag.op_runner import OperatorRunner
-from merlin.systems.dag.ops.operator import InferenceDataFrame
 
 
 class TritonPythonModel:
@@ -100,17 +100,17 @@ class TritonPythonModel:
                     for name in input_column_names
                 }
 
-                inf_df = InferenceDataFrame(input_tensors)
-
-                raw_tensor_tuples = self.runner.execute(inf_df)
+                inf_df = VirtualDataFrame(input_tensors)
+                result_df = self.runner.execute(inf_df)
 
                 output_tensors = []
-                for name, data in raw_tensor_tuples:
+                for col_name in result_df:
+                    data = result_df[col_name]
                     if isinstance(data, Tensor):
                         output_tensors.append(data)
                         continue
                     data = data.get() if hasattr(data, "get") else data
-                    tensor = Tensor(name, data)
+                    tensor = Tensor(col_name, data)
                     output_tensors.append(tensor)
 
                 responses.append(InferenceResponse(output_tensors))
