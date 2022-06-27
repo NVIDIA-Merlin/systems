@@ -309,4 +309,4 @@ def test_training(tmpdir):
     config = model_op.export(tmpdir, None, None)
     assert config is not None
 
-    # _predict(dense_features, embedding_columns, row_ptrs, hugectr_params["config"], MODEL_NAME)
+    # _predict(dense_features, embedding_columns, row_ptrs, tmpdir, MODEL_NAME)
