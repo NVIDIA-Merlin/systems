@@ -41,7 +41,7 @@ After you export your ensemble, you reference the directory to run an instance o
 tritonserver --model-repository=/export_path/
 ```
 
-Refer to the [Merlin Systems Example Notebooks](https://github.com/NVIDIA-Merlin/systems/tree/main/examples) for a notebook that serves a ranking models ensemble.
+Refer to the [Merlin Systems Example Notebooks](./examples/) for a notebook that serves a ranking models ensemble.
 The notebook shows how to deploy the ensemble and demonstrates sending requests to Triton Inference Server.
 
 ## Building a Four-Stage Recommender Pipeline
