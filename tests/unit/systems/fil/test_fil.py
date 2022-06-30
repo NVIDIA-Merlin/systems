@@ -210,6 +210,23 @@ def test_regressor(get_model_fn, get_model_params, tmpdir):
     assert config.output[0].dims == [1]
 
 
+@pytest.mark.parametrize(
+    ["get_model_fn", "expected_model_filename"],
+    [
+        (xgboost_regressor, "xgboost.json"),
+        (lightgbm_regressor, "model.txt"),
+        (sklearn_forest_regressor, "checkpoint.tl"),
+    ],
+)
+def test_model_file(get_model_fn, expected_model_filename, tmpdir):
+    X, y = get_regression_data()
+    model = get_model_fn(X, y)
+    triton_op = fil_op.FIL(model)
+    _ = export_op(tmpdir, triton_op)
+    model_path = pathlib.Path(tmpdir) / "fil" / "1" / expected_model_filename
+    assert model_path.is_file()
+
+
 def test_fil_op_exports_own_config(tmpdir):
     X, y = get_regression_data()
     model = xgboost_train(X, y, objective="reg:squarederror")
