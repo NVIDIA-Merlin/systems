@@ -35,45 +35,28 @@ class HugeCTR(InferenceOperator):
     def __init__(
         self,
         model,
-        max_batch_size=1024,
+        max_batch_size=64,
         device_list=None,
         hit_rate_threshold=None,
         gpucache=None,
         freeze_sparse=None,
         gpucacheper=None,
-        label_dim=None,
-        slots=None,
-        cat_feature_num=None,
-        des_feature_num=None,
-        max_nnz=None,
-        embedding_vector_size=None,
+        max_nnz=2,
         embeddingkey_long_type=None,
     ):
         self.model = model
-        self.max_batch_size = max_batch_size or 1024
-        self.device_list = device_list
-
-        # if isinstance(model_or_path,(str, os.PathLike)):
-        #     self.path = model_or_path
-        # elif isinstance(model_or_path, hugectr.Model):
-        #     self.model = model_or_path
-        # else:
-        #     raise ValueError(
-        #         "Unsupported type for model_or_path. "
-        #         "Must be pathlike or hugectr.Model"
-        #     )
+        self.max_batch_size = max_batch_size
+        self.device_list = device_list or []
+        embeddingkey_long_type = embeddingkey_long_type or "true"
+        gpucache = gpucache or "true"
+        gpucacheper = gpucacheper or 0.5
 
         self.hugectr_params = dict(
             hit_rate_threshold=hit_rate_threshold,
             gpucache=gpucache,
             freeze_sparse=freeze_sparse,
             gpucacheper=gpucacheper,
-            label_dim=label_dim,
-            slots=slots,
-            cat_feature_num=cat_feature_num,
-            des_feature_num=des_feature_num,
             max_nnz=max_nnz,
-            embedding_vector_size=embedding_vector_size,
             embeddingkey_long_type=embeddingkey_long_type,
         )
 
@@ -160,51 +143,76 @@ class HugeCTR(InferenceOperator):
         node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
         node_export_path = pathlib.Path(path) / node_name
         node_export_path.mkdir(exist_ok=True)
-
+        model_name = node_name
         hugectr_model_path = pathlib.Path(node_export_path) / str(version)
         hugectr_model_path.mkdir(exist_ok=True)
-        self.model.graph_to_json(graph_config_file=str(hugectr_model_path / "model.json"))
+
+        network_file = os.path.join(hugectr_model_path, f"{model_name}.json")
+
+        self.model.graph_to_json(graph_config_file=network_file)
         self.model.save_params_to_files(str(hugectr_model_path) + "/")
-        # generate config
-        # save artifacts to model repository (path)
-        # {node_id}_hugectr/config.pbtxt
-        # {node_id}_hugectr/1/
-        model_name = "model"
+        model_json = json.loads(open(network_file, "r").read())
         dense_pattern = "*_dense_*.model"
         dense_path = [
             os.path.join(hugectr_model_path, path.name)
             for path in hugectr_model_path.glob(dense_pattern)
+            if "opt" not in path.name
         ][0]
         sparse_pattern = "*_sparse_*.model"
         sparse_paths = [
             os.path.join(hugectr_model_path, path.name)
             for path in hugectr_model_path.glob(sparse_pattern)
+            if "opt" not in path.name
         ]
-        network_file = os.path.join(hugectr_model_path, f"{model_name}.json")
 
         config_dict = dict()
         config_dict["supportlonglong"] = True
+
+        data_layer = model_json["layers"][0]
+        sparse_layers = [
+            layer
+            for layer in model_json["layers"]
+            if layer["type"] == "DistributedSlotSparseEmbeddingHash"
+        ]
+        num_cat_columns = sum(x["slot_num"] for x in data_layer["sparse"])
+        vec_size = [x["sparse_embedding_hparam"]["embedding_vec_size"] for x in sparse_layers]
+
         model = dict()
         model["model"] = model_name
+        model["slot_num"] = num_cat_columns
         model["sparse_files"] = sparse_paths
         model["dense_file"] = dense_path
+        model["maxnum_des_feature_per_sample"] = data_layer["dense"]["dense_dim"]
         model["network_file"] = network_file
         model["num_of_worker_buffer_in_pool"] = 4
         model["num_of_refresher_buffer_in_pool"] = 1
         model["deployed_device_list"] = self.device_list
-        model["max_batch_size"] = (self.max_batch_size,)
-        model["default_value_for_each_table"] = [0.0]
+        model["max_batch_size"] = self.max_batch_size
+        model["default_value_for_each_table"] = [0.0] * len(sparse_layers)
         model["hit_rate_threshold"] = 0.9
-        model["gpucacheper"] = 0.5
+        model["gpucacheper"] = self.hugectr_params["gpucacheper"]
         model["gpucache"] = True
         model["cache_refresh_percentage_per_iteration"] = 0.2
+        model["maxnum_catfeature_query_per_table_per_sample"] = [
+            len(x["sparse_embedding_hparam"]["slot_size_array"]) for x in sparse_layers
+        ]
+        model["embedding_vecsize_per_table"] = vec_size
+        model["embedding_table_names"] = [x["top"] for x in sparse_layers]
         config_dict["models"] = [model]
 
-        parameter_server_config_path = str(hugectr_model_path / "ps.json")
+        parameter_server_config_path = str(node_export_path.parent / "ps.json")
         with open(parameter_server_config_path, "w") as f:
             f.write(json.dumps(config_dict))
 
-        self.hugectr_params["config"] = parameter_server_config_path
+        self.hugectr_params["config"] = network_file
+
+        # These are no longer required from hugectr_backend release 3.7
+        self.hugectr_params["cat_feature_num"] = num_cat_columns
+        self.hugectr_params["des_feature_num"] = data_layer["dense"]["dense_dim"]
+        self.hugectr_params["embedding_vector_size"] = vec_size[0]
+        self.hugectr_params["slots"] = num_cat_columns
+        self.hugectr_params["label_dim"] = data_layer["label"]["label_dim"]
+
         config = _hugectr_config(node_name, self.hugectr_params, max_batch_size=self.max_batch_size)
 
         with open(os.path.join(node_export_path, "config.pbtxt"), "w") as o:
@@ -253,13 +261,11 @@ def _hugectr_config(name, hugectr_params, max_batch_size=None):
     config_hugectr = model_config.ModelParameter(string_value=hugectr_params["config"])
     config.parameters["config"].CopyFrom(config_hugectr)
 
-    gpucache_val = hugectr_params.get("gpucache", "true")
-
+    gpucache_val = hugectr_params["gpucache"]
     gpucache = model_config.ModelParameter(string_value=gpucache_val)
     config.parameters["gpucache"].CopyFrom(gpucache)
 
-    gpucacheper_val = str(hugectr_params.get("gpucacheper_val", "0.5"))
-
+    gpucacheper_val = str(hugectr_params["gpucacheper"])
     gpucacheper = model_config.ModelParameter(string_value=gpucacheper_val)
     config.parameters["gpucacheper"].CopyFrom(gpucacheper)
 
@@ -287,8 +293,7 @@ def _hugectr_config(name, hugectr_params, max_batch_size=None):
     )
     config.parameters["embedding_vector_size"].CopyFrom(embedding_vector_size)
 
-    embeddingkey_long_type_val = hugectr_params.get("embeddingkey_long_type", "true")
-
+    embeddingkey_long_type_val = hugectr_params["embeddingkey_long_type"]
     embeddingkey_long_type = model_config.ModelParameter(string_value=embeddingkey_long_type_val)
     config.parameters["embeddingkey_long_type"].CopyFrom(embeddingkey_long_type)
 
