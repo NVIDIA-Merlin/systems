@@ -85,7 +85,7 @@
 
 <span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">BaseOperator</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.dag.selector</span> <span class="kn">import</span> <span class="n">ColumnSelector</span>  <span class="c1"># noqa</span>
-<span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">Schema</span>  <span class="c1"># noqa</span>
+<span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">Tags</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.systems.dag.node</span> <span class="kn">import</span> <span class="n">InferenceNode</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.systems.triton.export</span> <span class="kn">import</span> <span class="n">_convert_dtype</span>  <span class="c1"># noqa</span>
 
@@ -326,6 +326,7 @@
             <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
             <span class="s2">&quot;is_list&quot;</span><span class="p">:</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_list</span><span class="p">,</span>
             <span class="s2">&quot;is_ragged&quot;</span><span class="p">:</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_ragged</span><span class="p">,</span>
+            <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">tag</span><span class="o">.</span><span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">Tags</span><span class="p">)</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">tags</span><span class="p">],</span>
         <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">schema_dict</span>
