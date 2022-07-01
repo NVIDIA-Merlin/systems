@@ -76,6 +76,12 @@ class PredictHugeCTR(PipelineableInferenceOperator):
 
         self.backend = backend
         self.input_schema = input_schema
+        categorical_columns = self.input_schema.select_by_tag(Tags.CATEGORICAL).column_names
+        if not categorical_columns:
+            raise ValueError(
+                "HugeCTR require categorical columns."
+                "No columns with categorical tags were found in the input schema supplied."
+            )
         self._hugectr_model_name = None
 
     def compute_output_schema(

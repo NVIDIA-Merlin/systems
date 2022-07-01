@@ -332,6 +332,12 @@ def test_predict_hugectr(tmpdir):
     np.testing.assert_array_almost_equal(response.as_numpy("OUTPUT0"), np.array(out_predict))
 
 
+def test_no_categoricals():
+    with pytest.raises(ValueError) as exc_info:
+        PredictHugeCTR(None, Schema())
+    assert "HugeCTR require categorical columns." in str(exc_info.value)
+
+
 def _predict(
     dense_features, embedding_columns, row_ptrs, config_file, model_name, dense_path, sparse_paths
 ):
