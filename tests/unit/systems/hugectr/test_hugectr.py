@@ -16,7 +16,6 @@
 
 import os
 
-import cudf
 import numpy as np
 import pytest
 
@@ -37,6 +36,7 @@ except ImportError:
 
 triton = pytest.importorskip("merlin.systems.triton")
 grpcclient = pytest.importorskip("tritonclient.grpc")
+cudf = pytest.importorskip("cudf")
 # from common.parsers.benchmark_parsers import create_bench_result
 # from common.utils import _run_query
 
