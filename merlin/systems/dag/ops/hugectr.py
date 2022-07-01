@@ -21,9 +21,177 @@ import numpy as np
 import tritonclient.grpc.model_config_pb2 as model_config
 from google.protobuf import text_format
 
+from merlin.core.dispatch import make_df
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
+from merlin.schema.tags import Tags
+from merlin.systems.dag.ops.compat import pb_utils
+from merlin.systems.dag.ops.operator import (
+    InferenceDataFrame,
+    InferenceOperator,
+    PipelineableInferenceOperator,
+)
+
+
+def _convert(data, slot_size_array, categorical_columns, labels=None):
+    """Prepares data for a request to the HugeCTR predict interface.
+
+    Returns
+    -------
+        Tuple of dense, categorical, and row index.
+        Corresponding to the three inputs required by a HugeCTR model.
+    """
+    labels = labels or []
+    dense_columns = list(set(data.columns) - set(categorical_columns + labels))
+    categorical_dim = len(categorical_columns)
+    batch_size = data.shape[0]
+
+    shift = np.insert(np.cumsum(slot_size_array), 0, 0)[:-1].tolist()
+
+    # These dtypes are static for HugeCTR
+    dense = np.array([data[dense_columns].values.flatten().tolist()], dtype="float32")
+    cat = np.array([(data[categorical_columns] + shift).values.flatten().tolist()], dtype="int64")
+    rowptr = np.array([list(range(batch_size * categorical_dim + 1))], dtype="int32")
+
+    return dense, cat, rowptr
+
+
+class PredictHugeCTR(PipelineableInferenceOperator):
+    def __init__(self, model, input_schema: Schema, *, backend="python", **hugectr_params):
+        """Instantiate a HugeCTR inference operator.
+
+        Parameters
+        ----------
+        model : HugeCTR Model Instance
+            A HugeCTR model class.
+        input_schema : merlin.schema.Schema
+            The schema representing the input columns expected by the model.
+        backend : str
+            The Triton backend to use to when running this operator.
+        **hugectr_params
+            The parameters to pass to the HugeCTR operator.
+        """
+        if model is not None:
+            self.hugectr_op = HugeCTR(model, **hugectr_params)
+
+        self.backend = backend
+        self.input_schema = input_schema
+        self._hugectr_model_name = None
+
+    def compute_output_schema(
+        self,
+        input_schema: Schema,
+        col_selector: ColumnSelector,
+        prev_output_schema: Schema = None,
+    ) -> Schema:
+        """Return the output schema representing the columns this operator returns."""
+        return self.hugectr_op.compute_output_schema(
+            input_schema, col_selector, prev_output_schema=prev_output_schema
+        )
+
+    def compute_input_schema(
+        self,
+        root_schema: Schema,
+        parents_schema: Schema,
+        deps_schema: Schema,
+        selector: ColumnSelector,
+    ) -> Schema:
+        """Return the input schema representing the input columns this operator expects to use."""
+        return self.input_schema
+
+    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+        """Export the class and related files to the path specified."""
+        hugectr_model_config = self.hugectr_op.export(
+            path,
+            input_schema,
+            output_schema,
+            params=params,
+            node_id=node_id,
+            version=version,
+        )
+        params = params or {}
+        params = {
+            **params,
+            "hugectr_model_name": hugectr_model_config.name,
+            "slot_sizes": hugectr_model_config.parameters["slot_sizes"].string_value,
+        }
+        return super().export(
+            path,
+            input_schema,
+            output_schema,
+            params=params,
+            node_id=node_id,
+            version=version,
+            backend=self.backend,
+        )
+
+    @classmethod
+    def from_config(cls, config: dict) -> "PredictHugeCTR":
+        """Instantiate the class from a dictionary representation.
+
+        Expected structure:
+        {
+            "input_dict": str  # JSON dict with input names and schemas
+            "params": str  # JSON dict with params saved at export
+        }
+
+        """
+
+        column_schemas = [
+            ColumnSchema(name, **schema_properties)
+            for name, schema_properties in json.loads(config["input_dict"]).items()
+        ]
+
+        input_schema = Schema(column_schemas)
+
+        cls_instance = cls(None, input_schema)
+        params = json.loads(config["params"])
+
+        cls_instance.slot_sizes = json.loads(params["slot_sizes"])
+        cls_instance.set_hugectr_model_name(params["hugectr_model_name"])
+        return cls_instance
+
+    @property
+    def hugectr_model_name(self):
+        return self._hugectr_model_name
+
+    def set_hugectr_model_name(self, hugectr_model_name):
+        self._hugectr_model_name = hugectr_model_name
+
+    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+        """Transform the dataframe by applying this FIL operator to the set of input columns.
+
+        Parameters
+        -----------
+        df: InferenceDataFrame
+            A pandas or cudf dataframe that this operator will work on
+
+        Returns
+        -------
+        InferenceDataFrame
+            Returns a transformed dataframe for this operator"""
+        slot_sizes = [slot for slots in self.slot_sizes for slot in slots]
+        categorical_columns = self.input_schema.select_by_tag(Tags.CATEGORICAL).column_names
+        dict_to_pd = {k: v.ravel() for k, v in df}
+
+        df = make_df(dict_to_pd)
+        dense, cats, rowptr = _convert(df, slot_sizes, categorical_columns, labels=["label"])
+
+        inputs = [
+            pb_utils.Tensor("DES", dense),
+            pb_utils.Tensor("CATCOLUMN", cats),
+            pb_utils.Tensor("ROWINDEX", rowptr),
+        ]
+
+        inference_request = pb_utils.InferenceRequest(
+            model_name=self.hugectr_model_name,
+            requested_output_names=["OUTPUT0"],
+            inputs=inputs,
+        )
+        inference_response = inference_request.exec()
+        output0 = pb_utils.get_output_tensor_by_name(inference_response, "OUTPUT0")
+
+        return InferenceDataFrame({"OUTPUT0": output0})
 
 
 class HugeCTR(InferenceOperator):
@@ -119,7 +287,7 @@ class HugeCTR(InferenceOperator):
         """
         return Schema([ColumnSchema("OUTPUT0", dtype=np.float32)])
 
-    def export(self, path, input_schema, output_schema, node_id=None, version=1):
+    def export(self, path, input_schema, output_schema, node_id=None, params=None, version=1):
         """Create and export the required config files for the hugectr model.
 
         Parameters
@@ -174,6 +342,7 @@ class HugeCTR(InferenceOperator):
             for layer in model_json["layers"]
             if layer["type"] == "DistributedSlotSparseEmbeddingHash"
         ]
+        full_slots = [x["sparse_embedding_hparam"]["slot_size_array"] for x in sparse_layers]
         num_cat_columns = sum(x["slot_num"] for x in data_layer["sparse"])
         vec_size = [x["sparse_embedding_hparam"]["embedding_vec_size"] for x in sparse_layers]
 
@@ -212,7 +381,7 @@ class HugeCTR(InferenceOperator):
         self.hugectr_params["embedding_vector_size"] = vec_size[0]
         self.hugectr_params["slots"] = num_cat_columns
         self.hugectr_params["label_dim"] = data_layer["label"]["label_dim"]
-
+        self.hugectr_params["slot_sizes"] = full_slots
         config = _hugectr_config(node_name, self.hugectr_params, max_batch_size=self.max_batch_size)
 
         with open(os.path.join(node_export_path, "config.pbtxt"), "w") as o:
@@ -221,14 +390,14 @@ class HugeCTR(InferenceOperator):
         return config
 
 
-def _hugectr_config(name, hugectr_params, max_batch_size=None):
+def _hugectr_config(name, parameters, max_batch_size=None):
     """Create a config for a HugeCTR model.
 
     Parameters
     ----------
     name : string
         The name of the hugectr model.
-    hugectr_params : dictionary
+    parameters : dictionary
         Dictionary holding parameter values required by hugectr
     max_batch_size : int, optional
         The maximum batch size to be processed per batch, by an inference request, by default None
@@ -258,43 +427,14 @@ def _hugectr_config(name, hugectr_params, max_batch_size=None):
 
     config.instance_group.append(model_config.ModelInstanceGroup(gpus=[0], count=1, kind=1))
 
-    config_hugectr = model_config.ModelParameter(string_value=hugectr_params["config"])
-    config.parameters["config"].CopyFrom(config_hugectr)
+    for parameter_key, parameter_value in parameters.items():
+        if parameter_value is None:
+            continue
 
-    gpucache_val = hugectr_params["gpucache"]
-    gpucache = model_config.ModelParameter(string_value=gpucache_val)
-    config.parameters["gpucache"].CopyFrom(gpucache)
-
-    gpucacheper_val = str(hugectr_params["gpucacheper"])
-    gpucacheper = model_config.ModelParameter(string_value=gpucacheper_val)
-    config.parameters["gpucacheper"].CopyFrom(gpucacheper)
-
-    label_dim = model_config.ModelParameter(string_value=str(hugectr_params["label_dim"]))
-    config.parameters["label_dim"].CopyFrom(label_dim)
-
-    slots = model_config.ModelParameter(string_value=str(hugectr_params["slots"]))
-    config.parameters["slots"].CopyFrom(slots)
-
-    des_feature_num = model_config.ModelParameter(
-        string_value=str(hugectr_params["des_feature_num"])
-    )
-    config.parameters["des_feature_num"].CopyFrom(des_feature_num)
-
-    cat_feature_num = model_config.ModelParameter(
-        string_value=str(hugectr_params["cat_feature_num"])
-    )
-    config.parameters["cat_feature_num"].CopyFrom(cat_feature_num)
-
-    max_nnz = model_config.ModelParameter(string_value=str(hugectr_params["max_nnz"]))
-    config.parameters["max_nnz"].CopyFrom(max_nnz)
-
-    embedding_vector_size = model_config.ModelParameter(
-        string_value=str(hugectr_params["embedding_vector_size"])
-    )
-    config.parameters["embedding_vector_size"].CopyFrom(embedding_vector_size)
-
-    embeddingkey_long_type_val = hugectr_params["embeddingkey_long_type"]
-    embeddingkey_long_type = model_config.ModelParameter(string_value=embeddingkey_long_type_val)
-    config.parameters["embeddingkey_long_type"].CopyFrom(embeddingkey_long_type)
+        if isinstance(parameter_value, list):
+            config.parameters[parameter_key].string_value = json.dumps(parameter_value)
+        elif isinstance(parameter_value, bool):
+            config.parameters[parameter_key].string_value = str(parameter_value).lower()
+        config.parameters[parameter_key].string_value = str(parameter_value)
 
     return config
