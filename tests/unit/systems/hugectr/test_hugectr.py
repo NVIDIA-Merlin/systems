@@ -37,8 +37,6 @@ except ImportError:
 triton = pytest.importorskip("merlin.systems.triton")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 cudf = pytest.importorskip("cudf")
-# from common.parsers.benchmark_parsers import create_bench_result
-# from common.utils import _run_query
 
 
 def _run_model(slot_sizes, source, dense_dim):
