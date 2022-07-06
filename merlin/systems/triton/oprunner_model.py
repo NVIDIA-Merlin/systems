@@ -108,6 +108,7 @@ class TritonPythonModel:
                 for name, data in raw_tensor_tuples:
                     if isinstance(data, Tensor):
                         output_tensors.append(data)
+                        continue
                     data = data.get() if hasattr(data, "get") else data
                     tensor = Tensor(name, data)
                     output_tensors.append(tensor)
