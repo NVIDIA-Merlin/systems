@@ -45,9 +45,25 @@ class TritonPythonModel:
     def initialize(self, args):
         """
         Initialize a TritonPytonModel with an Nvtabular workflow.
+
+        args : dict
+          Both keys and values are strings. The dictionary keys and values are:
+          * model_config: A JSON string containing the model configuration
+          * model_instance_kind: A string containing model instance kind
+          * model_instance_device_id: A string containing model instance device ID
+          * model_repository: Model repository path
+          * model_version: Model version
+          * model_name: Model name
         """
         # Arg parsing
-        repository_path = pathlib.Path(args["model_repository"]).parent.parent
+        model_repo = args["model_repository"]
+        repository_path = pathlib.Path(model_repo)
+
+        # Handle bug in Tritonserver 22.06
+        # model_repository argument became path to model.py
+        if str(repository_path).endswith(".py"):
+            repository_path = repository_path.parent.parent
+
         workflow_path = repository_path / str(args["model_version"]) / "workflow"
         model_device = args["model_instance_kind"]
 
