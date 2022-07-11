@@ -198,7 +198,7 @@ class QueryFeast(PipelineableInferenceOperator):
         return self.input_schema
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config, **kwargs) -> "QueryFeast":
         """Create the operator from a config."""
         parameters = json.loads(config.get("params", ""))
         entity_id = parameters["entity_id"]
