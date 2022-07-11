@@ -52,7 +52,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         selector: ColumnSelector,
     ) -> Schema:
         """Return the input schema representing the input columns this operator expects to use."""
-        return Schema([ColumnSchema("user_id", dtype="int64")])
+        return Schema([ColumnSchema("user_id", dtype="int64"), ColumnSchema("n", dtype="int64")])
 
     def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
         """Export the class and related files to the path specified."""
@@ -111,7 +111,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         InferenceDataFrame
             Returns a transformed dataframe for this operator"""
         user_id = df["user_id"][0]
-        num_to_recommend = 10
+        num_to_recommend = df["n"][0]
         user_items = None
         ids, scores = self.model.recommend(
             user_id, user_items, num_to_recommend, filter_already_liked_items=False

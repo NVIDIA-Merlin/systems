@@ -79,22 +79,26 @@ def test_predict_implcit(model_cls, tmpdir):
 )
 def test_ensemble(model_cls, tmpdir):
     model = model_cls()
-    n = 10
-    user_items = csr_matrix(np.random.choice([0, 1], size=n * n).reshape(n, n))
+    n = 100
+    user_items = csr_matrix(np.random.choice([0, 1], size=n * n, p=[0.9, 0.1]).reshape(n, n))
     model.fit(user_items)
 
-    ids, scores = model.recommend(1, None, 10, filter_already_liked_items=False)
+    num_to_recommend = np.random.randint(n)
+
+    ids, scores = model.recommend(1, None, num_to_recommend, filter_already_liked_items=False)
 
     implicit_op = PredictImplicit(model)
 
-    input_schema = Schema([ColumnSchema("user_id", dtype="int64")])
+    input_schema = Schema(
+        [ColumnSchema("user_id", dtype="int64"), ColumnSchema("n", dtype="int64")]
+    )
 
     triton_chain = input_schema.column_names >> implicit_op
 
     triton_ens = Ensemble(triton_chain, input_schema)
     triton_ens.export(tmpdir)
 
-    request_df = pd.DataFrame({"user_id": [1]})
+    request_df = pd.DataFrame({"user_id": [1], "n": [num_to_recommend]})
     response = _run_ensemble_on_tritonserver(
         str(tmpdir), ["ids", "scores"], request_df, triton_ens.name
     )
