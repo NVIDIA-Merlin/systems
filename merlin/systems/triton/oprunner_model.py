@@ -25,6 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
+import pathlib
 import sys
 import traceback
 
@@ -56,9 +57,18 @@ class TritonPythonModel:
           * model_name: Model name
         """
         self.model_config = json.loads(args["model_config"])
-        self.model_repository = json.loads(args["model_repository"])
-        self.model_name = json.loads(args["model_name"])
-        self.model_version = json.loads(args["model_version"])
+
+        model_repository = args["model_repository"]
+        model_repository_path = pathlib.Path(model_repository).parent
+
+        # Handle bug in Tritonserver 22.06
+        # model_repository argument became path to model.py
+        if str(model_repository).endswith(".py"):
+            model_repository_path = model_repository_path.parent
+
+        self.model_repository = str(model_repository_path)
+        self.model_name = args["model_name"]
+        self.model_version = args["model_version"]
 
         self.runner = OperatorRunner(
             self.model_config,
