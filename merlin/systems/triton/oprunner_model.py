@@ -56,7 +56,16 @@ class TritonPythonModel:
           * model_name: Model name
         """
         self.model_config = json.loads(args["model_config"])
-        self.runner = OperatorRunner(self.model_config)
+        self.model_repository = json.loads(args["model_repository"])
+        self.model_name = json.loads(args["model_name"])
+        self.model_version = json.loads(args["model_version"])
+
+        self.runner = OperatorRunner(
+            self.model_config,
+            model_repository=self.model_repository,
+            model_name=self.model_name,
+            model_version=self.model_version,
+        )
 
     def execute(self, requests):
         """Receives a list of pb_utils.InferenceRequest as the only argument. This
