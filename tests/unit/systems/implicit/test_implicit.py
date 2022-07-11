@@ -16,12 +16,12 @@
 import json
 from distutils.spawn import find_executable
 
+import implicit
 import numpy as np
 import pandas as pd
 import pytest
+from scipy.sparse import csr_matrix
 
-from merlin.datasets.synthetic import generate_data
-from merlin.models.implicit import BayesianPersonalizedRanking
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.implicit import PredictImplicit
@@ -30,14 +30,19 @@ from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noq
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
-def test_predict_implcit(tmpdir):
-    dataset = generate_data("movielens-100k", num_rows=100)
-    dataset.schema = dataset.schema.excluding_by_name("rating_binary")
-
-    mm_model = BayesianPersonalizedRanking()
-    mm_model.fit(dataset)
-
-    model = mm_model.implicit_model
+@pytest.mark.parametrize(
+    "model_cls",
+    [
+        implicit.bpr.BayesianPersonalizedRanking,
+        implicit.als.AlternatingLeastSquares,
+        implicit.lmf.LogisticMatrixFactorization,
+    ],
+)
+def test_predict_implcit(model_cls, tmpdir):
+    model = model_cls()
+    n = 10
+    user_items = csr_matrix(np.random.choice([0, 1], size=n * n).reshape(n, n))
+    model.fit(user_items)
 
     op = PredictImplicit(model)
 
@@ -63,15 +68,24 @@ def test_predict_implcit(tmpdir):
     np.testing.assert_array_equal(scores, reloaded_scores)
 
 
+#
+
+
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-def test_ensemble(tmpdir):
-    dataset = generate_data("movielens-100k", num_rows=100)
-    dataset.schema = dataset.schema.excluding_by_name("rating_binary")
+@pytest.mark.parametrize(
+    "model_cls",
+    [
+        implicit.bpr.BayesianPersonalizedRanking,
+        implicit.als.AlternatingLeastSquares,
+        implicit.lmf.LogisticMatrixFactorization,
+    ],
+)
+def test_ensemble(model_cls, tmpdir):
+    model = model_cls()
+    n = 10
+    user_items = csr_matrix(np.random.choice([0, 1], size=n * n).reshape(n, n))
+    model.fit(user_items)
 
-    mm_model = BayesianPersonalizedRanking()
-    mm_model.fit(dataset)
-
-    model = mm_model.implicit_model
     ids, scores = model.recommend(1, None, 10, filter_already_liked_items=False)
 
     implicit_op = PredictImplicit(model)
