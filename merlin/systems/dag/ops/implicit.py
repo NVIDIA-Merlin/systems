@@ -42,7 +42,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         prev_output_schema: Schema = None,
     ) -> Schema:
         """Return the output schema representing the columns this operator returns."""
-        return Schema([ColumnSchema("ids"), ColumnSchema("scores")])
+        return Schema([ColumnSchema("ids", dtype="int64"), ColumnSchema("scores", dtype="float64")])
 
     def compute_input_schema(
         self,
@@ -52,7 +52,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         selector: ColumnSelector,
     ) -> Schema:
         """Return the input schema representing the input columns this operator expects to use."""
-        return Schema([ColumnSchema("user_id")])
+        return Schema([ColumnSchema("user_id", dtype="int64")])
 
     def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
         """Export the class and related files to the path specified."""
@@ -61,6 +61,9 @@ class PredictImplicit(PipelineableInferenceOperator):
         version_path.mkdir(parents=True, exist_ok=True)
         model_path = version_path / "model.npz"
         self.model.save(str(model_path))
+        params = params or {}
+        params["model_module_name"] = self.model.__module__
+        params["model_class_name"] = self.model.__class__.__name__
         return super().export(
             path,
             input_schema,
@@ -72,7 +75,7 @@ class PredictImplicit(PipelineableInferenceOperator):
 
     @classmethod
     def from_config(
-        cls, config: dict, model_repository="./", model_name=None, model_version=None
+        cls, config: dict, model_repository="./", model_name=None, model_version=1
     ) -> "PredictImplicit":
         """Instantiate the class from a dictionary representation.
 
@@ -86,11 +89,11 @@ class PredictImplicit(PipelineableInferenceOperator):
         params = json.loads(config["params"])
 
         # load implicit model
-        model_module_name = params["implicit_model_module_name"]
-        model_class_name = params["implicit_model_class_name"]
+        model_module_name = params["model_module_name"]
+        model_class_name = params["model_class_name"]
         model_module = importlib.import_module(model_module_name)
         model_cls = getattr(model_module, model_class_name)
-        model_file = pathlib.Path(model_repository) / model_name / model_version / "model.npz"
+        model_file = pathlib.Path(model_repository) / model_name / str(model_version) / "model.npz"
         model = model_cls.load(str(model_file))
 
         return cls(model)
