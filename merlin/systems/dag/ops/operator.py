@@ -3,6 +3,7 @@ import os
 import pathlib
 from abc import abstractclassmethod, abstractmethod
 from shutil import copyfile
+from typing import Optional
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -119,6 +120,40 @@ class InferenceOperator(BaseOperator):
             New node for Ensemble graph.
         """
         return InferenceNode(selector)
+
+    @classmethod
+    def from_mlflow_registry(
+        cls, name: str, version: str, mlflow_tracking_uri: Optional[str], **kwargs
+    ) -> InferenceNode:
+        """
+        Loads the InferenceNode from an MLflow Model Registry.
+
+        Parameters
+        ----------
+        name : str
+            The name of the model in the mlflow registry.
+        version : str
+            The version of the model (usually numeric)
+        **kwargs
+            Other kwargs to pass to your InferenceNode's constructor.
+
+        Returns
+        -------
+        InferenceNode
+            New node for Ensemble graph.
+        """
+        tracking_uri = mlflow_tracking_uri or os.environ.get("MLFLOW_TRACKING_URI")
+
+        if tracking_uri is None:
+            raise Exception(
+                "You must specify an mlflow tracking URi or set it in the environment variable MLFLOW_TRACKING_URI"
+            )
+
+        from mlflow.tracking import MlflowClient
+
+        client = MlflowClient(tracking_uri)
+        model_path = client.get_model_version_download_uri(name, version)
+        return cls(model_path, kwargs)
 
 
 class PipelineableInferenceOperator(InferenceOperator):
