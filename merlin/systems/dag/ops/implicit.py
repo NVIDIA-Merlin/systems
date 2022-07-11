@@ -99,7 +99,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         return cls(model)
 
     def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
-        """Transform the dataframe by applying this FIL operator to the set of input columns.
+        """Transform the dataframe by applying this operator to the set of input columns.
 
         Parameters
         -----------

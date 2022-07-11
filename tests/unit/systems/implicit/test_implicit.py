@@ -68,9 +68,6 @@ def test_predict_implcit(model_cls, tmpdir):
     np.testing.assert_array_equal(scores, reloaded_scores)
 
 
-#
-
-
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.parametrize(
     "model_cls",
