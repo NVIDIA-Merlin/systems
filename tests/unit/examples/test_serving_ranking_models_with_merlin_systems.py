@@ -6,6 +6,7 @@ from testbook import testbook
 from tests.conftest import REPO_ROOT
 
 pytest.importorskip("tensorflow")
+pytest.importorskip("merlin.models")
 
 
 @testbook(REPO_ROOT / "examples/Serving-Ranking-Models-With-Merlin-Systems.ipynb", execute=False)
