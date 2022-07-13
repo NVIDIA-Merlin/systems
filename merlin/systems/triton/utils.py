@@ -28,6 +28,14 @@ def run_triton_server(modelpath):
         The client connected to the Triton server.
 
     """
+    grpc_host = "localhost"
+    grpc_port = 8001
+    grpc_url = f"{grpc_host}:{grpc_port}"
+
+    with grpcclient.InferenceServerClient(grpc_url) as client:
+        if client.is_server_ready():
+            raise RuntimeError(f"Another tritonserver is already running on {grpc_url}")
+
     cmdline = [
         TRITON_SERVER_PATH,
         "--model-repository",
@@ -38,7 +46,7 @@ def run_triton_server(modelpath):
     env["CUDA_VISIBLE_DEVICES"] = "0"
     with subprocess.Popen(cmdline, env=env) as process:
         try:
-            with grpcclient.InferenceServerClient("localhost:8001") as client:
+            with grpcclient.InferenceServerClient(grpc_url) as client:
                 # wait until server is ready
                 for _ in range(60):
                     if process.poll() is not None:
