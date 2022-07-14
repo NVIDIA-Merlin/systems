@@ -137,52 +137,7 @@
 <p>Install TensorFlow so we can read the saved model from disk.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>pip install tensorflow-gpu
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Looking in indexes: https://pypi.org/simple, https://pypi.ngc.nvidia.com
-Requirement already satisfied: tensorflow-gpu in /usr/local/lib/python3.8/dist-packages (2.8.0)
-Requirement already satisfied: astunparse&gt;=1.6.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.6.3)
-Requirement already satisfied: protobuf&gt;=3.9.2 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (3.20.0)
-Requirement already satisfied: absl-py&gt;=0.4.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.0.0)
-Requirement already satisfied: gast&gt;=0.2.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (0.5.3)
-Requirement already satisfied: grpcio&lt;2.0,&gt;=1.24.3 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.41.0)
-Requirement already satisfied: typing-extensions&gt;=3.6.6 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (4.1.1)
-Requirement already satisfied: wrapt&gt;=1.11.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.14.1)
-Requirement already satisfied: keras&lt;2.9,&gt;=2.8.0rc0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.8.0)
-Requirement already satisfied: numpy&gt;=1.20 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.21.5)
-Requirement already satisfied: tensorflow-io-gcs-filesystem&gt;=0.23.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (0.25.0)
-Requirement already satisfied: flatbuffers&gt;=1.12 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.0)
-Requirement already satisfied: tf-estimator-nightly==2.8.0.dev2021122109 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.8.0.dev2021122109)
-Requirement already satisfied: tensorboard&lt;2.9,&gt;=2.8 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (2.8.0)
-Requirement already satisfied: setuptools in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (61.0.0)
-Requirement already satisfied: termcolor&gt;=1.1.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.1.0)
-Requirement already satisfied: libclang&gt;=9.0.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (14.0.1)
-Requirement already satisfied: h5py&gt;=2.9.0 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (3.6.0)
-Requirement already satisfied: opt-einsum&gt;=2.3.2 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (3.3.0)
-Requirement already satisfied: six&gt;=1.12.0 in /usr/lib/python3/dist-packages (from tensorflow-gpu) (1.14.0)
-Requirement already satisfied: google-pasta&gt;=0.1.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (0.2.0)
-Requirement already satisfied: keras-preprocessing&gt;=1.1.1 in /usr/local/lib/python3.8/dist-packages (from tensorflow-gpu) (1.1.2)
-Requirement already satisfied: wheel&lt;1.0,&gt;=0.23.0 in /usr/local/lib/python3.8/dist-packages (from astunparse&gt;=1.6.0-&gt;tensorflow-gpu) (0.37.1)
-Requirement already satisfied: tensorboard-plugin-wit&gt;=1.6.0 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (1.8.1)
-Requirement already satisfied: tensorboard-data-server&lt;0.7.0,&gt;=0.6.0 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.6.1)
-Requirement already satisfied: google-auth-oauthlib&lt;0.5,&gt;=0.4.1 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.4.6)
-Requirement already satisfied: google-auth&lt;3,&gt;=1.6.3 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (2.6.6)
-Requirement already satisfied: requests&lt;3,&gt;=2.21.0 in /usr/lib/python3/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (2.22.0)
-Requirement already satisfied: markdown&gt;=2.6.8 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (3.3.7)
-Requirement already satisfied: werkzeug&gt;=0.11.15 in /usr/local/lib/python3.8/dist-packages (from tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (2.1.2)
-Requirement already satisfied: rsa&lt;5,&gt;=3.1.4 in /usr/local/lib/python3.8/dist-packages (from google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (4.8)
-Requirement already satisfied: pyasn1-modules&gt;=0.2.1 in /usr/local/lib/python3.8/dist-packages (from google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.2.8)
-Requirement already satisfied: cachetools&lt;6.0,&gt;=2.0.0 in /usr/local/lib/python3.8/dist-packages (from google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (5.0.0)
-Requirement already satisfied: requests-oauthlib&gt;=0.7.0 in /usr/local/lib/python3.8/dist-packages (from google-auth-oauthlib&lt;0.5,&gt;=0.4.1-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (1.3.1)
-Requirement already satisfied: importlib-metadata&gt;=4.4 in /usr/local/lib/python3.8/dist-packages (from markdown&gt;=2.6.8-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (4.11.3)
-Requirement already satisfied: zipp&gt;=0.5 in /usr/local/lib/python3.8/dist-packages (from importlib-metadata&gt;=4.4-&gt;markdown&gt;=2.6.8-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (3.8.0)
-Requirement already satisfied: pyasn1&lt;0.5.0,&gt;=0.4.6 in /usr/local/lib/python3.8/dist-packages (from pyasn1-modules&gt;=0.2.1-&gt;google-auth&lt;3,&gt;=1.6.3-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (0.4.8)
-Requirement already satisfied: oauthlib&gt;=3.0.0 in /usr/local/lib/python3.8/dist-packages (from requests-oauthlib&gt;=0.7.0-&gt;google-auth-oauthlib&lt;0.5,&gt;=0.4.1-&gt;tensorboard&lt;2.9,&gt;=2.8-&gt;tensorflow-gpu) (3.2.0)
-<span class=" -Color -Color-Yellow">WARNING: Running pip as the &#39;root&#39; user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv</span>
-
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="ch">#!pip install tensorflow-gpu</span>
 </pre></div>
 </div>
 </div>
@@ -217,7 +172,7 @@ Requirement already satisfied: oauthlib&gt;=3.0.0 in /usr/local/lib/python3.8/di
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;nvtabular.workflow.workflow.Workflow at 0x7fe149fdff70&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;nvtabular.workflow.workflow.Workflow at 0x7ff5b42c9850&gt;
 </pre></div>
 </div>
 </div>
@@ -226,6 +181,22 @@ Requirement already satisfied: oauthlib&gt;=3.0.0 in /usr/local/lib/python3.8/di
 <div class="section" id="load-the-tensorflow-model">
 <h2>Load the Tensorflow Model<a class="headerlink" href="#load-the-tensorflow-model" title="Permalink to this headline"></a></h2>
 <p>After loading the workflow, we load the model. This model was trained with the output of the workflow from the <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/04-Exporting-ranking-models.ipynb">Exporting Ranking Models</a> example from Merlin Models.</p>
+<p>First, we need to import the Merlin Models library. Loading a TensorFlow model, which is based on custom subclasses, requires to the subclass definition. Otherwise, TensorFlow cannot load correctly load the model.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">merlin.models.tf</span> <span class="k">as</span> <span class="nn">mm</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-07-12 17:18:23.722737: I tensorflow/core/platform/cpu_feature_guard.cc:152] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE3 SSE4.1 SSE4.2 AVX
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2022-07-12 17:18:25.872447: I tensorflow/core/common_runtime/gpu/gpu_process_state.cc:214] Using CUDA malloc Async allocator for GPU: 0
+2022-07-12 17:18:25.872791: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 16255 MB memory:  -&gt; device: 0, name: Tesla V100-SXM2-32GB-LS, pci bus id: 0000:89:00.0, compute capability: 7.0
+</pre></div>
+</div>
+</div>
+</div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
@@ -236,10 +207,7 @@ Requirement already satisfied: oauthlib&gt;=3.0.0 in /usr/local/lib/python3.8/di
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-05-09 21:15:55.345619: I tensorflow/core/platform/cpu_feature_guard.cc:151] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 AVX512F FMA
-To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2022-05-09 21:15:56.445641: I tensorflow/core/common_runtime/gpu/gpu_process_state.cc:214] Using CUDA malloc Async allocator for GPU: 0
-2022-05-09 21:15:56.445851: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1525] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 30322 MB memory:  -&gt; device: 0, name: Quadro GV100, pci bus id: 0000:2d:00.0, compute capability: 7.0
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-07-12 17:18:27.313679: W tensorflow/python/util/util.cc:368] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
 </pre></div>
 </div>
 </div>
@@ -325,7 +293,7 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
     <tr>
       <th>0</th>
       <td>user_id</td>
-      <td>(Tags.CATEGORICAL, Tags.USER_ID, Tags.USER)</td>
+      <td>(Tags.USER, Tags.USER_ID, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -335,15 +303,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.user_id.parquet</td>
       <td>0</td>
-      <td>759</td>
+      <td>755</td>
       <td>user_id</td>
-      <td>759</td>
-      <td>66</td>
+      <td>755</td>
+      <td>65</td>
     </tr>
     <tr>
       <th>1</th>
       <td>item_id</td>
-      <td>(Tags.CATEGORICAL, Tags.ITEM_ID, Tags.ITEM)</td>
+      <td>(Tags.ITEM_ID, Tags.ITEM, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -353,15 +321,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.item_id.parquet</td>
       <td>0</td>
-      <td>776</td>
+      <td>772</td>
       <td>item_id</td>
-      <td>776</td>
+      <td>772</td>
       <td>66</td>
     </tr>
     <tr>
       <th>2</th>
       <td>item_category</td>
-      <td>(Tags.CATEGORICAL, Tags.ITEM)</td>
+      <td>(Tags.ITEM, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -371,15 +339,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.item_category.parquet</td>
       <td>0</td>
-      <td>776</td>
+      <td>772</td>
       <td>item_category</td>
-      <td>776</td>
+      <td>772</td>
       <td>66</td>
     </tr>
     <tr>
       <th>3</th>
       <td>item_shop</td>
-      <td>(Tags.CATEGORICAL, Tags.ITEM)</td>
+      <td>(Tags.ITEM, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -389,15 +357,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.item_shop.parquet</td>
       <td>0</td>
-      <td>776</td>
+      <td>772</td>
       <td>item_shop</td>
-      <td>776</td>
+      <td>772</td>
       <td>66</td>
     </tr>
     <tr>
       <th>4</th>
       <td>item_brand</td>
-      <td>(Tags.CATEGORICAL, Tags.ITEM)</td>
+      <td>(Tags.ITEM, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -407,15 +375,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.item_brand.parquet</td>
       <td>0</td>
-      <td>776</td>
+      <td>772</td>
       <td>item_brand</td>
-      <td>776</td>
+      <td>772</td>
       <td>66</td>
     </tr>
     <tr>
       <th>5</th>
       <td>user_shops</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -425,15 +393,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.user_shops.parquet</td>
       <td>0</td>
-      <td>759</td>
+      <td>755</td>
       <td>user_shops</td>
-      <td>759</td>
-      <td>66</td>
+      <td>755</td>
+      <td>65</td>
     </tr>
     <tr>
       <th>6</th>
       <td>user_profile</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -443,15 +411,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.user_profile.parquet</td>
       <td>0</td>
-      <td>66</td>
+      <td>67</td>
       <td>user_profile</td>
-      <td>66</td>
+      <td>67</td>
       <td>17</td>
     </tr>
     <tr>
       <th>7</th>
       <td>user_group</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -461,15 +429,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.user_group.parquet</td>
       <td>0</td>
-      <td>14</td>
+      <td>13</td>
       <td>user_group</td>
-      <td>14</td>
+      <td>13</td>
       <td>16</td>
     </tr>
     <tr>
       <th>8</th>
       <td>user_gender</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -487,7 +455,7 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
     <tr>
       <th>9</th>
       <td>user_age</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -505,7 +473,7 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
     <tr>
       <th>10</th>
       <td>user_consumption_2</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -523,7 +491,7 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
     <tr>
       <th>11</th>
       <td>user_is_occupied</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -541,7 +509,7 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
     <tr>
       <th>12</th>
       <td>user_geography</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -559,7 +527,7 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
     <tr>
       <th>13</th>
       <td>user_intentions</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -569,15 +537,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.user_intentions.parquet</td>
       <td>0</td>
-      <td>759</td>
+      <td>755</td>
       <td>user_intentions</td>
-      <td>759</td>
-      <td>66</td>
+      <td>755</td>
+      <td>65</td>
     </tr>
     <tr>
       <th>14</th>
       <td>user_brands</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -587,15 +555,15 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.user_brands.parquet</td>
       <td>0</td>
-      <td>759</td>
+      <td>755</td>
       <td>user_brands</td>
-      <td>759</td>
-      <td>66</td>
+      <td>755</td>
+      <td>65</td>
     </tr>
     <tr>
       <th>15</th>
       <td>user_categories</td>
-      <td>(Tags.CATEGORICAL, Tags.USER)</td>
+      <td>(Tags.USER, Tags.CATEGORICAL)</td>
       <td>int64</td>
       <td>False</td>
       <td>False</td>
@@ -605,10 +573,10 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
       <td>0</td>
       <td>.//categories/unique.user_categories.parquet</td>
       <td>0</td>
-      <td>759</td>
+      <td>755</td>
       <td>user_categories</td>
-      <td>759</td>
-      <td>66</td>
+      <td>755</td>
+      <td>65</td>
     </tr>
   </tbody>
 </table>
@@ -627,18 +595,6 @@ The workflow is a <code class="docutils literal notranslate"><span class="pre">S
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-05-09 21:00:32.417657: W tensorflow/python/util/util.cc:368] Sets are not currently considered sequences, but this may change in the future, so consider avoiding using them.
-WARNING:absl:Found untraced functions such as restored_function_body, restored_function_body, restored_function_body, restored_function_body, click/binary_classification_task/output_layer_layer_call_fn while saving (showing 5 of 48). These functions will not be directly callable after loading.
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:tensorflow:Assets written to: /workspace/data/ensemble/1_predicttensorflow/1/model.savedmodel/assets
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>INFO:tensorflow:Assets written to: /workspace/data/ensemble/1_predicttensorflow/1/model.savedmodel/assets
-</pre></div>
-</div>
-</div>
 </div>
 <p>Display the path to the directory with the ensemble.</p>
 <div class="cell docutils container">
@@ -648,7 +604,7 @@ WARNING:absl:Found untraced functions such as restored_function_body, restored_f
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&#39;/workspace/data/ensemble&#39;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&#39;/models/examples/ensemble&#39;
 </pre></div>
 </div>
 </div>
@@ -666,6 +622,13 @@ WARNING:absl:Found untraced functions such as restored_function_body, restored_f
 </pre></div>
 </div>
 </div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Requirement already satisfied: seedir in /usr/local/lib/python3.8/dist-packages (0.3.1)
+Requirement already satisfied: natsort in /usr/local/lib/python3.8/dist-packages (from seedir) (8.1.0)
+Requirement already satisfied: emoji in /usr/local/lib/python3.8/dist-packages (from seedir) (1.7.0)
+</pre></div>
+</div>
+</div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -679,6 +642,8 @@ WARNING:absl:Found untraced functions such as restored_function_body, restored_f
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ensemble/
 ├─0_transformworkflow/
 │ ├─1/
+│ │ ├─__pycache__/
+│ │ ├─model.py
 │ │ └─workflow/
 │ └─config.pbtxt
 ├─1_predicttensorflow/
@@ -836,60 +801,60 @@ bytearray(b&#39;[{&quot;name&quot;:&quot;0_transformworkflow&quot;,&quot;version
   <tbody>
     <tr>
       <th>700000</th>
-      <td>18</td>
-      <td>42</td>
-      <td>150</td>
-      <td>10511</td>
-      <td>3620</td>
-      <td>1003</td>
+      <td>55</td>
+      <td>5</td>
+      <td>19</td>
+      <td>1305</td>
+      <td>450</td>
+      <td>2981</td>
+      <td>3</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
-      <td>1</td>
-      <td>291</td>
-      <td>499</td>
-      <td>53</td>
+      <td>863</td>
+      <td>1482</td>
+      <td>156</td>
     </tr>
     <tr>
       <th>700001</th>
-      <td>23</td>
-      <td>15</td>
-      <td>51</td>
-      <td>3590</td>
-      <td>1237</td>
-      <td>1298</td>
-      <td>2</td>
+      <td>53</td>
+      <td>8</td>
+      <td>33</td>
+      <td>2283</td>
+      <td>787</td>
+      <td>2871</td>
+      <td>3</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
-      <td>376</td>
-      <td>645</td>
-      <td>68</td>
+      <td>831</td>
+      <td>1427</td>
+      <td>150</td>
     </tr>
     <tr>
       <th>700002</th>
-      <td>31</td>
-      <td>11</td>
-      <td>37</td>
-      <td>2564</td>
-      <td>883</td>
-      <td>1769</td>
-      <td>2</td>
+      <td>10</td>
+      <td>6</td>
+      <td>24</td>
+      <td>1631</td>
+      <td>562</td>
+      <td>497</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
-      <td>512</td>
-      <td>879</td>
-      <td>93</td>
+      <td>1</td>
+      <td>144</td>
+      <td>247</td>
+      <td>26</td>
     </tr>
   </tbody>
 </table>
@@ -932,9 +897,9 @@ bytearray(b&#39;[{&quot;name&quot;:&quot;0_transformworkflow&quot;,&quot;version
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>output_1 [[0.49797073]
- [0.49776396]
- [0.49809718]] (3, 1)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>click/binary_classification_task [[0.49801633]
+ [0.49624982]
+ [0.49931964]] (3, 1)
 </pre></div>
 </div>
 </div>
