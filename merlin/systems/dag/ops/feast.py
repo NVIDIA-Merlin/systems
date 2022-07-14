@@ -275,6 +275,11 @@ class QueryFeast(PipelineableInferenceOperator):
             Transformed tensor dictionary
         """
         entity_ids = df[self.entity_column]
+
+        if len(entity_ids) < 1:
+            raise ValueError(
+                "No entity ids provided when querying Feast. Must provide at least one id in order to fetch features."
+            )
         entity_rows = [{self.entity_id: int(entity_id)} for entity_id in entity_ids]
 
         feature_names = self.features + self.mh_features
