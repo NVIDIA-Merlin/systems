@@ -278,7 +278,8 @@ class QueryFeast(PipelineableInferenceOperator):
 
         if len(entity_ids) < 1:
             raise ValueError(
-                "No entity ids provided when querying Feast. Must provide at least one id in order to fetch features."
+                "No entity ids provided when querying Feast. Must provide "
+                "at least one id in order to fetch features."
             )
         entity_rows = [{self.entity_id: int(entity_id)} for entity_id in entity_ids]
 
