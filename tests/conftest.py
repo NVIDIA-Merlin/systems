@@ -17,6 +17,7 @@
 import glob
 import random
 from distutils.spawn import find_executable
+from pathlib import Path
 
 import dask
 import numpy as np
@@ -47,6 +48,8 @@ except ImportError:
         else:
             return np.testing.assert_allclose(a, b)
 
+
+REPO_ROOT = Path(__file__).parent.parent
 
 grpcclient = pytest.importorskip("tritonclient.grpc")
 tritonclient = pytest.importorskip("tritonclient")

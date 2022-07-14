@@ -9,6 +9,7 @@ pytest>=5
 pytest-cov>=2
 scikit-learn>=0.20
 git+https://github.com/rapidsai/asvdb.git
+testbook
 
 # linting
 pylint==2.7.4

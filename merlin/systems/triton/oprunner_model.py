@@ -27,15 +27,8 @@
 import json
 import sys
 import traceback
-from typing import List
 
 import triton_python_backend_utils as pb_utils
-from triton_python_backend_utils import (
-    InferenceRequest,
-    InferenceResponse,
-    Tensor,
-    get_input_tensor_by_name,
-)
 
 from merlin.systems.dag.op_runner import OperatorRunner
 from merlin.systems.dag.ops.operator import InferenceDataFrame
@@ -65,7 +58,7 @@ class TritonPythonModel:
         self.model_config = json.loads(args["model_config"])
         self.runner = OperatorRunner(self.model_config)
 
-    def execute(self, requests: List[InferenceRequest]) -> List[InferenceResponse]:
+    def execute(self, requests):
         """Receives a list of pb_utils.InferenceRequest as the only argument. This
         function is called when an inference is requested for this model. Depending on the
         batching configuration (e.g. Dynamic Batching) used, `requests` may contain
@@ -96,7 +89,7 @@ class TritonPythonModel:
             try:
                 # transform the triton tensors to a dict of name:numpy tensor
                 input_tensors = {
-                    name: get_input_tensor_by_name(request, name).as_numpy()
+                    name: pb_utils.get_input_tensor_by_name(request, name).as_numpy()
                     for name in input_column_names
                 }
 
@@ -106,14 +99,14 @@ class TritonPythonModel:
 
                 output_tensors = []
                 for name, data in raw_tensor_tuples:
-                    if isinstance(data, Tensor):
+                    if isinstance(data, pb_utils.Tensor):
                         output_tensors.append(data)
                         continue
                     data = data.get() if hasattr(data, "get") else data
-                    tensor = Tensor(name, data)
+                    tensor = pb_utils.Tensor(name, data)
                     output_tensors.append(tensor)
 
-                responses.append(InferenceResponse(output_tensors))
+                responses.append(pb_utils.InferenceResponse(output_tensors))
 
             except Exception:  # pylint: disable=broad-except
                 exc_type, exc_value, exc_traceback = sys.exc_info()
