@@ -110,24 +110,6 @@ class FilterCandidates(PipelineableInferenceOperator):
             root_schema, parents_schema, deps_schema, selector
         )
 
-        if len(parents_schema.column_schemas) > 1:
-            raise ValueError(
-                "More than one input has been detected for this node,"
-                / f"inputs received: {input_schema.column_names}"
-            )
-        if len(deps_schema.column_schemas) > 1:
-            raise ValueError(
-                "More than one dependency input has been detected"
-                / f"for this node, inputs received: {input_schema.column_names}"
-            )
-
-        # 1 for deps and 1 for parents
-        if len(input_schema.column_schemas) > 2:
-            raise ValueError(
-                "More than one input has been detected for this node,"
-                / f"inputs received: {input_schema.column_names}"
-            )
-
         self._input_col = parents_schema.column_names[0]
         self._filter_out_col = deps_schema.column_names[0]
 
@@ -156,6 +138,27 @@ class FilterCandidates(PipelineableInferenceOperator):
             A schema object representing all outputs of this node.
         """
         return Schema([ColumnSchema("filtered_ids", dtype=np.int32, is_list=False)])
+
+    def validate_schemas(
+        self, parents_schema, deps_schema, input_schema, output_schema, strict_dtypes=False
+    ):
+        if len(parents_schema.column_schemas) > 1:
+            raise ValueError(
+                "More than one input has been detected for this node,"
+                / f"inputs received: {input_schema.column_names}"
+            )
+        if len(deps_schema.column_schemas) > 1:
+            raise ValueError(
+                "More than one dependency input has been detected"
+                / f"for this node, inputs received: {input_schema.column_names}"
+            )
+
+        # 1 for deps and 1 for parents
+        if len(input_schema.column_schemas) > 2:
+            raise ValueError(
+                "More than one input has been detected for this node,"
+                / f"inputs received: {input_schema.column_names}"
+            )
 
     def transform(self, df: InferenceDataFrame):
         """
