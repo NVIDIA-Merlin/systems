@@ -384,6 +384,9 @@ def get_fil_model(model) -> FILModel:
         ),
     ):
         fil_model = SKLearnRandomForest(model)
+    elif hasattr(model, "booster"):
+        # support the merlin.models.xgb.XGBoost wrapper too
+        return get_fil_model(model.booster)
     else:
         supported_model_types = {
             "xgboost.Booster",
@@ -394,6 +397,7 @@ def get_fil_model(model) -> FILModel:
             "sklearn.ensemble.RandomForestRegressor",
             "cuml.ensemble.RandomForestClassifier",
             "cuml.ensemble.RandomForestRegressor",
+            "merlin.models.xgb.XGBoost",
         }
         raise ValueError(
             f"Model type not supported. {type(model)} " f"Must be one of: {supported_model_types}"
