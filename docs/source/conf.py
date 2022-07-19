@@ -38,7 +38,6 @@ extensions = [
     "myst_nb",
     "sphinx_multiversion",
     "sphinx_rtd_theme",
-    "sphinx_markdown_tables",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
@@ -91,7 +90,6 @@ html_static_path = ["_static"]
 
 source_suffix = [".rst", ".md"]
 
-nbsphinx_allow_errors = True
 html_show_sourcelink = False
 
 if os.path.exists(gitdir):
