@@ -27,11 +27,9 @@ click<8.1.0
 # docs
 Sphinx==3.5.4
 sphinx_rtd_theme==1.0.0
-sphinx_markdown_tables==0.0.15
 sphinx-multiversion@git+https://github.com/mikemckiernan/sphinx-multiversion.git
 sphinxcontrib-copydirs@git+https://github.com/mikemckiernan/sphinxcontrib-copydirs.git
 recommonmark==0.7.1
-nbsphinx>=0.6
 Jinja2<3.1
 natsort==8.0.1
 myst-nb==0.13.2
