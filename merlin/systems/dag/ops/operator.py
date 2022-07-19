@@ -1,6 +1,8 @@
+import inspect
 import json
 import os
 import pathlib
+import requests
 from abc import abstractclassmethod, abstractmethod
 from shutil import copyfile
 from typing import Optional
@@ -123,10 +125,14 @@ class InferenceOperator(BaseOperator):
 
     @classmethod
     def from_mlflow_registry(
-        cls, name: str, version: str, mlflow_tracking_uri: Optional[str], **kwargs
-    ) -> InferenceNode:
+        cls, name: str, version: str, mlflow_tracking_uri: Optional[str] = None, **kwargs
+    ) -> "InferenceOperator":
         """
-        Loads the InferenceNode from an MLflow Model Registry.
+        Loads the InferenceOperator from an MLflow Model Registry.
+
+        This only works for operators that extend this base class and accept a model path
+        as an argument to its __init__ function, such as PredictTensorflow. A counter example would be
+        TransformWorkflow, which does not load a model.
 
         Parameters
         ----------
@@ -142,18 +148,31 @@ class InferenceOperator(BaseOperator):
         InferenceNode
             New node for Ensemble graph.
         """
+
+        # validate that we have a model_or_path argument. This is a total hack and perhaps a smell that all inference operators
+        # should accept a model_or_path, or at least we introduce another layer of base class that does.
+        if "model_or_path" not in inspect.signature(cls.__init__).parameters:
+            raise TypeError(
+                "from_mlflow_registry only works for Operators that accept a model path as parameter called `model_or_path`."
+            )
         tracking_uri = mlflow_tracking_uri or os.environ.get("MLFLOW_TRACKING_URI")
 
         if tracking_uri is None:
-            raise Exception(
+            raise ValueError(
                 "You must specify an mlflow tracking URi or set it in the environment variable MLFLOW_TRACKING_URI"
             )
 
-        from mlflow.tracking import MlflowClient
+        mv = requests.get(
+            f"{tracking_uri.rstrip('/')}/ajax-api/2.0/preview/mlflow/model-versions/get-download-uri",
+            params={"name": name, "version": version},
+        )
 
-        client = MlflowClient(tracking_uri)
-        model_path = client.get_model_version_download_uri(name, version)
-        return cls(model_path, kwargs)
+        if mv.status_code != 200:
+            raise ValueError(
+                f"Could not find a Model Verison for model {name} with version {version}."
+            )
+        model_path = mv.json()["artifact_uri"]
+        return cls(model_path, **kwargs)
 
 
 class PipelineableInferenceOperator(InferenceOperator):
