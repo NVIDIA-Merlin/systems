@@ -64,7 +64,7 @@
 # In[2]:
 
 
-get_ipython().system('pip install tensorflow-gpu')
+#!pip install tensorflow-gpu
 
 
 # ## Load an NVTabular Workflow
@@ -100,7 +100,15 @@ workflow.remove_inputs(label_columns)
 # 
 # After loading the workflow, we load the model. This model was trained with the output of the workflow from the [Exporting Ranking Models](https://github.com/NVIDIA-Merlin/models/blob/main/examples/04-Exporting-ranking-models.ipynb) example from Merlin Models.
 
+# First, we need to import the Merlin Models library. Loading a TensorFlow model, which is based on custom subclasses, requires to the subclass definition. Otherwise, TensorFlow cannot load correctly load the model.
+
 # In[5]:
+
+
+import merlin.models.tf as mm
+
+
+# In[6]:
 
 
 import tensorflow as tf
@@ -126,7 +134,7 @@ model = tf.keras.models.load_model(tf_model_path)
 # 
 # Let's give it a try.
 
-# In[8]:
+# In[7]:
 
 
 from merlin.systems.dag.ops.workflow import TransformWorkflow
@@ -152,13 +160,13 @@ serving_operators = workflow.input_schema.column_names >> TransformWorkflow(work
 # 
 # Let's take a look below.
 
-# In[10]:
+# In[8]:
 
 
 workflow.output_schema
 
 
-# In[8]:
+# In[ ]:
 
 
 from merlin.systems.dag.ensemble import Ensemble
@@ -173,7 +181,7 @@ ens_conf, node_confs = ensemble.export(export_path)
 
 # Display the path to the directory with the ensemble.
 
-# In[9]:
+# In[10]:
 
 
 export_path
@@ -187,14 +195,14 @@ export_path
 # 
 # Install the `seedir` python package so we can view some of the directory contents.
 
-# In[ ]:
+# In[11]:
 
 
 # install seedir
 get_ipython().system('pip install seedir')
 
 
-# In[11]:
+# In[12]:
 
 
 import seedir as sd
@@ -230,7 +238,7 @@ sd.seedir(export_path, style='lines', itemlimit=10, depthlimit=3, exclude_folder
 # 
 # First we need to ensure that we have a client connected to the server that we started. To do this, we use the Triton HTTP client library.
 
-# In[12]:
+# In[13]:
 
 
 import tritonclient.http as client
@@ -245,7 +253,7 @@ except Exception as e:
 
 # After we create the client and verified it is connected to the server instance, we can communicate with the server and ensure all the models are loaded correctly.
 
-# In[13]:
+# In[14]:
 
 
 # ensure triton is in a good state
@@ -257,7 +265,7 @@ triton_client.get_model_repository_index()
 # 
 # > The `df_lib` object is `cudf` if a GPU is available and `pandas` otherwise.
 
-# In[14]:
+# In[13]:
 
 
 from merlin.core.dispatch import get_lib
@@ -275,7 +283,7 @@ batch
 
 # After we isolate our `batch`, we convert the dataframe representation into inputs for Triton. We also declare the outputs that we expect to receive from the model.
 
-# In[15]:
+# In[16]:
 
 
 from merlin.systems.triton import convert_df_to_triton_input
@@ -292,7 +300,7 @@ outputs = [
 
 # Now that our `inputs` and `outputs` are created, we can use the `triton_client` that we created earlier to send the inference request.
 
-# In[16]:
+# In[17]:
 
 
 # send request to tritonserver
@@ -302,7 +310,7 @@ with grpcclient.InferenceServerClient("localhost:8001") as client:
 
 # When the server completes the inference request, it returns a response. This response is parsed to get the desired predictions.
 
-# In[17]:
+# In[18]:
 
 
 # access individual response columns to get values back.
