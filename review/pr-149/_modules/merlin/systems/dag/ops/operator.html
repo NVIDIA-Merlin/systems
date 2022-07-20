@@ -223,7 +223,7 @@
         <span class="c1"># another layer of base class that does.</span>
         <span class="k">if</span> <span class="s2">&quot;model_or_path&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s2">&quot;from_mlflow_registry only works for Operators that accept a model path as</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="s2">&quot;from_model_registry only works for Operators that accept a model path as</span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="o">+</span> <span class="s2">&quot;a parameter called `model_or_path`.&quot;</span>
             <span class="p">)</span>
 
