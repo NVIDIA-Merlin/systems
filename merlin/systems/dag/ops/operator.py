@@ -150,7 +150,7 @@ class InferenceOperator(BaseOperator):
         # another layer of base class that does.
         if "model_or_path" not in inspect.signature(cls.__init__).parameters:
             raise TypeError(
-                "from_mlflow_registry only works for Operators that accept a model path as\n"
+                "from_model_registry only works for Operators that accept a model path as\n"
                 + "a parameter called `model_or_path`."
             )
 
