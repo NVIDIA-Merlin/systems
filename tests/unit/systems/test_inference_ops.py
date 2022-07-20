@@ -15,14 +15,15 @@
 #
 import os
 import pathlib
+from inspect import signature
 
 import pytest
 import requests
 
-from inspect import signature
-
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+
+from unittest.mock import MagicMock, patch  # noqa
 
 from google.protobuf import text_format  # noqa
 
@@ -31,8 +32,6 @@ from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
-
-from unittest.mock import MagicMock, patch
 
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")
 model_config = pytest.importorskip("tritonclient.grpc.model_config_pb2")
