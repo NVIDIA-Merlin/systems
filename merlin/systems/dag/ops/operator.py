@@ -4,9 +4,8 @@ import os
 import pathlib
 from abc import abstractclassmethod, abstractmethod
 from shutil import copyfile
-from typing import Optional
 
-import requests
+from merlin.systems.model_registry import ModelRegistry
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -125,9 +124,7 @@ class InferenceOperator(BaseOperator):
         return InferenceNode(selector)
 
     @classmethod
-    def from_mlflow_registry(
-        cls, name: str, version: str, mlflow_tracking_uri: Optional[str] = None, **kwargs
-    ) -> "InferenceOperator":
+    def from_model_registry(cls, registry: ModelRegistry, **kwargs) -> "InferenceOperator":
         """
         Loads the InferenceOperator from an MLflow Model Registry.
 
@@ -137,16 +134,14 @@ class InferenceOperator(BaseOperator):
 
         Parameters
         ----------
-        name : str
-            The name of the model in the mlflow registry.
-        version : str
-            The version of the model (usually numeric)
+        registry : ModelRegistry
+            A ModleRegistry object that will provide the path to the model.
         **kwargs
-            Other kwargs to pass to your InferenceNode's constructor.
+            Other kwargs to pass to your InferenceOperator's constructor.
 
         Returns
         -------
-        InferenceNode
+        InferenceOperator
             New node for Ensemble graph.
         """
 
@@ -159,24 +154,7 @@ class InferenceOperator(BaseOperator):
                 + "a parameter called `model_or_path`."
             )
 
-        tracking_uri = mlflow_tracking_uri or os.environ.get("MLFLOW_TRACKING_URI")
-        if tracking_uri is None:
-            raise ValueError(
-                "You must specify an mlflow tracking URI or set it in the environment variable "
-                + "MLFLOW_TRACKING_URI"
-            )
-        tracking_uri = tracking_uri.rstrip("/")
-        mv = requests.get(
-            f"{tracking_uri}/ajax-api/2.0/preview/mlflow/model-versions/get-download-uri",
-            params={"name": name, "version": version},
-        )
-
-        if mv.status_code != 200:
-            raise ValueError(
-                f"Could not find a Model Version for model {name} with version {version}."
-            )
-        model_path = mv.json()["artifact_uri"]
-        return cls(model_path, **kwargs)
+        return cls(registry.get_artifact_uri(), **kwargs)
 
 
 class PipelineableInferenceOperator(InferenceOperator):

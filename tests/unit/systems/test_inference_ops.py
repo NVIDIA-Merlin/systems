@@ -18,7 +18,8 @@ import pathlib
 from inspect import signature
 
 import pytest
-import requests
+
+from merlin.systems.model_registry import MLFlowModelRegistry
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -89,39 +90,30 @@ def test_workflow_op_exports_own_config(tmpdir, dataset, engine):
 
 
 @patch("requests.get")
-def test_from_mlflow_registry__forClassesAcceptingModelPaths_works(mock_req, tmpdir):
+def test_from_model_registry__forClassesAcceptingModelPaths_works(mock_req, tmpdir):
 
-    # Mock the response from MLFlow telling us where the model path is.
-    resp = requests.models.Response()
-    resp.status_code = 200
-    resp.json = lambda: {"artifact_uri": tmpdir}
-    mock_req.return_value = resp
+    registry = MLFlowModelRegistry("name", "version", "http://host:123")
+    registry.get_artifact_uri = MagicMock(return_value=tmpdir)
 
     # This is a bit janky, but because we are checking that `model_or_path` is a parameter
     # of __init__ (to ensure the subclass of InferenceOperator accepts a model path), we need
     # to mock that __init__ function but first copy its function signature, then re-assign that
     # signature to the mock.
     init_sig = signature(PredictTensorflow.__init__)
-    PredictTensorflow.__init__ = MagicMock(spec=["model_or_path"], return_value=None)
+    PredictTensorflow.__init__ = MagicMock(return_value=None)
     PredictTensorflow.__init__.__signature__ = init_sig
 
-    # Now we can call from_mlflow_registry and assert that the
-    resp = PredictTensorflow.from_mlflow_registry(
-        "model_name", "5", mlflow_tracking_uri="localhost://blah"
-    )
+    # Now we can call from_model_registry and assert that __init__ was called with the proper
+    # model path.
+    PredictTensorflow.from_model_registry(registry)
 
     PredictTensorflow.__init__.assert_called_with(tmpdir)
 
 
 @patch("requests.get")
-def test_from_mlflow_registry__forClassesNotAcceptingModelPaths_throws(mock_req, tmpdir):
+def test_from_model_registry__forClassesNotAcceptingModelPaths_throws(mock_req, tmpdir):
+
     with pytest.raises(TypeError):
-        InferenceOperator.from_mlflow_registry(
-            "model_name", "5", mlflow_tracking_uri="localhost://blah"
+        InferenceOperator.from_model_registry(
+            MLFlowModelRegistry("name", "version", "http://host:123")
         )
-
-
-@patch("requests.get")
-def test_from_mlflow_registry__withoutTrackingUri_throws(mock_req, tmpdir):
-    with pytest.raises(ValueError):
-        PredictTensorflow.from_mlflow_registry("model_name", "5")
