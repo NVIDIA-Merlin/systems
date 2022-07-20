@@ -19,7 +19,7 @@ from inspect import signature
 
 import pytest
 
-from merlin.systems.model_registry import MLFlowModelRegistry
+from merlin.systems.model_registry import ModelRegistry
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -30,7 +30,6 @@ from google.protobuf import text_format  # noqa
 
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
-from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
 
@@ -92,28 +91,33 @@ def test_workflow_op_exports_own_config(tmpdir, dataset, engine):
 @patch("requests.get")
 def test_from_model_registry__forClassesAcceptingModelPaths_works(mock_req, tmpdir):
 
-    registry = MLFlowModelRegistry("name", "version", "http://host:123")
+    registry = ModelRegistry()
     registry.get_artifact_uri = MagicMock(return_value=tmpdir)
+
+    # Make a new subclass of InferenceOperator with the right __init__ signature
+    class InferenceOperatorWithModelPath(InferenceOperator):
+        def __init__(self, model_or_path):
+            pass
 
     # This is a bit janky, but because we are checking that `model_or_path` is a parameter
     # of __init__ (to ensure the subclass of InferenceOperator accepts a model path), we need
-    # to mock that __init__ function but first copy its function signature, then re-assign that
+    # to mock the __init__ function but first copy its function signature, then re-assign that
     # signature to the mock.
-    init_sig = signature(PredictTensorflow.__init__)
-    PredictTensorflow.__init__ = MagicMock(return_value=None)
-    PredictTensorflow.__init__.__signature__ = init_sig
+    init_sig = signature(InferenceOperatorWithModelPath.__init__)
+    InferenceOperatorWithModelPath.__init__ = MagicMock(return_value=None)
+    InferenceOperatorWithModelPath.__init__.__signature__ = init_sig
 
     # Now we can call from_model_registry and assert that __init__ was called with the proper
     # model path.
-    PredictTensorflow.from_model_registry(registry)
+    InferenceOperatorWithModelPath.from_model_registry(registry)
 
-    PredictTensorflow.__init__.assert_called_with(tmpdir)
+    InferenceOperatorWithModelPath.__init__.assert_called_with(tmpdir)
 
 
 @patch("requests.get")
 def test_from_model_registry__forClassesNotAcceptingModelPaths_throws(mock_req, tmpdir):
+    # the base InferenceOperator does not expect a model_or_path parameter, and should throw
+    # a TypeError
 
     with pytest.raises(TypeError):
-        InferenceOperator.from_model_registry(
-            MLFlowModelRegistry("name", "version", "http://host:123")
-        )
+        InferenceOperator.from_model_registry(ModelRegistry())
