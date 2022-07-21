@@ -18,12 +18,17 @@ import pathlib
 
 import pytest
 
+from merlin.systems.model_registry import ModelRegistry
+
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+
+from unittest.mock import MagicMock  # noqa
 
 from google.protobuf import text_format  # noqa
 
 from merlin.schema import Schema  # noqa
+from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
 
@@ -80,3 +85,22 @@ def test_workflow_op_exports_own_config(tmpdir, dataset, engine):
         # The config file contents are correct
         assert parsed.name == triton_op.export_name
         assert parsed.backend == "python"
+
+
+def test_from_model_registry_loads_model_from_path(tmpdir):
+    class SimpleModelRegistry(ModelRegistry):
+        def get_artifact_uri(self) -> str:
+            return tmpdir
+
+    registry = SimpleModelRegistry()
+
+    # Make a new subclass of InferenceOperator so the mocks don't interfere with other tests.
+    class InferenceOperatorWithModelPath(InferenceOperator):
+        pass
+
+    InferenceOperatorWithModelPath.from_path = MagicMock(return_value=None)
+
+    # Now we can call from_model_registry and assert that from_path was called with the
+    # proper model path.
+    InferenceOperatorWithModelPath.from_model_registry(registry)
+    InferenceOperatorWithModelPath.from_path.assert_called_with(tmpdir)
