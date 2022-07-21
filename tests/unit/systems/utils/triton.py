@@ -32,11 +32,12 @@ def _run_ensemble_on_tritonserver(
     output_columns,
     df,
     model_name,
+    backend_config="tensorflow,version=2",
 ):
     inputs = triton.convert_df_to_triton_input(df.columns, df)
     outputs = [grpcclient.InferRequestedOutput(col) for col in output_columns]
     response = None
-    with run_triton_server(tmpdir) as client:
+    with run_triton_server(tmpdir, backend_config=backend_config) as client:
         response = client.infer(model_name, inputs, outputs=outputs)
 
     return response

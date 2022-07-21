@@ -14,7 +14,7 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
 @contextlib.contextmanager
-def run_triton_server(modelpath):
+def run_triton_server(modelpath, backend_config="tensorflow,version=2"):
     """This function starts up a Triton server instance and returns a client to it.
 
     Parameters
@@ -32,7 +32,8 @@ def run_triton_server(modelpath):
         TRITON_SERVER_PATH,
         "--model-repository",
         modelpath,
-        "--backend-config=tensorflow,version=2",
+        "--backend-config",
+        backend_config,
     ]
     env = os.environ.copy()
     env["CUDA_VISIBLE_DEVICES"] = "0"
