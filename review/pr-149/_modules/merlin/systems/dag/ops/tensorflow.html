@@ -180,6 +180,10 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_export_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">node_name</span><span class="p">,</span> <span class="n">node_export_path</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="PredictTensorflow.from_path"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="PredictTensorflow.compute_input_schema"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_input_schema">[docs]</a>    <span class="k">def</span> <span class="nf">compute_input_schema</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">root_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>

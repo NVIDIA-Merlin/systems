@@ -23,6 +23,7 @@
       ~UnrollFeatures.export
       ~UnrollFeatures.from_config
       ~UnrollFeatures.from_model_registry
+      ~UnrollFeatures.from_path
       ~UnrollFeatures.output_column_names
       ~UnrollFeatures.transform
    
