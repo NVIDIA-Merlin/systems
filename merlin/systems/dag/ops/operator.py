@@ -170,7 +170,7 @@ class PipelineableInferenceOperator(InferenceOperator):
     """
 
     @abstractclassmethod
-    def from_config(cls, config: dict):
+    def from_config(cls, config: dict, **kwargs):
         """
         Instantiate a class object given a config.
 
