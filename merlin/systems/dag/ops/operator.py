@@ -1,4 +1,3 @@
-import inspect
 import json
 import os
 import pathlib
@@ -126,11 +125,7 @@ class InferenceOperator(BaseOperator):
     @classmethod
     def from_model_registry(cls, registry: ModelRegistry, **kwargs) -> "InferenceOperator":
         """
-        Loads the InferenceOperator from an MLflow Model Registry.
-
-        This only works for operators that extend this base class and accept a model path
-        as an argument to its __init__ function, such as PredictTensorflow. A counter example would
-        be TransformWorkflow, which does not load a model.
+        Loads the InferenceOperator from the provided ModelRegistry.
 
         Parameters
         ----------
@@ -145,16 +140,26 @@ class InferenceOperator(BaseOperator):
             New node for Ensemble graph.
         """
 
-        # validate that we have a model_or_path argument. This is a total hack and perhaps a smell
-        # that all inference operators should accept a model_or_path, or at least we introduce
-        # another layer of base class that does.
-        if "model_or_path" not in inspect.signature(cls.__init__).parameters:
-            raise TypeError(
-                "from_model_registry only works for Operators that accept a model path as\n"
-                + "a parameter called `model_or_path`."
-            )
+        return cls.from_path(registry.get_artifact_uri(), **kwargs)
 
-        return cls(registry.get_artifact_uri(), **kwargs)
+    @classmethod
+    def from_path(cls, path, **kwargs) -> "InferenceOperator":
+        """
+        Loads the InferenceOperator from the path where it was exported after training.
+
+        Parameters
+        ----------
+        path : str
+            Path to the exported model.
+        **kwargs
+            Other kwargs to pass to your InferenceOperator's constructor.
+
+        Returns
+        -------
+        InferenceOperator
+            New node for Ensemble graph.
+        """
+        raise NotImplementedError(f"{cls.__name__} operators cannot be instantiated with a path.")
 
 
 class PipelineableInferenceOperator(InferenceOperator):

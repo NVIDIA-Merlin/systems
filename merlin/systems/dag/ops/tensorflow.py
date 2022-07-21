@@ -107,6 +107,10 @@ class PredictTensorflow(InferenceOperator):
 
         return self._export_model(self.model, node_name, node_export_path, version=version)
 
+    @classmethod
+    def from_path(cls, path, **kwargs):
+        return cls.__init__(path, **kwargs)
+
     def compute_input_schema(
         self,
         root_schema: Schema,

@@ -13,4 +13,4 @@ def test_mlflowregistry(mock_req, tmpdir):
     mock_req.return_value = resp
 
     registry = MLFlowModelRegistry("name", "version", "http://host:123")
-    assert registry.artifact_uri() == tmpdir
+    assert registry.get_artifact_uri() == tmpdir

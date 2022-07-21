@@ -1,9 +1,9 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 import requests
 
 
-class ModelRegistry:
+class ModelRegistry(ABC):
     """
     The ModelRegistry class is used to find model paths that will be imported into an
     InferenceOperator.
@@ -47,7 +47,7 @@ class MLFlowModelRegistry(ModelRegistry):
         self.version = version
         self.tracking_uri = tracking_uri.rstrip("/")
 
-    def artifact_uri(self) -> str:
+    def get_artifact_uri(self) -> str:
         mv = requests.get(
             f"{self.tracking_uri}/ajax-api/2.0/preview/mlflow/model-versions/get-download-uri",
             params={"name": self.name, "version": self.version},

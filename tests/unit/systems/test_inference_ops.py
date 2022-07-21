@@ -15,7 +15,6 @@
 #
 import os
 import pathlib
-from inspect import signature
 
 import pytest
 
@@ -24,7 +23,7 @@ from merlin.systems.model_registry import ModelRegistry
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
-from unittest.mock import MagicMock, patch  # noqa
+from unittest.mock import MagicMock  # noqa
 
 from google.protobuf import text_format  # noqa
 
@@ -88,36 +87,20 @@ def test_workflow_op_exports_own_config(tmpdir, dataset, engine):
         assert parsed.backend == "python"
 
 
-@patch("requests.get")
-def test_from_model_registry__forClassesAcceptingModelPaths_works(mock_req, tmpdir):
+def test_from_model_registry_loads_model_from_path(tmpdir):
+    class SimpleModelRegistry(ModelRegistry):
+        def get_artifact_uri(self) -> str:
+            return tmpdir
 
-    registry = ModelRegistry()
-    registry.get_artifact_uri = MagicMock(return_value=tmpdir)
+    registry = SimpleModelRegistry()
 
-    # Make a new subclass of InferenceOperator with the right __init__ signature
+    # Make a new subclass of InferenceOperator so the mocks don't interfere with other tests.
     class InferenceOperatorWithModelPath(InferenceOperator):
-        def __init__(self, model_or_path):
-            pass
+        pass
 
-    # This is a bit janky, but because we are checking that `model_or_path` is a parameter
-    # of __init__ (to ensure the subclass of InferenceOperator accepts a model path), we need
-    # to mock the __init__ function but first copy its function signature, then re-assign that
-    # signature to the mock.
-    init_sig = signature(InferenceOperatorWithModelPath.__init__)
-    InferenceOperatorWithModelPath.__init__ = MagicMock(return_value=None)
-    InferenceOperatorWithModelPath.__init__.__signature__ = init_sig
+    InferenceOperatorWithModelPath.from_path = MagicMock(return_value=None)
 
-    # Now we can call from_model_registry and assert that __init__ was called with the proper
-    # model path.
+    # Now we can call from_model_registry and assert that from_path was called with the
+    # proper model path.
     InferenceOperatorWithModelPath.from_model_registry(registry)
-
-    InferenceOperatorWithModelPath.__init__.assert_called_with(tmpdir)
-
-
-@patch("requests.get")
-def test_from_model_registry__forClassesNotAcceptingModelPaths_throws(mock_req, tmpdir):
-    # the base InferenceOperator does not expect a model_or_path parameter, and should throw
-    # a TypeError
-
-    with pytest.raises(TypeError):
-        InferenceOperator.from_model_registry(ModelRegistry())
+    InferenceOperatorWithModelPath.from_path.assert_called_with(tmpdir)
