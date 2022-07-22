@@ -21,6 +21,8 @@
       ~PredictTensorflow.compute_selector
       ~PredictTensorflow.create_node
       ~PredictTensorflow.export
+      ~PredictTensorflow.from_model_registry
+      ~PredictTensorflow.from_path
       ~PredictTensorflow.output_column_names
    
    
