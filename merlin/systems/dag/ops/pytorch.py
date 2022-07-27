@@ -16,7 +16,7 @@
 
 import os
 import pathlib
-from shutil import copytree
+from shutil import copyfile, copytree
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -97,10 +97,9 @@ class PredictPyTorch(InferenceOperator):
         export_model_path.mkdir(exist_ok=True)
 
         if self.path:
-            copytree(
+            copyfile(
                 str(self.path),
                 export_model_path / "model.pt",
-                dirs_exist_ok=True,
             )
         else:
             torch.save(self.model, export_model_path / "model.pt")
@@ -117,16 +116,19 @@ class PredictPyTorch(InferenceOperator):
         output_path:
             The path to write the exported model to
         """
-        config = model_config.ModelConfig(
-            name=name,
-            backend="pytorch"
-            # TODO: platform = ???
-        )
+        config = model_config.ModelConfig(name=name, backend="pytorch", platform="pytorch_libtorch")
+
+        config.parameters["INFERENCE_MODE"].string_value = "true"
 
         for col_name, col_schema in self.input_schema.column_schemas.items():
+            dims = [-1, 1]
+            value_count = col_schema.properties.get("value_count", None)
+            if value_count and value_count["min"] == value_count["max"]:
+                dims = [-1, value_count["max"]]
+
             config.input.append(
                 model_config.ModelInput(
-                    name=col_name, data_type=_convert_dtype(col_schema.dtype), dims=[-1, 1]
+                    name=col_name, data_type=_convert_dtype(col_schema.dtype), dims=dims
                 )
             )
 
