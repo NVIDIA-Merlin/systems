@@ -13,10 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import cloudpickle
+import json
 import os
 import pathlib
 from shutil import copyfile, copytree
+from typing import Dict, Optional
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -25,6 +27,7 @@ import torch  # noqa
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
+from merlin.core.dispatch import is_string_dtype  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
@@ -37,7 +40,7 @@ class PredictPyTorch(InferenceOperator):
     to run, on the pytorch backend.
     """
 
-    def __init__(self, model_or_path, input_schema: Schema, output_schema: Schema):
+    def __init__(self, model_or_path, torchscript: bool, input_schema: Schema, output_schema: Schema, sparse_max: Optional[Dict[str, int]] = None, use_fix_dtypes: bool = False):
         """
         Instantiate a PredictPyTorch inference operator.
 
@@ -45,12 +48,18 @@ class PredictPyTorch(InferenceOperator):
         ----------
         model_or_path : PyTorch model or string
             This can be a pytorch model or a path to a pytorch model.
+        torchscript : bool
+            Indicates whether the model is jit-compiled. If True, we use the optimized `pytorch`
+            backend for Triton Inference Server. If False, uses the python backend.
         input_schema : Schema
             Input schema for the pytorch model. This could be the output schema of the NVTabular
             workflow that produced your training data.
         output_schema : Schema
             Output schema for the pytorch model.
         """
+        self.sparse_max = sparse_max or {}
+        self.use_fix_dtypes = use_fix_dtypes
+
         if isinstance(model_or_path, (str, os.PathLike)):
             self.path = model_or_path
             self.model = torch.load(self.path)
@@ -60,9 +69,9 @@ class PredictPyTorch(InferenceOperator):
 
         # TODO: figure out if we can infer input / output schemas from the pytorch model. Now we
         # just make them parameters.
-
         self.input_schema = input_schema
         self.output_schema = output_schema
+        self.torchscript = torchscript
 
         super().__init__()
 
@@ -101,12 +110,31 @@ class PredictPyTorch(InferenceOperator):
                 str(self.path),
                 export_model_path / "model.pt",
             )
+            # TODO: We still need to copy the TritonPythonModel
         else:
-            torch.save(self.model, export_model_path / "model.pt")
+            if self.torchscript:
+                self.model.save(export_model_path / "model.pt")
+            else:
+                # python backend requires copying model.py and some other files into the right
+                # directory. Plus the model.
+                torch.save(self.model, export_model_path / "model.pt")
 
-        return self._export_model_config(node_name, node_export_path)
+                pt_model_path = os.path.join(export_model_path, "model.pth")
+                torch.save(self.model.state_dict(), pt_model_path)
 
-    def _export_model_config(self, name, output_path):
+                pt_model_path = os.path.join(export_model_path, "model.pkl")
+                with open(pt_model_path, "wb") as o:
+                    cloudpickle.dump(self.model, o)
+
+                copyfile(
+                    os.path.join(os.path.dirname(__file__), "..", "..", "triton", "models", "pytorch_model.py"),
+                    os.path.join(export_model_path, "model.py"),
+                )
+                # breakpoint()
+
+        return self._export_model_config(node_name, node_export_path, self.sparse_max, self.use_fix_dtypes, version)
+
+    def _export_model_config(self, name, output_path, sparse_max: Dict[str, int], use_fix_dtypes: bool, version: int=1):
         """Exports a PyTorch model for serving with Triton
 
         Parameters
@@ -116,15 +144,75 @@ class PredictPyTorch(InferenceOperator):
         output_path:
             The path to write the exported model to
         """
-        config = model_config.ModelConfig(name=name, backend="pytorch", platform="pytorch_libtorch")
+        config = (
+            self._export_torchscript_config(name, output_path)
+            if self.torchscript
+            else self._export_python_config(name, output_path, sparse_max, use_fix_dtypes, version)
+        )
 
+        return config
+
+
+    def _export_python_config(self, name: str, output_path: str, sparse_max: Dict[str, int], use_fix_dtypes: bool, version: int=1):
+        """Exports a PyTorch model for serving with Triton
+
+        Parameters
+        ----------
+        name:
+            The name of the triton model to export
+        output_path:
+            The path to write the exported model to
+        """ 
+        config = model_config.ModelConfig(name=name, backend="python")
+
+        for col_name, col_schema in self.input_schema.column_schemas.items():
+            dim = sparse_max[col_name] if sparse_max and col_name in sparse_max.keys() else 1
+            _add_model_param(col_schema, model_config.ModelInput, config.input, [-1, dim])
+
+        *_, last_layer = self.model.parameters()
+        dims = last_layer.shape[0]
+        dtype = last_layer.dtype
+        config.output.append(
+            model_config.ModelOutput(
+                name="OUTPUT__0", data_type=_convert_pytorch_dtype(dtype), dims=[-1, dims]
+            )
+        )
+
+        if sparse_max:
+            with open(os.path.join(output_path, str(version), "model_info.json"), "w") as o:
+                model_info = dict()
+                model_info["sparse_max"] = sparse_max
+                model_info["use_fix_dtypes"] = use_fix_dtypes
+                json.dump(model_info, o)
+
+        with open(os.path.join(output_path, "config.pbtxt"), "w") as o:
+            text_format.PrintMessage(config, o)
+        return config
+
+
+    def _export_torchscript_config(self, name, output_path):
+        """Exports a PyTorch model for serving with Triton
+
+        Parameters
+        ----------
+        name:
+            The name of the triton model to export
+        output_path:
+            The path to write the exported model to
+        """
+        config = model_config.ModelConfig(name=name)
+
+        config.backend="pytorch"
+        config.platform="pytorch_libtorch"
         config.parameters["INFERENCE_MODE"].string_value = "true"
 
         for col_name, col_schema in self.input_schema.column_schemas.items():
             dims = [-1, 1]
-            value_count = col_schema.properties.get("value_count", None)
-            if value_count and value_count["min"] == value_count["max"]:
-                dims = [-1, value_count["max"]]
+            
+            if col_schema.is_list and not col_schema.is_ragged:
+                value_count = col_schema.properties.get("value_count", None)
+                if value_count and value_count["min"] == value_count["max"]:
+                    dims = [-1, value_count["max"]]
 
             config.input.append(
                 model_config.ModelInput(
@@ -145,3 +233,49 @@ class PredictPyTorch(InferenceOperator):
         with open(os.path.join(output_path, "config.pbtxt"), "w") as o:
             text_format.PrintMessage(config, o)
         return config
+
+
+def _add_model_param(col_schema, paramclass, params, dims=None):
+    dims = dims if dims is not None else [-1, 1]
+    if col_schema.is_list and col_schema.is_ragged:
+        params.append(
+            paramclass(
+                name=col_schema.name + "__values",
+                data_type=_convert_dtype(col_schema.dtype),
+                dims=dims,
+            )
+        )
+        params.append(
+            paramclass(
+                name=col_schema.name + "__nnzs", data_type=model_config.TYPE_INT64, dims=dims
+            )
+        )
+    else:
+        params.append(
+            paramclass(name=col_schema.name, data_type=_convert_dtype(col_schema.dtype), dims=dims)
+        )
+
+
+def _convert_pytorch_dtype(dtype):
+    """converts a dtype to the appropriate triton proto type"""
+
+    import torch
+
+    dtypes = {
+        torch.float64: model_config.TYPE_FP64,
+        torch.float32: model_config.TYPE_FP32,
+        torch.float16: model_config.TYPE_FP16,
+        torch.int64: model_config.TYPE_INT64,
+        torch.int32: model_config.TYPE_INT32,
+        torch.int16: model_config.TYPE_INT16,
+        torch.int8: model_config.TYPE_INT8,
+        torch.uint8: model_config.TYPE_UINT8,
+        torch.bool: model_config.TYPE_BOOL,
+    }
+
+    if is_string_dtype(dtype):
+        return model_config.TYPE_STRING
+    elif dtype in dtypes:
+        return dtypes[dtype]
+    else:
+        raise ValueError(f"Can't convert dtype {dtype})")
