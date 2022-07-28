@@ -1,13 +1,13 @@
 import pathlib
-from distutils.spawn import find_executable
+from distutils.spawn import find_executable  # pylint: disable=deprecated-module
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict
 
 import numpy as np
 import pytest
 import torch
-from torch import Tensor
 from google.protobuf import text_format  # noqa
+from torch import Tensor
 
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
@@ -21,6 +21,7 @@ triton = pytest.importorskip("merlin.systems.triton")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 ptorch_op = pytest.importorskip("merlin.systems.dag.ops.pytorch")
 model_config_pb2 = pytest.importorskip("tritonclient.grpc.model_config_pb2")
+
 
 class CustomModel(torch.nn.Module):
     def __init__(self):
@@ -39,15 +40,17 @@ class CustomModel(torch.nn.Module):
 model = CustomModel()
 model_scripted = torch.jit.script(model)
 
-model_input_schema = Schema([
-    ColumnSchema(
-        "input",
-        properties={"value_count": {"min": 3, "max": 3}},
-        dtype=np.float32,
-        is_list=True,
-        is_ragged=False
-    )
-])
+model_input_schema = Schema(
+    [
+        ColumnSchema(
+            "input",
+            properties={"value_count": {"min": 3, "max": 3}},
+            dtype=np.float32,
+            is_list=True,
+            is_ragged=False,
+        )
+    ]
+)
 model_output_schema = Schema([ColumnSchema("OUTPUT__0", dtype=np.float32)])
 
 
@@ -77,12 +80,13 @@ backend: "pytorch"
 """
 
 
-
 @pytest.mark.parametrize("torchscript", [True, False])
 def test_pytorch_op_exports_own_config(tmpdir, torchscript):
     model_to_use = model_scripted if torchscript else model
 
-    triton_op = ptorch_op.PredictPyTorch(model_to_use, torchscript, model_input_schema, model_output_schema)
+    triton_op = ptorch_op.PredictPyTorch(
+        model_to_use, torchscript, model_input_schema, model_output_schema
+    )
 
     triton_op.export(tmpdir, None, None)
 
@@ -113,7 +117,7 @@ def test_torch_backend(tmpdir):
 
     # Write config out
     config_path = model_dir / "config.pbtxt"
-    with open(str(config_path), "w") as f:
+    with open(str(config_path), "wb") as f:
         f.write(model_config)
 
     # Write model
@@ -158,7 +162,6 @@ def test_pytorch_op_serving(tmpdir, use_path, torchscript):
             # non-jit-compiled version of a model
             torch.save(model_to_use, model_path)
 
-    
     predictions = ["input"] >> ptorch_op.PredictPyTorch(
         model_or_path, torchscript, model_input_schema, model_output_schema, sparse_max={"input": 3}
     )
