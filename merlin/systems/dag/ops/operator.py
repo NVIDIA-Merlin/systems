@@ -4,6 +4,8 @@ import pathlib
 from abc import abstractclassmethod, abstractmethod
 from shutil import copyfile
 
+from merlin.systems.model_registry import ModelRegistry
+
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
@@ -119,6 +121,45 @@ class InferenceOperator(BaseOperator):
             New node for Ensemble graph.
         """
         return InferenceNode(selector)
+
+    @classmethod
+    def from_model_registry(cls, registry: ModelRegistry, **kwargs) -> "InferenceOperator":
+        """
+        Loads the InferenceOperator from the provided ModelRegistry.
+
+        Parameters
+        ----------
+        registry : ModelRegistry
+            A ModleRegistry object that will provide the path to the model.
+        **kwargs
+            Other kwargs to pass to your InferenceOperator's constructor.
+
+        Returns
+        -------
+        InferenceOperator
+            New node for Ensemble graph.
+        """
+
+        return cls.from_path(registry.get_artifact_uri(), **kwargs)
+
+    @classmethod
+    def from_path(cls, path, **kwargs) -> "InferenceOperator":
+        """
+        Loads the InferenceOperator from the path where it was exported after training.
+
+        Parameters
+        ----------
+        path : str
+            Path to the exported model.
+        **kwargs
+            Other kwargs to pass to your InferenceOperator's constructor.
+
+        Returns
+        -------
+        InferenceOperator
+            New node for Ensemble graph.
+        """
+        raise NotImplementedError(f"{cls.__name__} operators cannot be instantiated with a path.")
 
 
 class PipelineableInferenceOperator(InferenceOperator):
