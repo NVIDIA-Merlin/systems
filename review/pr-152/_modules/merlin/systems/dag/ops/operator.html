@@ -389,6 +389,9 @@
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_list</span><span class="p">:</span>
+            <span class="n">value_count</span> <span class="o">=</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value_count&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">value_count</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
         <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">paramclass</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">col_schema</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">_convert_dtype</span><span class="p">(</span><span class="n">col_schema</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">)</span>
         <span class="p">)</span>
