@@ -89,7 +89,16 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
         """Describe the operator's outputs"""
-        return Schema([ColumnSchema("ordered_ids", dtype=np.int32, is_list=True, is_ragged=True)])
+        return Schema(
+            [
+                ColumnSchema(
+                    "ordered_ids",
+                    dtype=input_schema.get(self._input_col_name).dtype,
+                    is_list=True,
+                    is_ragged=True,
+                )
+            ]
+        )
 
     def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
         """Transform the dataframe by applying this operator to the set of input columns"""
