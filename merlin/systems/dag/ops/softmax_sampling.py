@@ -1,10 +1,11 @@
 import json
+from typing import List, Optional
 
 import numpy as np
 
 from merlin.dag.node import Node
 from merlin.dag.selector import ColumnSelector
-from merlin.schema import ColumnSchema, Schema
+from merlin.schema import Schema
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
 
 
@@ -14,7 +15,9 @@ class SoftmaxSampling(PipelineableInferenceOperator):
     inputs in descending order.
     """
 
-    def __init__(self, relevance_col, temperature=20.0, topk=10, _input_col=None):
+    def __init__(
+        self, relevance_col, temperature=20.0, topk=10, _input_cols: Optional[List[str]] = None
+    ):
         """
         Create a SoftmaxSampling Pipelineable Inference Operator.
 
@@ -26,13 +29,13 @@ class SoftmaxSampling(PipelineableInferenceOperator):
             Value which will be used to effect the weights used in sorting, by default 20.0
         topk : int, optional
             The max number of results you wish to receive as output, by default 10
-        _input_col : _type_, optional
-            The column whose values will be sorted, by default None.
+        _input_cols : List[str], optional
+            The column(s) whose values will be sorted, by default None.
         """
         self.relevance_col = Node.construct_from(relevance_col)
         self.temperature = temperature
         self.topk = topk
-        self._input_col_name = _input_col
+        self._input_col_names: List[str] = _input_cols or []
         self._relevance_col_name = relevance_col
         super().__init__()
 
@@ -57,7 +60,7 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         """Write out a Triton model config directory"""
         params = params or {}
         self_params = {
-            "input_col": self._input_col_name,
+            "input_cols": self._input_col_names,
             "relevance_col": self._relevance_col_name,
             "temperature": self.temperature,
             "topk": self.topk,
@@ -81,29 +84,42 @@ class SoftmaxSampling(PipelineableInferenceOperator):
                 f" inputs received: {input_schema.column_names}"
             )
 
-        self._input_col_name = parents_schema.column_names[0]
+        self._input_col_names = parents_schema.column_names
         self._relevance_col_name = deps_schema.column_names[0]
         return input_schema
 
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
-        """Describe the operator's outputs"""
-        return Schema(
+        """
+        Describes the operator's outputs, which are computed from the input schema.
+
+        The output schema should be only the selected column(s) from the input.
+
+        Parameters
+        ----------
+        input_schema : Schema
+            The input schema
+        col_selector : ColumnSelector
+            ColumnSelector indicating which column(s) you would like to return, in sorted order.
+        prev_output_schema : Schema, optional
+            Not used.
+        """
+        col_schemas = sorted(
             [
-                ColumnSchema(
-                    "ordered_ids",
-                    dtype=input_schema.get(self._input_col_name).dtype,
-                    is_list=True,
-                    is_ragged=True,
-                )
-            ]
+                schema
+                for name, schema in input_schema.column_schemas.items()
+                if name in col_selector.names
+            ],
+            key=lambda cs: cs.name,
         )
+        return Schema(col_schemas)
 
     def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
         """Transform the dataframe by applying this operator to the set of input columns"""
         # Extract parameters from the request
-        candidate_ids = df[self._input_col_name].reshape(-1)
+
+        candidate_ids = df[self._input_col_names]
 
         predicted_scores = df[self._relevance_col_name].reshape(-1)
 
@@ -124,13 +140,20 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         # variables, resulting in a set of values that will sort into an order
         # that reflects sampling without replacement according to the weight
         # distribution
-        num_items = candidate_ids.shape[0]
+
+        # TODO we take max but these should all be the same size.
+        num_items = max(len(v) for _, v in candidate_ids)
         exponentials = -np.log(np.random.uniform(0, 1, size=(num_items,)))
+
         exponentials /= weights
 
         # This is just bookkeeping to produce the final ordered list of recs
         sorted_indices = np.argsort(exponentials)
-        topk_item_ids = candidate_ids[sorted_indices][: self.topk]
-        ordered_item_ids = topk_item_ids.reshape(1, -1).T
+        topk_item_ids = InferenceDataFrame(
+            {
+                col: candidate_ids[col][sorted_indices][: self.topk]
+                for col in candidate_ids.tensors.keys()
+            }
+        )
 
-        return InferenceDataFrame({"ordered_ids": ordered_item_ids})
+        return topk_item_ids
