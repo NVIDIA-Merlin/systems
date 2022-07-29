@@ -77,6 +77,8 @@
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractclassmethod</span><span class="p">,</span> <span class="n">abstractmethod</span>
 <span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copyfile</span>
 
+<span class="kn">from</span> <span class="nn">merlin.systems.model_registry</span> <span class="kn">import</span> <span class="n">ModelRegistry</span>
+
 <span class="c1"># this needs to be before any modules that import protobuf</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;python&quot;</span>
 
@@ -192,6 +194,45 @@
 <span class="sd">            New node for Ensemble graph.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">InferenceNode</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_model_registry</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">registry</span><span class="p">:</span> <span class="n">ModelRegistry</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;InferenceOperator&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the InferenceOperator from the provided ModelRegistry.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        registry : ModelRegistry</span>
+<span class="sd">            A ModleRegistry object that will provide the path to the model.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Other kwargs to pass to your InferenceOperator&#39;s constructor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        InferenceOperator</span>
+<span class="sd">            New node for Ensemble graph.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">registry</span><span class="o">.</span><span class="n">get_artifact_uri</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;InferenceOperator&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the InferenceOperator from the path where it was exported after training.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            Path to the exported model.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Other kwargs to pass to your InferenceOperator&#39;s constructor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        InferenceOperator</span>
+<span class="sd">            New node for Ensemble graph.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> operators cannot be instantiated with a path.&quot;</span><span class="p">)</span>
 
 
 <span class="k">class</span> <span class="nc">PipelineableInferenceOperator</span><span class="p">(</span><span class="n">InferenceOperator</span><span class="p">):</span>

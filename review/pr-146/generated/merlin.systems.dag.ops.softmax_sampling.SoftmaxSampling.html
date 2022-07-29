@@ -134,6 +134,12 @@ inputs in descending order.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.from_config" title="merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.from_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code></a>(config)</p></td>
 <td><p>Load operator and properties from Triton config</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
+<td><p>Loads the InferenceOperator from the provided ModelRegistry.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code>(path, **kwargs)</p></td>
+<td><p>Loads the InferenceOperator from the path where it was exported after training.</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
 <td><p>Given a set of columns names returns the names of the transformed columns this operator will produce :param columns: The columns to apply this operator to :type columns: list of str, or list of list of str</p></td>
 </tr>
