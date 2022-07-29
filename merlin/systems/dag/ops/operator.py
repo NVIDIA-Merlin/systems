@@ -316,6 +316,9 @@ def _add_model_param(params, paramclass, col_schema, dims=None):
             )
         )
     else:
+        if col_schema.is_list:
+            value_count = col_schema.properties.get("value_count", {})
+            dims = [-1, value_count.get("max", 1)]
         params.append(
             paramclass(name=col_schema.name, data_type=_convert_dtype(col_schema.dtype), dims=dims)
         )

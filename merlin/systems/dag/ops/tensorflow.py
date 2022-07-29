@@ -149,15 +149,17 @@ class PredictTensorflow(InferenceOperator):
 
         input_schema = Schema()
         for col_name, col in default_signature.structured_input_signature[1].items():
-            input_schema.column_schemas[col_name] = ColumnSchema(
-                col_name, dtype=col.dtype.as_numpy_dtype
-            )
+            col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype)
+            if col.shape[1] and col.shape[1] > 1:
+                col_schema = self._set_list_length(col_schema, col.shape[1])
+            input_schema.column_schemas[col_name] = col_schema
 
         output_schema = Schema()
         for col_name, col in default_signature.structured_outputs.items():
-            output_schema.column_schemas[col_name] = ColumnSchema(
-                col_name, dtype=col.dtype.as_numpy_dtype
-            )
+            col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype)
+            if col.shape[1] and col.shape[1] > 1:
+                col_schema = self._set_list_length(col_schema, col.shape[1])
+            output_schema.column_schemas[col_name] = col_schema
 
         return input_schema, output_schema
 
@@ -175,3 +177,8 @@ class PredictTensorflow(InferenceOperator):
                     )
 
         return model
+
+    def _set_list_length(self, col_schema, list_length):
+        return col_schema.with_dtype(
+            col_schema.dtype, is_list=True, is_ragged=False
+        ).with_properties({"value_count": {"min": list_length, "max": list_length}})
