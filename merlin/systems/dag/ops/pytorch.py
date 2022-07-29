@@ -205,13 +205,15 @@ class PredictPyTorch(InferenceOperator):
         )
 
         if sparse_max:
-            with open(os.path.join(output_path, str(version), "model_info.json"), "wb") as o:
+            with open(
+                os.path.join(output_path, str(version), "model_info.json"), "w", encoding="utf-8"
+            ) as o:
                 model_info = {}
                 model_info["sparse_max"] = sparse_max
                 model_info["use_fix_dtypes"] = use_fix_dtypes
                 json.dump(model_info, o)
 
-        with open(os.path.join(output_path, "config.pbtxt"), "wb") as o:
+        with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)
         return config
 

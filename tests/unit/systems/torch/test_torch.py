@@ -117,7 +117,7 @@ def test_torch_backend(tmpdir):
 
     # Write config out
     config_path = model_dir / "config.pbtxt"
-    with open(str(config_path), "wb") as f:
+    with open(str(config_path), "w", encoding="utf-8") as f:
         f.write(model_config)
 
     # Write model
