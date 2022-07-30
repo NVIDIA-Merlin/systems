@@ -44,12 +44,14 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         """Load operator and properties from Triton config"""
         parameters = json.loads(config.get("params", ""))
         relevance_col = parameters["relevance_col"]
-        input_col = parameters["input_col"]
+        input_cols = parameters["input_col"]
+        if isinstance(input_cols, str):
+            input_cols = [input_cols]
         temperature = parameters["temperature"]
         topk = parameters["topk"]
 
         return SoftmaxSampling(
-            relevance_col, temperature=temperature, topk=topk, _input_col=input_col
+            relevance_col, temperature=temperature, topk=topk, _input_cols=input_cols
         )
 
     @property
@@ -78,11 +80,6 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         input_schema = super().compute_input_schema(
             root_schema, parents_schema, deps_schema, selector
         )
-        if len(parents_schema.column_schemas) > 1:
-            raise ValueError(
-                "More than one input has been detected for this node,"
-                f" inputs received: {input_schema.column_names}"
-            )
 
         self._input_col_names = parents_schema.column_names
         self._relevance_col_name = deps_schema.column_names[0]
