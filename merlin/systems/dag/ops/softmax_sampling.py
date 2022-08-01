@@ -89,7 +89,16 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
         """Describe the operator's outputs"""
-        return Schema([ColumnSchema("ordered_ids", dtype=np.int32, is_list=True, is_ragged=True)])
+        return Schema(
+            [
+                ColumnSchema(
+                    "ordered_ids",
+                    dtype=input_schema.get(self._input_col_name).dtype,
+                    is_list=True,
+                    is_ragged=True,
+                )
+            ]
+        )
 
     def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
         """Transform the dataframe by applying this operator to the set of input columns"""
@@ -121,7 +130,7 @@ class SoftmaxSampling(PipelineableInferenceOperator):
 
         # This is just bookkeeping to produce the final ordered list of recs
         sorted_indices = np.argsort(exponentials)
-        topk_movie_ids = candidate_ids[sorted_indices][: self.topk]
-        ordered_movie_ids = topk_movie_ids.reshape(1, -1).T
+        topk_item_ids = candidate_ids[sorted_indices][: self.topk]
+        ordered_item_ids = topk_item_ids.reshape(1, -1).T
 
-        return InferenceDataFrame({"ordered_ids": ordered_movie_ids})
+        return InferenceDataFrame({"ordered_ids": ordered_item_ids})
