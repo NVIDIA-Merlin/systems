@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from distutils.spawn import find_executable
+from distutils.spawn import find_executable  # pylint: disable=deprecated-module
 
 import numpy as np
 import pytest
@@ -53,7 +53,7 @@ def test_softmax_sampling(tmpdir):
         tmpdir, ensemble.graph.output_schema.column_names, request, "ensemble_model"
     )
     assert response is not None
-    assert len(response.as_numpy("ordered_ids")) == 10
+    assert len(response.as_numpy("movie_ids")) == 10
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")

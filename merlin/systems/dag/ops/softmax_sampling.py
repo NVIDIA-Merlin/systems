@@ -44,7 +44,7 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         """Load operator and properties from Triton config"""
         parameters = json.loads(config.get("params", ""))
         relevance_col = parameters["relevance_col"]
-        input_cols = parameters["input_col"]
+        input_cols = parameters["input_cols"]
         if isinstance(input_cols, str):
             input_cols = [input_cols]
         temperature = parameters["temperature"]
