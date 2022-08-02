@@ -60,7 +60,7 @@ def test_reload_from_config(model_cls, tmpdir):
     )
     reloaded_model = cls.model
 
-    num_to_recommend = np.random.randint(n)
+    num_to_recommend = np.random.randint(1, n)
     user_items = None
     ids, scores = model.recommend(
         1, user_items, N=num_to_recommend, filter_already_liked_items=False
@@ -89,7 +89,7 @@ def test_ensemble(model_cls, tmpdir):
     user_items = csr_matrix(np.random.choice([0, 1], size=n * n, p=[0.9, 0.1]).reshape(n, n))
     model.fit(user_items)
 
-    num_to_recommend = np.random.randint(n)
+    num_to_recommend = np.random.randint(1, n)
 
     user_items = None
     ids, scores = model.recommend(
