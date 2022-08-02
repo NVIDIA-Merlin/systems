@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Download Data &mdash; Merlin Systems  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script >let toggleHintShow = 'Click to show';</script>
+        <script >let toggleHintHide = 'Click to hide';</script>
+        <script >let toggleOpenOnPrint = 'true';</script>
+        <script src="../_static/togglebutton.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Documentation" href="../api.html" />
+    <link rel="prev" title="Serving Ranking Models With Merlin Systems" href="Serving-Ranking-Models-With-Merlin-Systems.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> Merlin Systems
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../README.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Example Notebooks</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#running-the-example-notebook">Running the Example Notebook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Serving-Ranking-Models-With-Merlin-Systems.html">Serving Ranking Models With Merlin Systems</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Download Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-preprocessing">Data Preprocessing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#train-an-xgboost-model">Train an XGBoost Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-the-ensemble-graph">Create the Ensemble Graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#starting-the-triton-inference-server">Starting the Triton Inference Server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Merlin Systems</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="index.html">Merlin Systems Example Notebook</a> &raquo;</li>
+      <li>Download Data</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copyright 2022 NVIDIA Corporation. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># ==============================================================================</span>
+</pre></div>
+</div>
+</div>
+</div>
+<img alt="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" src="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" />
+<p>This notebook is created using the latest stable <a class="reference external" href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow/tags">merlin-tensorflow</a> container. This Jupyter notebook example demonstrates how to deploy an <code class="docutils literal notranslate"><span class="pre">XGBoost</span></code> model to Triton Inference Server (TIS) and generate prediction results for a given query.</p>
+<p>To begin, we download the <code class="docutils literal notranslate"><span class="pre">MovieLens</span> <span class="pre">100k</span> <span class="pre">Dataset</span></code> and train an <code class="docutils literal notranslate"><span class="pre">XGBoost</span></code> model to predict a rating a user is likely to give to a movie.</p>
+<p>In this notebook we will focus on deploying our model and will breeze through data preprocessing and the training of the model.</p>
+<p>If you would like to learn more about training an <code class="docutils literal notranslate"><span class="pre">XGBoost</span></code> model using the Merlin Framework, please consult a tutorial available <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/07-Train-an-xgboost-model-using-the-Merlin-Models-API.ipynb">here</a>.</p>
+<p>Let’s begin by downloading the data.</p>
+<div class="tex2jax_ignore mathjax_ignore section" id="download-data">
+<h1>Download Data<a class="headerlink" href="#download-data" title="Permalink to this headline"></a></h1>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.core.utils</span> <span class="kn">import</span> <span class="n">Distributed</span>
+<span class="kn">from</span> <span class="nn">merlin.models.xgb</span> <span class="kn">import</span> <span class="n">XGBoost</span>
+<span class="kn">import</span> <span class="nn">nvtabular</span> <span class="k">as</span> <span class="nn">nvt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">merlin.datasets.entertainment</span> <span class="kn">import</span> <span class="n">get_movielens</span>
+
+<span class="n">train</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_movielens</span><span class="p">(</span><span class="n">variant</span><span class="o">=</span><span class="s1">&#39;ml-100k&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-08-02 09:50:39.952360: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:952] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-08-02 09:50:39.952868: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:952] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-08-02 09:50:39.953008: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:952] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+/usr/local/lib/python3.8/dist-packages/cudf/core/frame.py:384: UserWarning: The deep parameter is ignored and is only included for pandas compatibility.
+  warnings.warn(
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="tex2jax_ignore mathjax_ignore section" id="data-preprocessing">
+<h1>Data Preprocessing<a class="headerlink" href="#data-preprocessing" title="Permalink to this headline"></a></h1>
+<p>Let us now preprocess our data.</p>
+<p>We capture the preprocessing steps in a workflow and will be able to reuse them for preprocessing incoming requests during serving.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">preprocessing_steps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;movieId&#39;</span><span class="p">,</span> <span class="s1">&#39;userId&#39;</span><span class="p">,</span> <span class="s1">&#39;genres&#39;</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="n">nvt</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">Categorify</span><span class="p">(</span><span class="n">freq_threshold</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+<span class="n">train_preprocessing_workflow</span> <span class="o">=</span> <span class="n">nvt</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">preprocessing_steps</span> <span class="o">+</span> <span class="n">train</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">remove_col</span><span class="p">(</span><span class="s1">&#39;rating_binary&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">remove_col</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">column_names</span><span class="p">)</span>
+<span class="n">train_transformed</span> <span class="o">=</span> <span class="n">train_preprocessing_workflow</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="tex2jax_ignore mathjax_ignore section" id="train-an-xgboost-model">
+<h1>Train an XGBoost Model<a class="headerlink" href="#train-an-xgboost-model" title="Permalink to this headline"></a></h1>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">Distributed</span><span class="p">():</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">XGBoost</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="n">train_transformed</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+        <span class="n">train_transformed</span><span class="p">,</span>
+        <span class="n">num_boost_round</span><span class="o">=</span><span class="mi">85</span><span class="p">,</span>
+        <span class="n">verbose_eval</span><span class="o">=</span><span class="mi">20</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-08-02 09:50:42,015 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+[09:50:43] task [xgboost.dask]:tcp://127.0.0.1:45235 got new rank 0
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0]	train-rmse:2.36952
+[20]	train-rmse:0.95316
+[40]	train-rmse:0.92447
+[60]	train-rmse:0.90741
+[80]	train-rmse:0.89437
+[84]	train-rmse:0.89138
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="tex2jax_ignore mathjax_ignore section" id="create-the-ensemble-graph">
+<h1>Create the Ensemble Graph<a class="headerlink" href="#create-the-ensemble-graph" title="Permalink to this headline"></a></h1>
+<p>Let us now define an <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code> that will be used for serving predictions on the Triton Inference Server.</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code> defines operations to be performed on incoming requests. It begins with specifying the input schema (fields that the inference request will contain).</p>
+<p>Our model was trained on data that included the <code class="docutils literal notranslate"><span class="pre">target</span></code> column. However, in production, this information will not be available to us. Let us modify the schema to reflect this.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inference_schema</span> <span class="o">=</span> <span class="n">train_preprocessing_workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">remove_col</span><span class="p">(</span><span class="s1">&#39;rating&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>In general, you want to define a preprocessing workflow once and apply it throughout the lifecycle of your model, from training all the way to serving in production. Redifining the workflows on the go, or using custom written code for these operations, can be a source of subtle bugs.</p>
+<p>In order to ensure we process our data in the same way in production as we do in training, let us now modify the training preprocessing pipeline and use it to construct our inference workflow.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inference_preprocessing_workflow</span> <span class="o">=</span> <span class="n">train_preprocessing_workflow</span><span class="o">.</span><span class="n">remove_inputs</span><span class="p">([</span><span class="s1">&#39;rating&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Equipped with the modified data preprocessing workflow, let us define the full set of inference operations we will want to run on the Triton inference server.</p>
+<p>We begin by stating what data the server can expect (<code class="docutils literal notranslate"><span class="pre">inference_schema</span></code>). We proceed to wrap our <code class="docutils literal notranslate"><span class="pre">inference_preprocessing_workflow</span></code> in <code class="docutils literal notranslate"><span class="pre">TransformWorkflow</span></code> – an operator we can leverage to executing our workflow during serving.</p>
+<p>Last but not least, having received and preprocessed the data, we instruct the Triton inference server to perform inference using the model that we trained.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.fil</span> <span class="kn">import</span> <span class="n">PredictForest</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ensemble</span> <span class="kn">import</span> <span class="n">Ensemble</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.workflow</span> <span class="kn">import</span> <span class="n">TransformWorkflow</span>
+
+<span class="n">inference_ops</span> <span class="o">=</span> <span class="n">inference_schema</span><span class="o">.</span><span class="n">column_names</span> <span class="o">&gt;&gt;</span> <span class="n">TransformWorkflow</span><span class="p">(</span><span class="n">inference_preprocessing_workflow</span><span class="p">)</span> \
+                    <span class="o">&gt;&gt;</span> <span class="n">PredictForest</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">booster</span><span class="p">,</span> <span class="n">inference_preprocessing_workflow</span><span class="o">.</span><span class="n">output_schema</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>With inference operations defined, all that remains now is outputting the ensemble to disk so that it can be loaded up when Triton starts.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ensemble</span> <span class="o">=</span> <span class="n">Ensemble</span><span class="p">(</span><span class="n">inference_ops</span><span class="p">,</span> <span class="n">inference_schema</span><span class="p">)</span>
+<span class="n">ensemble</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s1">&#39;ensemble&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="tex2jax_ignore mathjax_ignore section" id="starting-the-triton-inference-server">
+<h1>Starting the Triton Inference Server<a class="headerlink" href="#starting-the-triton-inference-server" title="Permalink to this headline"></a></h1>
+<p>We now are ready to start the Triton Inference Server. We do so in a subprocess in order to continue our exploration in this notebook.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">&quot;tritonserver&quot;</span><span class="p">,</span> <span class="s2">&quot;--model-repository=ensemble&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;subprocess.Popen at 0x7fa1b031e8e0&gt;
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>I0802 09:50:45.025498 1057 pinned_memory_manager.cc:240] Pinned memory pool is created at &#39;0x7f05a6000000&#39; with size 268435456
+I0802 09:50:45.025823 1057 cuda_memory_manager.cc:105] CUDA memory pool is created on device 0 with size 67108864
+I0802 09:50:45.027726 1057 model_repository_manager.cc:1191] loading: 1_fil:1
+I0802 09:50:45.127882 1057 model_repository_manager.cc:1191] loading: 0_transformworkflow:1
+I0802 09:50:45.137409 1057 initialize.hpp:43] TRITONBACKEND_Initialize: fil
+I0802 09:50:45.137421 1057 backend.hpp:47] Triton TRITONBACKEND API version: 1.9
+I0802 09:50:45.137424 1057 backend.hpp:52] &#39;fil&#39; TRITONBACKEND API version: 1.9
+I0802 09:50:45.137694 1057 model_initialize.hpp:37] TRITONBACKEND_ModelInitialize: 1_fil (version 1)
+I0802 09:50:45.138704 1057 instance_initialize.hpp:46] TRITONBACKEND_ModelInstanceInitialize: 1_fil_0 (GPU device 0)
+I0802 09:50:45.156972 1057 model_repository_manager.cc:1345] successfully loaded &#39;1_fil&#39; version 1
+I0802 09:50:45.228012 1057 model_repository_manager.cc:1191] loading: 1_predictforest:1
+I0802 09:50:45.230221 1057 python.cc:2388] TRITONBACKEND_ModelInstanceInitialize: 0_transformworkflow (GPU device 0)
+I0802 09:50:46.585742 1057 model_repository_manager.cc:1345] successfully loaded &#39;0_transformworkflow&#39; version 1
+I0802 09:50:46.586228 1057 python.cc:2388] TRITONBACKEND_ModelInstanceInitialize: 1_predictforest (GPU device 0)
+I0802 09:50:48.093558 1057 model_repository_manager.cc:1345] successfully loaded &#39;1_predictforest&#39; version 1
+I0802 09:50:48.093800 1057 model_repository_manager.cc:1191] loading: ensemble_model:1
+I0802 09:50:48.194069 1057 model_repository_manager.cc:1345] successfully loaded &#39;ensemble_model&#39; version 1
+I0802 09:50:48.194143 1057 server.cc:556] 
++------------------+------+
+| Repository Agent | Path |
++------------------+------+
++------------------+------+
+
+I0802 09:50:48.194185 1057 server.cc:583] 
++---------+-------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Backend | Path                                                  | Config                                                                                                                                                         |
++---------+-------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| fil     | /opt/tritonserver/backends/fil/libtriton_fil.so       | {&quot;cmdline&quot;:{&quot;auto-complete-config&quot;:&quot;false&quot;,&quot;min-compute-capability&quot;:&quot;6.000000&quot;,&quot;backend-directory&quot;:&quot;/opt/tritonserver/backends&quot;,&quot;default-max-batch-size&quot;:&quot;4&quot;}} |
+| python  | /opt/tritonserver/backends/python/libtriton_python.so | {&quot;cmdline&quot;:{&quot;auto-complete-config&quot;:&quot;false&quot;,&quot;min-compute-capability&quot;:&quot;6.000000&quot;,&quot;backend-directory&quot;:&quot;/opt/tritonserver/backends&quot;,&quot;default-max-batch-size&quot;:&quot;4&quot;}} |
++---------+-------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+I0802 09:50:48.194222 1057 server.cc:626] 
++---------------------+---------+--------+
+| Model               | Version | Status |
++---------------------+---------+--------+
+| 0_transformworkflow | 1       | READY  |
+| 1_fil               | 1       | READY  |
+| 1_predictforest     | 1       | READY  |
+| ensemble_model      | 1       | READY  |
++---------------------+---------+--------+
+
+I0802 09:50:48.217709 1057 metrics.cc:650] Collecting metrics for GPU 0: Quadro RTX 8000
+I0802 09:50:48.217961 1057 tritonserver.cc:2138] 
++----------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Option                           | Value                                                                                                                                                                                        |
++----------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| server_id                        | triton                                                                                                                                                                                       |
+| server_version                   | 2.22.0                                                                                                                                                                                       |
+| server_extensions                | classification sequence model_repository model_repository(unload_dependents) schedule_policy model_configuration system_shared_memory cuda_shared_memory binary_tensor_data statistics trace |
+| model_repository_path[0]         | ensemble                                                                                                                                                                                     |
+| model_control_mode               | MODE_NONE                                                                                                                                                                                    |
+| strict_model_config              | 1                                                                                                                                                                                            |
+| rate_limit                       | OFF                                                                                                                                                                                          |
+| pinned_memory_pool_byte_size     | 268435456                                                                                                                                                                                    |
+| cuda_memory_pool_byte_size{0}    | 67108864                                                                                                                                                                                     |
+| response_cache_byte_size         | 0                                                                                                                                                                                            |
+| min_supported_compute_capability | 6.0                                                                                                                                                                                          |
+| strict_readiness                 | 1                                                                                                                                                                                            |
+| exit_timeout                     | 30                                                                                                                                                                                           |
++----------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+I0802 09:50:48.218561 1057 grpc_server.cc:4589] Started GRPCInferenceService at 0.0.0.0:8001
+I0802 09:50:48.218748 1057 http_server.cc:3303] Started HTTPService at 0.0.0.0:8000
+I0802 09:50:48.259455 1057 http_server.cc:178] Started Metrics Service at 0.0.0.0:8002
+</pre></div>
+</div>
+</div>
+</div>
+<p>The server is now running. We have pointed it to where our ensemble resides on disk via specifying the <code class="docutils literal notranslate"><span class="pre">--model-repository</span></code> parameter.</p>
+<p>Our inference pipeline has now been loaded onto the server and it is ready to receive inference requests.</p>
+<p>Let us issue a request and verify the results.</p>
+<p>We begin by obtaining 10 examples from our train data.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ten_examples</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rating&#39;</span><span class="p">,</span> <span class="s1">&#39;rating_binary&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">])[:</span><span class="mi">10</span><span class="p">]</span>
+<span class="n">ten_examples</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_html"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>movieId</th>
+      <th>userId</th>
+      <th>genres</th>
+      <th>TE_movieId_rating</th>
+      <th>userId_count</th>
+      <th>gender</th>
+      <th>zip_code</th>
+      <th>age</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>7</td>
+      <td>77</td>
+      <td>43</td>
+      <td>0.779876</td>
+      <td>5.572154</td>
+      <td>1</td>
+      <td>77</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>231</td>
+      <td>77</td>
+      <td>13</td>
+      <td>-0.896619</td>
+      <td>5.572154</td>
+      <td>1</td>
+      <td>77</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>366</td>
+      <td>77</td>
+      <td>17</td>
+      <td>-0.954632</td>
+      <td>5.572154</td>
+      <td>1</td>
+      <td>77</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>96</td>
+      <td>77</td>
+      <td>89</td>
+      <td>-0.093809</td>
+      <td>5.572154</td>
+      <td>1</td>
+      <td>77</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>383</td>
+      <td>77</td>
+      <td>25</td>
+      <td>-0.539376</td>
+      <td>5.572154</td>
+      <td>1</td>
+      <td>77</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+</div>
+<p>Now let’s package the information up as inputs and send it to Triton for inference.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.triton</span> <span class="kn">import</span> <span class="n">convert_df_to_triton_input</span>
+<span class="kn">import</span> <span class="nn">tritonclient.grpc</span> <span class="k">as</span> <span class="nn">grpcclient</span>
+
+<span class="n">ten_examples</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rating&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;rating_binary&#39;</span><span class="p">])[:</span><span class="mi">10</span><span class="p">]</span>
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">convert_df_to_triton_input</span><span class="p">(</span><span class="n">inference_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span> <span class="n">ten_examples</span><span class="p">,</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferInput</span><span class="p">)</span>
+
+<span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferRequestedOutput</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">inference_ops</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
+<span class="p">]</span>
+<span class="c1"># send request to tritonserver</span>
+<span class="k">with</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferenceServerClient</span><span class="p">(</span><span class="s2">&quot;localhost:8001&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="s2">&quot;ensemble_model&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Let us now look at the results and compare to local predictions.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">predictions_from_triton</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">Distributed</span><span class="p">():</span>
+    <span class="n">local_predictions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">train_transformed</span><span class="p">)[:</span><span class="mi">10</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/local/lib/python3.8/dist-packages/distributed/node.py:180: UserWarning: Port 8787 is already in use.
+Perhaps you already have a cluster running?
+Hosting the HTTP server on port 43463 instead
+  warnings.warn(
+2022-08-02 09:51:02,611 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">predictions_from_triton</span><span class="p">,</span> <span class="n">local_predictions</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>We managed to preprocess the data in the same way in serving as we did during training and obtain the same predictions!</p>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Serving-Ranking-Models-With-Merlin-Systems.html" class="btn btn-neutral float-left" title="Serving Ranking Models With Merlin Systems" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api.html" class="btn btn-neutral float-right" title="API Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, NVIDIA.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
