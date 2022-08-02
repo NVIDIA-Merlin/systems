@@ -89,12 +89,10 @@ class PredictImplicit(PipelineableInferenceOperator):
         )
 
     @classmethod
-    def from_config(
-        cls, config: dict, model_repository="./", model_name=None, model_version=1
-    ) -> "PredictImplicit":
+    def from_config(cls, config: dict, **kwargs) -> "PredictImplicit":
         """Instantiate the class from a dictionary representation.
 
-        Expected structure:
+        Expected config structure:
         {
             "input_dict": str  # JSON dict with input names and schemas
             "params": str  # JSON dict with params saved at export
@@ -102,6 +100,10 @@ class PredictImplicit(PipelineableInferenceOperator):
 
         """
         params = json.loads(config["params"])
+
+        model_repository = kwargs["model_repository"]
+        model_name = kwargs["model_name"]
+        model_version = kwargs["model_version"]
 
         # load implicit model
         model_module_name = params["model_module_name"]
