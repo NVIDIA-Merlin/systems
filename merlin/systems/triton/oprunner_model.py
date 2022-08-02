@@ -25,6 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import json
+import pathlib
 import sys
 import traceback
 
@@ -56,7 +57,13 @@ class TritonPythonModel:
           * model_name: Model name
         """
         self.model_config = json.loads(args["model_config"])
-        self.runner = OperatorRunner(self.model_config)
+
+        self.runner = OperatorRunner(
+            self.model_config,
+            model_repository=_parse_model_repository(args["model_repository"]),
+            model_name=args["model_name"],
+            model_version=args["model_version"],
+        )
 
     def execute(self, requests):
         """Receives a list of pb_utils.InferenceRequest as the only argument. This
@@ -118,3 +125,18 @@ class TritonPythonModel:
                 )
 
         return responses
+
+
+def _parse_model_repository(model_repository: str) -> str:
+    """
+    Extract the model repository path from the value passed to the TritonPythonModel
+    initialize method.
+    """
+    model_repository_path = pathlib.Path(model_repository).parent
+
+    # Handle bug in Tritonserver 22.06
+    # model_repository argument became path to model.py
+    if str(model_repository).endswith(".py"):
+        model_repository_path = model_repository_path.parent
+
+    return str(model_repository_path)

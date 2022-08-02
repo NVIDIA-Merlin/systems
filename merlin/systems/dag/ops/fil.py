@@ -67,6 +67,7 @@ class PredictForest(PipelineableInferenceOperator):
         self.backend = backend
         self.input_schema = input_schema
         self._fil_model_name = None
+        super().__init__()
 
     def compute_output_schema(
         self,
@@ -112,7 +113,7 @@ class PredictForest(PipelineableInferenceOperator):
         )
 
     @classmethod
-    def from_config(cls, config: dict) -> "PredictForest":
+    def from_config(cls, config: dict, **kwargs) -> "PredictForest":
         """Instantiate the class from a dictionary representation.
 
         Expected structure:

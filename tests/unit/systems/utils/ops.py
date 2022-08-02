@@ -36,5 +36,5 @@ class PlusTwoOp(inf_op.PipelineableInferenceOperator):
         return column_mapping
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config, **kwargs):
         return PlusTwoOp()
