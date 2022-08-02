@@ -23,6 +23,7 @@ class OperatorRunner:
     def __init__(
         self,
         config,
+        *,
         model_repository="./",
         model_version=1,
         model_name=None,
