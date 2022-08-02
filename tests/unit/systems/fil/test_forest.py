@@ -22,9 +22,10 @@ import sklearn.datasets
 import xgboost
 from google.protobuf import text_format
 
+from merlin.core.utils import Distributed
 from merlin.dag import ColumnSelector
 from merlin.io import Dataset
-from merlin.schema import ColumnSchema, Schema
+from merlin.schema import ColumnSchema, Schema, Tags
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.fil import PredictForest
 from merlin.systems.dag.ops.workflow import TransformWorkflow
@@ -80,6 +81,45 @@ def test_export(tmpdir):
     )
     model = xgboost.XGBRegressor()
     model.fit(X, y)
+    feature_names = [str(i) for i in range(num_features)]
+    input_schema = Schema([ColumnSchema(col, dtype=np.float32) for col in feature_names])
+    output_schema = Schema([ColumnSchema("output__0", dtype=np.float32)])
+    _ = PredictForest(model, input_schema).export(tmpdir, input_schema, output_schema, node_id=2)
+
+    config_path = tmpdir / "2_predictforest" / "config.pbtxt"
+    parsed_config = read_config(config_path)
+    assert parsed_config.name == "2_predictforest"
+    assert parsed_config.backend == "python"
+
+    config_path = tmpdir / "2_fil" / "config.pbtxt"
+    parsed_config = read_config(config_path)
+    assert parsed_config.name == "2_fil"
+    assert parsed_config.backend == "fil"
+
+
+def test_export_merlin_models(tmpdir):
+    merlin_xgb = pytest.importorskip("merlin.models.xgb")
+
+    # create a merlin.io.Dataset
+    rows = 200
+    num_features = 16
+    X, y = sklearn.datasets.make_regression(
+        n_samples=rows,
+        n_features=num_features,
+        n_informative=num_features // 3,
+        random_state=0,
+    )
+    df = pd.DataFrame({f"col_{i}": col for i, col in enumerate(X.T)})
+    df["target"] = y
+    ds = Dataset(df)
+    ds.schema["target"] = ds.schema["target"].with_tags([Tags.TARGET, Tags.REGRESSION])
+
+    # train a XGB model using merlin-models
+    model = merlin_xgb.XGBoost(ds.schema)
+    with Distributed(cluster_type="cpu"):
+        model.fit(ds)
+
+    # make sure we can export the merlin-model xgb wrapper using merlin-systems
     feature_names = [str(i) for i in range(num_features)]
     input_schema = Schema([ColumnSchema(col, dtype=np.float32) for col in feature_names])
     output_schema = Schema([ColumnSchema("output__0", dtype=np.float32)])
