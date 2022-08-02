@@ -364,6 +364,9 @@ def get_fil_model(model) -> FILModel:
         fil_model = XGBoost(model)
     elif xgboost and isinstance(model, xgboost.XGBModel):
         fil_model = XGBoost(model.get_booster())
+    elif xgboost and hasattr(model, "booster"):
+        # support the merlin.models.xgb.XGBoost wrapper too
+        fil_model = XGBoost(model.booster)
     elif lightgbm and isinstance(model, lightgbm.Booster):
         fil_model = LightGBM(model)
     elif lightgbm and isinstance(model, lightgbm.LGBMModel):
@@ -384,9 +387,6 @@ def get_fil_model(model) -> FILModel:
         ),
     ):
         fil_model = SKLearnRandomForest(model)
-    elif hasattr(model, "booster"):
-        # support the merlin.models.xgb.XGBoost wrapper too
-        return get_fil_model(model.booster)
     else:
         supported_model_types = {
             "xgboost.Booster",
