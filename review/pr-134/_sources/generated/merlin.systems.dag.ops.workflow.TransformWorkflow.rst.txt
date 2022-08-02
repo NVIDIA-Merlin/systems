@@ -21,6 +21,8 @@
       ~TransformWorkflow.compute_selector
       ~TransformWorkflow.create_node
       ~TransformWorkflow.export
+      ~TransformWorkflow.from_model_registry
+      ~TransformWorkflow.from_path
       ~TransformWorkflow.output_column_names
    
    

@@ -138,6 +138,12 @@ based on the supplied criteria.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.from_config" title="merlin.systems.dag.ops.session_filter.FilterCandidates.from_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code></a>(config, **kwargs)</p></td>
 <td><p>Instantiate a class object given a config.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
+<td><p>Loads the InferenceOperator from the provided ModelRegistry.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code>(path, **kwargs)</p></td>
+<td><p>Loads the InferenceOperator from the path where it was exported after training.</p></td>
+</tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
 <td><p>Given a set of columns names returns the names of the transformed columns this operator will produce :param columns: The columns to apply this operator to :type columns: list of str, or list of list of str</p></td>
 </tr>
@@ -181,7 +187,7 @@ based on the supplied criteria.</p>
 </table>
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.session_filter.FilterCandidates.from_config">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/session_filter.html#FilterCandidates.from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.from_config" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates" title="merlin.systems.dag.ops.session_filter.FilterCandidates"><span class="pre">merlin.systems.dag.ops.session_filter.FilterCandidates</span></a><a class="reference internal" href="../_modules/merlin/systems/dag/ops/session_filter.html#FilterCandidates.from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.from_config" title="Permalink to this definition"></a></dt>
 <dd><p>Instantiate a class object given a config.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
