@@ -40,7 +40,7 @@ grpcclient = pytest.importorskip("tritonclient.grpc")
         implicit.lmf.LogisticMatrixFactorization,
     ],
 )
-def test_predict_implcit(model_cls, tmpdir):
+def test_reload_from_config(model_cls, tmpdir):
     model = model_cls()
     n = 10
     user_items = csr_matrix(np.random.choice([0, 1], size=n * n).reshape(n, n))
