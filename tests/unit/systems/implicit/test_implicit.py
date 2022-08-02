@@ -75,8 +75,8 @@ def test_predict_implcit(model_cls, tmpdir):
     "model_cls",
     [
         implicit.bpr.BayesianPersonalizedRanking,
-        # implicit.als.AlternatingLeastSquares,
-        # implicit.lmf.LogisticMatrixFactorization,
+        implicit.als.AlternatingLeastSquares,
+        implicit.lmf.LogisticMatrixFactorization,
     ],
 )
 def test_ensemble(model_cls, tmpdir):
