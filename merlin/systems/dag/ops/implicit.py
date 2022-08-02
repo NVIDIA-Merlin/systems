@@ -21,6 +21,17 @@ from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
 
+try:
+    import implicit
+    from packaging.version import Version
+
+    if Version(implicit.__version__) < Version("0.6.0"):
+        raise RuntimeError(
+            "Implicit version 0.6.0 or higher required. (for model save/load methods)."
+        )
+except ImportError:
+    implicit = None
+
 
 class PredictImplicit(PipelineableInferenceOperator):
     """Operator for running inference on Implicit models.."""
