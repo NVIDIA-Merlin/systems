@@ -60,10 +60,14 @@ def test_predict_implcit(model_cls, tmpdir):
     )
     reloaded_model = cls.model
 
-    ids, scores = model.recommend(1, None, 10, filter_already_liked_items=False)
+    num_to_recommend = np.random.randint(n)
+    user_items = None
+    ids, scores = model.recommend(
+        1, user_items, N=num_to_recommend, filter_already_liked_items=False
+    )
 
     reloaded_ids, reloaded_scores = reloaded_model.recommend(
-        1, None, 10, filter_already_liked_items=False
+        1, user_items, N=num_to_recommend, filter_already_liked_items=False
     )
 
     np.testing.assert_array_equal(ids, reloaded_ids)
@@ -87,7 +91,10 @@ def test_ensemble(model_cls, tmpdir):
 
     num_to_recommend = np.random.randint(n)
 
-    ids, scores = model.recommend([0, 1], None, num_to_recommend, filter_already_liked_items=False)
+    user_items = None
+    ids, scores = model.recommend(
+        [0, 1], user_items, N=num_to_recommend, filter_already_liked_items=False
+    )
 
     implicit_op = PredictImplicit(model, num_to_recommend=num_to_recommend)
 
