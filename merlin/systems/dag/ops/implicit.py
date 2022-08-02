@@ -110,8 +110,8 @@ class PredictImplicit(PipelineableInferenceOperator):
         -------
         InferenceDataFrame
             Returns a transformed dataframe for this operator"""
-        user_id = df["user_id"][0]
-        num_to_recommend = df["n"][0]
+        user_id = df["user_id"].ravel()
+        num_to_recommend = df["n"].ravel()[0]
         user_items = None
         ids, scores = self.model.recommend(
             user_id, user_items, num_to_recommend, filter_already_liked_items=False
