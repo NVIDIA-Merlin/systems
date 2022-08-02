@@ -89,11 +89,9 @@ def test_ensemble(model_cls, tmpdir):
 
     ids, scores = model.recommend([0, 1], None, num_to_recommend, filter_already_liked_items=False)
 
-    implicit_op = PredictImplicit(model)
+    implicit_op = PredictImplicit(model, num_to_recommend=num_to_recommend)
 
-    input_schema = Schema(
-        [ColumnSchema("user_id", dtype="int64"), ColumnSchema("n", dtype="int64")]
-    )
+    input_schema = Schema([ColumnSchema("user_id", dtype="int64")])
 
     triton_chain = input_schema.column_names >> implicit_op
 
@@ -102,16 +100,12 @@ def test_ensemble(model_cls, tmpdir):
 
     model_name = triton_ens.name
     input_user_id = np.array([[0], [1]], dtype=np.int64)
-    input_n = np.array([[num_to_recommend]], dtype=np.int64)
-
     inputs = [
         grpcclient.InferInput(
             "user_id", input_user_id.shape, triton.np_to_triton_dtype(input_user_id.dtype)
         ),
-        grpcclient.InferInput("n", input_n.shape, triton.np_to_triton_dtype(input_n.dtype)),
     ]
     inputs[0].set_data_from_numpy(input_user_id)
-    inputs[1].set_data_from_numpy(input_n)
     outputs = [grpcclient.InferRequestedOutput("scores"), grpcclient.InferRequestedOutput("ids")]
 
     response = None

@@ -36,14 +36,17 @@ except ImportError:
 class PredictImplicit(PipelineableInferenceOperator):
     """Operator for running inference on Implicit models.."""
 
-    def __init__(self, model, **kwargs):
+    def __init__(self, model, num_to_recommend: int = 10, **kwargs):
         """Instantiate an Implicit prediction operator.
 
         Parameters
         ----------
         model : An Implicit Model instance
+        num_to_recommend : int
+           the number of items to return
         """
         self.model = model
+        self.num_to_recommend = num_to_recommend
         super().__init__(**kwargs)
 
     def compute_output_schema(
@@ -63,7 +66,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         selector: ColumnSelector,
     ) -> Schema:
         """Return the input schema representing the input columns this operator expects to use."""
-        return Schema([ColumnSchema("user_id", dtype="int64"), ColumnSchema("n", dtype="int64")])
+        return Schema([ColumnSchema("user_id", dtype="int64")])
 
     def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
         """Export the class and related files to the path specified."""
@@ -75,6 +78,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         params = params or {}
         params["model_module_name"] = self.model.__module__
         params["model_class_name"] = self.model.__class__.__name__
+        params["num_to_recommend"] = self.num_to_recommend
         return super().export(
             path,
             input_schema,
@@ -107,7 +111,9 @@ class PredictImplicit(PipelineableInferenceOperator):
         model_file = pathlib.Path(model_repository) / model_name / str(model_version) / "model.npz"
         model = model_cls.load(str(model_file))
 
-        return cls(model)
+        num_to_recommend = params["num_to_recommend"]
+
+        return cls(model, num_to_recommend=num_to_recommend)
 
     def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
         """Transform the dataframe by applying this operator to the set of input columns.
@@ -122,9 +128,8 @@ class PredictImplicit(PipelineableInferenceOperator):
         InferenceDataFrame
             Returns a transformed dataframe for this operator"""
         user_id = df["user_id"].ravel()
-        num_to_recommend = df["n"].ravel()[0]
         user_items = None
         ids, scores = self.model.recommend(
-            user_id, user_items, num_to_recommend, filter_already_liked_items=False
+            user_id, user_items, N=self.num_to_recommend, filter_already_liked_items=False
         )
         return InferenceDataFrame({"ids": ids, "scores": scores})
