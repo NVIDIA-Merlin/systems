@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass
 from typing import List
 
 import numpy as np
@@ -9,13 +10,22 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
 
 # Feast_key: (numpy dtype, is_list, is_ragged)
-feast_2_numpy = {
-    ValueType.INT64: (np.int64, False, False),
-    ValueType.INT32: (np.int32, False, False),
-    ValueType.FLOAT: (np.float, False, False),
-    ValueType.INT64_LIST: (np.int64, True, True),
-    ValueType.INT32_LIST: (np.int32, True, True),
-    ValueType.FLOAT_LIST: (np.float, True, True),
+
+
+@dataclass
+class MerlinDtype:
+    dtype: np.dtype
+    is_list: bool = False
+    is_ragged: bool = False
+
+
+feast_2_merlin = {
+    ValueType.INT64: MerlinDtype(np.int64),
+    ValueType.INT32: MerlinDtype(np.int32),
+    ValueType.FLOAT: MerlinDtype(np.float),
+    ValueType.INT64_LIST: MerlinDtype(np.int64, True, True),
+    ValueType.INT32_LIST: MerlinDtype(np.int32, True, True),
+    ValueType.FLOAT_LIST: MerlinDtype(np.float, True, True),
 }
 
 
@@ -64,49 +74,37 @@ class QueryFeast(PipelineableInferenceOperator):
         feature_view = store.get_feature_view(view)
         entity_id = feature_view.entities[0]
 
-        entity_dtype = np.int64
-        ent_is_list = False
-        ent_is_ragged = False
+        entity_type = MerlinDtype(np.int64)
         for idx, entity in enumerate(store.list_entities()):
             if entity.name == entity_id:
-                entity_dtype, ent_is_list, ent_is_ragged = feast_2_numpy[
-                    store.list_entities()[idx].value_type
-                ]
+                entity_type = feast_2_merlin[store.list_entities()[idx].value_type]
 
         features = []
         mh_features = []
 
-        input_schema = Schema(
-            [ColumnSchema(column, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged)]
-        )
+        input_schema = Schema([_col_schema(column, entity_type)])
 
         output_schema = Schema([])
         for feature in feature_view.features:
-            feature_dtype, is_list, is_ragged = feast_2_numpy[feature.dtype]
+            feature_type = feast_2_merlin[feature.dtype]
 
-            if is_list:
+            if feature_type.is_list:
                 mh_features.append(feature.name)
 
                 values_name = cls._prefixed_name(output_prefix, f"{feature.name}_1")
                 nnzs_name = cls._prefixed_name(output_prefix, f"{feature.name}_2")
-                output_schema[values_name] = ColumnSchema(
-                    values_name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
-                )
-                output_schema[nnzs_name] = ColumnSchema(
-                    nnzs_name, dtype=np.int32, is_list=True, is_ragged=False
-                )
+                output_schema[values_name] = _col_schema(values_name, feature_type)
+
+                nnzs_type = MerlinDtype(dtype=np.int32, is_list=True, is_ragged=False)
+                output_schema[nnzs_name] = _col_schema(nnzs_name, nnzs_type)
             else:
                 features.append(feature.name)
-
                 name = cls._prefixed_name(output_prefix, feature.name)
-                output_schema[name] = ColumnSchema(
-                    name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
-                )
+                output_schema[name] = _col_schema(name, feature_type)
 
         if include_id:
-            output_schema[entity_id] = ColumnSchema(
-                entity_id, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged
-            )
+            output_schema[entity_id] = _col_schema(entity_id, entity_type)
+
         return QueryFeast(
             str(store.repo_path),
             entity_id,
@@ -215,20 +213,20 @@ class QueryFeast(PipelineableInferenceOperator):
 
         in_schema = Schema([])
         for col_name, col_rep in in_dict.items():
-            in_schema[col_name] = ColumnSchema(
-                col_name,
+            dtype = MerlinDtype(
                 dtype=col_rep["dtype"],
                 is_list=col_rep["is_list"],
                 is_ragged=col_rep["is_ragged"],
             )
+            in_schema[col_name] = _col_schema(col_name, dtype)
         out_schema = Schema([])
         for col_name, col_rep in out_dict.items():
-            out_schema[col_name] = ColumnSchema(
-                col_name,
+            dtype = MerlinDtype(
                 dtype=col_rep["dtype"],
                 is_list=col_rep["is_list"],
                 is_ragged=col_rep["is_ragged"],
             )
+            out_schema[col_name] = _col_schema(col_name, dtype)
 
         return QueryFeast(
             repo_path,
@@ -345,3 +343,12 @@ class QueryFeast(PipelineableInferenceOperator):
             return f"{output_prefix}_{col_name}"
         else:
             return col_name
+
+
+def _col_schema(name: str, dtype: MerlinDtype):
+    return ColumnSchema(
+        name,
+        dtype=dtype.dtype,
+        is_list=dtype.is_list,
+        is_ragged=dtype.is_ragged,
+    )
