@@ -301,7 +301,7 @@ class FIL(InferenceOperator):
             **self.parameters,
         )
 
-        with open(node_export_path / "config.pbtxt", "w") as o:
+        with open(node_export_path / "config.pbtxt", "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)
 
         return config
