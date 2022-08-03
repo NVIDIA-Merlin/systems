@@ -50,7 +50,7 @@ class FilterCandidates(PipelineableInferenceOperator):
         super().__init__()
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config, **kwargs) -> "FilterCandidates":
         """
         Instantiate a class object given a config.
 

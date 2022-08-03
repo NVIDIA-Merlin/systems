@@ -16,9 +16,11 @@
 
 import json
 import os
+from unittest import mock
 
 import numpy as np
 import pytest
+from google.protobuf.json_format import MessageToDict
 
 import nvtabular as nvt
 import nvtabular.ops as wf_ops
@@ -42,7 +44,6 @@ def test_op_runner_loads_config(tmpdir, dataset, engine):
 
     repository = "repository_path/"
     version = 1
-    kind = ""
     config = {
         "parameters": {
             "operator_names": {"string_value": json.dumps(["PlusTwoOp_1"])},
@@ -57,7 +58,7 @@ def test_op_runner_loads_config(tmpdir, dataset, engine):
         }
     }
 
-    runner = op_runner.OperatorRunner(config, repository, version, kind)
+    runner = op_runner.OperatorRunner(config, model_repository=repository, model_version=version)
 
     loaded_op = runner.operators[0]
     assert isinstance(loaded_op, PlusTwoOp)
@@ -74,7 +75,6 @@ def test_op_runner_loads_multiple_ops_same(tmpdir, dataset, engine):
 
     repository = "repository_path/"
     version = 1
-    kind = ""
     config = {
         "parameters": {
             "operator_names": {"string_value": json.dumps(["PlusTwoOp_1", "PlusTwoOp_2"])},
@@ -97,7 +97,11 @@ def test_op_runner_loads_multiple_ops_same(tmpdir, dataset, engine):
         }
     }
 
-    runner = op_runner.OperatorRunner(config, repository, version, kind)
+    runner = op_runner.OperatorRunner(
+        config,
+        model_repository=repository,
+        model_version=version,
+    )
 
     assert len(runner.operators) == 2
 
@@ -116,7 +120,6 @@ def test_op_runner_loads_multiple_ops_same_execute(tmpdir, dataset, engine):
 
     repository = "repository_path/"
     version = 1
-    kind = ""
     config = {
         "parameters": {
             "operator_names": {"string_value": json.dumps(["PlusTwoOp_1", "PlusTwoOp_2"])},
@@ -139,7 +142,11 @@ def test_op_runner_loads_multiple_ops_same_execute(tmpdir, dataset, engine):
         }
     }
 
-    runner = op_runner.OperatorRunner(config, repository, version, kind)
+    runner = op_runner.OperatorRunner(
+        config,
+        model_repository=repository,
+        model_version=version,
+    )
 
     inputs = {}
     for col_name in schema.column_names:
@@ -151,7 +158,8 @@ def test_op_runner_loads_multiple_ops_same_execute(tmpdir, dataset, engine):
 
 
 @pytest.mark.parametrize("engine", ["parquet"])
-def test_op_runner_single_node_export(tmpdir, dataset, engine):
+@mock.patch.object(PlusTwoOp, "from_config", side_effect=PlusTwoOp.from_config)
+def test_op_runner_single_node_export(mock_from_config, tmpdir, dataset, engine):
     # assert against produced config
     schema = dataset.schema
     for name in schema.column_names:
@@ -171,9 +179,31 @@ def test_op_runner_single_node_export(tmpdir, dataset, engine):
     file_path = os.path.join(str(tmpdir), node.export_name, "config.pbtxt")
 
     assert os.path.exists(file_path)
-    config_file = open(file_path, "r").read()
+    with open(file_path, "r", encoding="utf-8") as f:
+        config_file = f.read()
     assert config_file == str(config)
     assert len(config.input) == len(inputs)
     assert len(config.output) == len(inputs)
     for idx, conf in enumerate(config.output):
         assert conf.name == inputs[idx] + "_plus_2"
+
+    runner = op_runner.OperatorRunner(
+        MessageToDict(
+            config, preserving_proto_field_name=True, including_default_value_fields=True
+        ),
+        model_repository=str(tmpdir),
+        model_name=config.name,
+        model_version="1",
+    )
+    inputs = inf_op.InferenceDataFrame({"x": 1, "y": 5})
+    outputs = runner.execute(inputs)
+
+    assert outputs["x_plus_2"] == 3
+    assert outputs["y_plus_2"] == 7
+
+    assert mock_from_config.call_count == 1
+    assert mock_from_config.call_args.kwargs == {
+        "model_repository": str(tmpdir),
+        "model_name": config.name,
+        "model_version": "1",
+    }
