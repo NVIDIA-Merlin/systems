@@ -1,3 +1,4 @@
+import subprocess
 from time import sleep
 
 import pytest
@@ -15,8 +16,9 @@ pytest.importorskip("xgboost")
 @testbook(REPO_ROOT / "examples/Serving-An-XGboost-Model-With-Merlin-Systems.ipynb", execute=False)
 def test_example_serving_xgboost(tb):
     NUM_OF_CELLS = len(tb.cells)
-    tb.execute_cell(list(range(0, 22)))
+    tb.execute_cell(list(range(0, 19)))
 
+    subprocess.Popen(["tritonserver", "--model-repository=ensemble"])
     triton_client = grpcclient.InferenceServerClient(url="0.0.0.0:8001")
     while True:
         try:
@@ -25,4 +27,4 @@ def test_example_serving_xgboost(tb):
         except InferenceServerException:
             sleep(1)
 
-    tb.execute_cell(list(range(22, NUM_OF_CELLS)))
+    tb.execute_cell(list(range(19, NUM_OF_CELLS)))
