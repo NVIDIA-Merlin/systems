@@ -1,10 +1,6 @@
-import subprocess
-from time import sleep
-
 import pytest
-import tritonclient.grpc as grpcclient
 from testbook import testbook
-from tritonclient.utils import InferenceServerException
+from merlin.systems.triton.utils import run_triton_server
 
 from tests.conftest import REPO_ROOT
 
@@ -18,13 +14,5 @@ def test_example_serving_xgboost(tb):
     NUM_OF_CELLS = len(tb.cells)
     tb.execute_cell(list(range(0, 19)))
 
-    subprocess.Popen(["tritonserver", "--model-repository=ensemble"])
-    triton_client = grpcclient.InferenceServerClient(url="0.0.0.0:8001")
-    while True:
-        try:
-            triton_client.is_server_live()
-            break
-        except InferenceServerException:
-            sleep(1)
-
-    tb.execute_cell(list(range(19, NUM_OF_CELLS)))
+    with run_triton_server("ensemble"):
+        tb.execute_cell(list(range(19, NUM_OF_CELLS)))
