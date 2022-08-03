@@ -222,8 +222,10 @@
 <p>With inference operations defined, all that remains now is outputting the ensemble to disk so that it can be loaded up when Triton starts.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ensemble</span> <span class="o">=</span> <span class="n">Ensemble</span><span class="p">(</span><span class="n">inf_ops</span><span class="p">,</span> <span class="n">inf_schema</span><span class="p">)</span>
-<span class="n">ensemble</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s1">&#39;ensemble&#39;</span><span class="p">);</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">export_path</span> <span class="o">=</span> <span class="s1">&#39;ensemble&#39;</span>
+
+<span class="n">ensemble</span> <span class="o">=</span> <span class="n">Ensemble</span><span class="p">(</span><span class="n">inf_ops</span><span class="p">,</span> <span class="n">inf_schema</span><span class="p">)</span>
+<span class="n">ensemble</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">export_path</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>

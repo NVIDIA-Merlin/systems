@@ -230,8 +230,10 @@
    "metadata": {},
    "outputs": [],
    "source": [
+    "export_path = 'ensemble'\n",
+    "\n",
     "ensemble = Ensemble(inf_ops, inf_schema)\n",
-    "ensemble.export('ensemble');"
+    "ensemble.export(export_path);"
    ]
   },
   {
