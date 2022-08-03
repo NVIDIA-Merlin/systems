@@ -110,7 +110,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="SoftmaxSampling.from_config"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.from_config">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SoftmaxSampling&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Load operator and properties from Triton config&quot;&quot;&quot;</span>
         <span class="n">parameters</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
         <span class="n">relevance_col</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;relevance_col&quot;</span><span class="p">]</span>
