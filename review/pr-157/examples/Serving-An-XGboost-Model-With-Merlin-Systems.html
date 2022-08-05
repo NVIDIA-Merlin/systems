@@ -149,7 +149,7 @@
 <span class="n">preprocess_categories</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;movieId&#39;</span><span class="p">,</span> <span class="s1">&#39;userId&#39;</span><span class="p">,</span> <span class="s1">&#39;genres&#39;</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="n">nvt</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">Categorify</span><span class="p">(</span><span class="n">freq_threshold</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 <span class="n">preprocess_rating</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;rating&#39;</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="n">nvt</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">AddTags</span><span class="p">(</span><span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="n">Tags</span><span class="o">.</span><span class="n">TARGET</span><span class="p">,</span> <span class="n">Tags</span><span class="o">.</span><span class="n">REGRESSION</span><span class="p">])</span>
 
-<span class="n">train_workflow</span> <span class="o">=</span> <span class="n">nvt</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">preprocess_categories</span> <span class="o">+</span> <span class="n">preprocess_rating</span> <span class="o">+</span> <span class="n">train</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">remove_col</span><span class="p">(</span><span class="s1">&#39;rating_binary&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">remove_col</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">column_names</span><span class="p">)</span>
+<span class="n">train_workflow</span> <span class="o">=</span> <span class="n">nvt</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">preprocess_categories</span> <span class="o">+</span> <span class="n">preprocess_rating</span> <span class="o">+</span> <span class="n">train</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">without</span><span class="p">([</span><span class="s1">&#39;rating_binary&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">column_names</span><span class="p">)</span>
 <span class="n">train_transformed</span> <span class="o">=</span> <span class="n">train_workflow</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
 
 <span class="k">with</span> <span class="n">Distributed</span><span class="p">():</span>
@@ -163,15 +163,19 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-08-05 10:30:58.165261: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-08-05 10:30:58.165742: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-08-05 10:30:58.165879: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-08-05 14:27:44.797751: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-08-05 14:27:44.798226: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-08-05 14:27:44.798359: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+downloading ml-100k.zip: 4.94MB [00:03, 1.34MB/s]                                                                                                                                                                                                                                                                                                                                         
+unzipping files: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 24/24 [00:00&lt;00:00, 252.91files/s]
+INFO:merlin.datasets.entertainment.movielens.dataset:starting ETL..
 /usr/local/lib/python3.8/dist-packages/cudf/core/frame.py:384: UserWarning: The deep parameter is ignored and is only included for pandas compatibility.
   warnings.warn(
-2022-08-05 10:31:00,096 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/models/dask-worker-space/worker-zhjdex7g&#39;, purging
-2022-08-05 10:31:00,096 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/models/dask-worker-space/worker-d1sa1_qo&#39;, purging
-2022-08-05 10:31:00,096 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
-[10:31:01] task [xgboost.dask]:tcp://127.0.0.1:41605 got new rank 0
+2022-08-05 14:27:54,502 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/workspace/examples/dask-worker-space/worker-tuf69elw&#39;, purging
+2022-08-05 14:27:54,502 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/workspace/examples/dask-worker-space/worker-aqxr74h8&#39;, purging
+2022-08-05 14:27:54,502 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/workspace/examples/dask-worker-space/worker-p3sht1ls&#39;, purging
+2022-08-05 14:27:54,503 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+[14:27:56] task [xgboost.dask]:tcp://127.0.0.1:41073 got new rank 0
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0]	train-rmse:2.36952
@@ -248,7 +252,7 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
 <p>We begin by obtaining 10 examples from our train data to include in the request.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ten_examples</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rating&#39;</span><span class="p">,</span> <span class="s1">&#39;rating_binary&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">])[:</span><span class="mi">10</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ten_examples</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
 <span class="n">ten_examples</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -279,7 +283,10 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
       <th>userId_count</th>
       <th>gender</th>
       <th>zip_code</th>
+      <th>rating</th>
+      <th>rating_binary</th>
       <th>age</th>
+      <th>title</th>
     </tr>
   </thead>
   <tbody>
@@ -292,7 +299,10 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
       <td>5.572154</td>
       <td>1</td>
       <td>77</td>
+      <td>5</td>
       <td>1</td>
+      <td>1</td>
+      <td>Toy Story (1995)</td>
     </tr>
     <tr>
       <th>1</th>
@@ -303,7 +313,10 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
       <td>5.572154</td>
       <td>1</td>
       <td>77</td>
+      <td>3</td>
+      <td>0</td>
       <td>1</td>
+      <td>GoldenEye (1995)</td>
     </tr>
     <tr>
       <th>2</th>
@@ -314,7 +327,10 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
       <td>5.572154</td>
       <td>1</td>
       <td>77</td>
+      <td>4</td>
       <td>1</td>
+      <td>1</td>
+      <td>Four Rooms (1995)</td>
     </tr>
     <tr>
       <th>3</th>
@@ -325,7 +341,10 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
       <td>5.572154</td>
       <td>1</td>
       <td>77</td>
+      <td>3</td>
+      <td>0</td>
       <td>1</td>
+      <td>Get Shorty (1995)</td>
     </tr>
     <tr>
       <th>4</th>
@@ -336,7 +355,10 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
       <td>5.572154</td>
       <td>1</td>
       <td>77</td>
+      <td>3</td>
+      <td>0</td>
       <td>1</td>
+      <td>Copycat (1995)</td>
     </tr>
   </tbody>
 </table>
@@ -380,9 +402,9 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/local/lib/python3.8/dist-packages/distributed/node.py:180: UserWarning: Port 8787 is already in use.
 Perhaps you already have a cluster running?
-Hosting the HTTP server on port 44359 instead
+Hosting the HTTP server on port 36473 instead
   warnings.warn(
-2022-08-05 10:31:03,946 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+2022-08-05 14:29:30,435 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
 </pre></div>
 </div>
 </div>
