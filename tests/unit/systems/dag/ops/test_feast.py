@@ -82,7 +82,9 @@ def test_feast_transform(prefix, is_ragged):
         feature_mh_1 = f"{prefix}_mh_feature_1" if prefix else "mh_feature_1"
         feature_mh_2 = f"{prefix}_mh_feature_2" if prefix else "mh_feature_2"
 
-        input_schema = Schema([ColumnSchema("feature"), ColumnSchema("mh_feature")])
+        input_schema = Schema(
+            [ColumnSchema("feature"), ColumnSchema("mh_feature", is_list=True, is_ragged=True)]
+        )
         output_schema = Schema(
             [
                 ColumnSchema(feature_name),
