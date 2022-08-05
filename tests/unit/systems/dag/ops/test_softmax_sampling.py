@@ -1,6 +1,6 @@
 import json
 import os
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -144,14 +144,17 @@ def test_softmax_compute_input_schema(input_cols):
 def test_softmax_from_config(input_cols):
     parameters = {
         "relevance_col": "rel_col",
-        "input_col": input_cols,
+        "input_cols": input_cols,
         "temperature": 10.0,
         "topk": 2,
     }
     config = {"params": json.dumps(parameters)}
-    SoftmaxSampling.__init__ = MagicMock(return_value=None)
-    s = SoftmaxSampling.from_config(config)
+    with patch(
+        "merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.__init__",
+        MagicMock(return_value=None),
+    ) as ss_init:
+        _ = SoftmaxSampling.from_config(config)
 
-    if isinstance(input_cols, str):
-        input_cols = [input_cols]
-    s.__init__.assert_called_once_with("rel_col", temperature=10.0, topk=2, _input_cols=input_cols)
+        if isinstance(input_cols, str):
+            input_cols = [input_cols]
+        ss_init.assert_called_once_with("rel_col", temperature=10.0, topk=2, _input_cols=input_cols)
