@@ -24,32 +24,31 @@ def test_feast_config_round_trip():
     # QueryFeast constructor so that we can ensure that it gets called with the correct args.
     # These must be done in a context manager so we don't modify the classes globally and
     # affect other tests.
-    with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)):
-        with patch(
-            "merlin.systems.dag.ops.feast.__init__", MagicMock(return_value=None)
-        ) as qf_init:
+    with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)), patch(
+        "merlin.systems.dag.ops.feast.__init__", MagicMock(return_value=None)
+    ) as qf_init:
 
-            # Define the args & kwargs. We want to ensure the round-tripped version uses these same
-            # arguments.
-            args = [
-                "repo_path",
-                "entity_id",
-                "entity_view",
-                "entity_column",
-                ["features"],
-                ["mh_features"],
-                input_schema,
-                output_schema,
-            ]
-            kwargs = {"include_id": True, "output_prefix": "prefix"}
-            feast_op = QueryFeast(*args, **kwargs)
+        # Define the args & kwargs. We want to ensure the round-tripped version uses these same
+        # arguments.
+        args = [
+            "repo_path",
+            "entity_id",
+            "entity_view",
+            "entity_column",
+            ["features"],
+            ["mh_features"],
+            input_schema,
+            output_schema,
+        ]
+        kwargs = {"include_id": True, "output_prefix": "prefix"}
+        feast_op = QueryFeast(*args, **kwargs)
 
-            created_config = feast_op.export("export_path", input_schema, output_schema)
-            created_config_dict = json.loads(created_config.parameters["queryfeast"].string_value)
+        created_config = feast_op.export("export_path", input_schema, output_schema)
+        created_config_dict = json.loads(created_config.parameters["queryfeast"].string_value)
 
-            # now mock the QueryFeast constructor so we can inspect its arguments.
-            QueryFeast.from_config(created_config_dict)
-            assert qf_init.called_with(*args, **kwargs)
+        # now mock the QueryFeast constructor so we can inspect its arguments.
+        QueryFeast.from_config(created_config_dict)
+        assert qf_init.called_with(*args, **kwargs)
 
 
 @pytest.mark.parametrize("is_ragged", [True, False])
@@ -74,39 +73,40 @@ def test_feast_transform(prefix, is_ragged):
         )
     )
 
-    with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)):
-        with patch("feast.FeatureStore.get_online_features", MagicMock(return_value=mocked_resp)):
+    with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)), patch(
+        "feast.FeatureStore.get_online_features", MagicMock(return_value=mocked_resp)
+    ):
 
-            # names of the features with prefix/suffix
-            feature_name = f"{prefix}_feature" if prefix else "feature"
-            feature_mh_1 = f"{prefix}_mh_feature_1" if prefix else "mh_feature_1"
-            feature_mh_2 = f"{prefix}_mh_feature_2" if prefix else "mh_feature_2"
+        # names of the features with prefix/suffix
+        feature_name = f"{prefix}_feature" if prefix else "feature"
+        feature_mh_1 = f"{prefix}_mh_feature_1" if prefix else "mh_feature_1"
+        feature_mh_2 = f"{prefix}_mh_feature_2" if prefix else "mh_feature_2"
 
-            input_schema = Schema([ColumnSchema("feature"), ColumnSchema("mh_feature")])
-            output_schema = Schema(
-                [
-                    ColumnSchema(feature_name),
-                    ColumnSchema(feature_mh_1, is_list=True, is_ragged=is_ragged),
-                    ColumnSchema(feature_mh_2, is_list=True, is_ragged=is_ragged),
-                ]
-            )
+        input_schema = Schema([ColumnSchema("feature"), ColumnSchema("mh_feature")])
+        output_schema = Schema(
+            [
+                ColumnSchema(feature_name),
+                ColumnSchema(feature_mh_1, is_list=True, is_ragged=is_ragged),
+                ColumnSchema(feature_mh_2, is_list=True, is_ragged=is_ragged),
+            ]
+        )
 
-            feast_op = QueryFeast(
-                "repo_path",
-                "entity_id",
-                "entity_view",
-                "entity_id",
-                ["feature"],
-                ["mh_feature"],
-                input_schema,
-                output_schema,
-                include_id=True,
-                output_prefix=prefix,
-            )
+        feast_op = QueryFeast(
+            "repo_path",
+            "entity_id",
+            "entity_view",
+            "entity_id",
+            ["feature"],
+            ["mh_feature"],
+            input_schema,
+            output_schema,
+            include_id=True,
+            output_prefix=prefix,
+        )
 
-            df = InferenceDataFrame({"entity_id": [1]})
-            resp = feast_op.transform(df)
-            assert resp["entity_id"] == [1]
-            assert resp[feature_name] == np.array([[1.0]])
-            assert np.all(resp[feature_mh_1] == np.array([[1.0], [2.0], [3.0]]))
-            assert resp[feature_mh_2] == np.array([[3.0]])
+        df = InferenceDataFrame({"entity_id": [1]})
+        resp = feast_op.transform(df)
+        assert resp["entity_id"] == [1]
+        assert resp[feature_name] == np.array([[1.0]])
+        assert np.all(resp[feature_mh_1] == np.array([[1.0], [2.0], [3.0]]))
+        assert resp[feature_mh_2] == np.array([[3.0]])
