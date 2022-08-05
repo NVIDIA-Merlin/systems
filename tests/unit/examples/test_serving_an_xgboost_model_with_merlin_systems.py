@@ -11,8 +11,24 @@ pytest.importorskip("xgboost")
 
 @testbook(REPO_ROOT / "examples/Serving-An-XGboost-Model-With-Merlin-Systems.ipynb", execute=False)
 def test_example_serving_xgboost(tb):
+    tb.inject(
+        """
+        from unittest.mock import patch
+        from merlin.datasets.synthetic import generate_data
+        mock_train, mock_valid = generate_data(
+            input="movielens-100k",
+            num_rows=1000,
+            set_sizes=(0.8, 0.2)
+        )
+        p1 = patch(
+            "merlin.datasets.entertainment.get_movielens",
+            return_value=[mock_train, mock_valid]
+        )
+        p1.start()
+        """
+    )
     NUM_OF_CELLS = len(tb.cells)
-    tb.execute_cell(list(range(0, 19)))
+    tb.execute_cell(list(range(0, 14)))
 
     with run_triton_server("ensemble"):
-        tb.execute_cell(list(range(19, NUM_OF_CELLS)))
+        tb.execute_cell(list(range(14, NUM_OF_CELLS)))
