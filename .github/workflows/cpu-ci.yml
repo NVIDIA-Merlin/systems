@@ -35,6 +35,8 @@ jobs:
         python -m pip install tensorflow
         # required for ensemble tests
         python -m pip install xgboost
+        # required for feast unit tests
+        python -m pip install "feast<0.20"
     - name: Lint with flake8
       run: |
         flake8 .
