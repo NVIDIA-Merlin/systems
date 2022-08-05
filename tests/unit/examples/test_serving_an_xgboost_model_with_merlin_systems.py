@@ -28,6 +28,10 @@ def test_example_serving_xgboost(tb):
         """
     )
     NUM_OF_CELLS = len(tb.cells)
+    # TODO: the following line is a hack -- remove when merlin-models#624 gets fixed
+    tb.cells[4].source = tb.cells[4].source.replace(
+        "remove_col('title')", "remove_col('title').remove_col('userId_count')"
+    )
     tb.execute_cell(list(range(0, 14)))
 
     with run_triton_server("ensemble"):
