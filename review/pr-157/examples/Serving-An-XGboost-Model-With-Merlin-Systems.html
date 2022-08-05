@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Serving An XGboost Model With Merlin Systems &mdash; Merlin Systems  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <title>Serving an XGBoost Model with Merlin Systems &mdash; Merlin Systems  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
       <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
@@ -47,7 +47,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Example Notebooks</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="index.html#running-the-example-notebook">Running the Example Notebook</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Serving-Ranking-Models-With-Merlin-Systems.html">Serving Ranking Models With Merlin Systems</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Serving An XGboost Model With Merlin Systems</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Serving an XGBoost Model with Merlin Systems</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
@@ -68,7 +68,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="index.html">Merlin Systems Example Notebook</a> &raquo;</li>
-      <li>Serving An XGboost Model With Merlin Systems</li>
+      <li>Serving an XGBoost Model with Merlin Systems</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -99,7 +99,7 @@
 </div>
 <img alt="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" src="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" />
 <div class="tex2jax_ignore mathjax_ignore section" id="serving-an-xgboost-model-with-merlin-systems">
-<h1>Serving An XGboost Model With Merlin Systems<a class="headerlink" href="#serving-an-xgboost-model-with-merlin-systems" title="Permalink to this headline"></a></h1>
+<h1>Serving an XGBoost Model with Merlin Systems<a class="headerlink" href="#serving-an-xgboost-model-with-merlin-systems" title="Permalink to this headline"></a></h1>
 <p>This notebook is created using the latest stable <a class="reference external" href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow">merlin-tensorflow</a> container. This Jupyter notebook example demonstrates how to deploy an <code class="docutils literal notranslate"><span class="pre">XGBoost</span></code> model to Triton Inference Server (TIS) and generate prediction results for a given query.</p>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
@@ -117,7 +117,7 @@
 </div>
 <div class="section" id="dataset">
 <h3>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline"></a></h3>
-<p>We use the <a class="reference external" href="https://grouplens.org/datasets/movielens/100k/">MovieLens 100k Dataset</a>. It consists of ratings a user has given a movie along with some metadata for the user and the movie. We train an XGBoost model to predict the rating based on user and item features and proceed to deployt it to the Triton Inference Server.</p>
+<p>We use the <a class="reference external" href="https://grouplens.org/datasets/movielens/100k/">MovieLens 100k Dataset</a>. It consists of ratings a user has given a movie along with some metadata for the user and the movie. We train an XGBoost model to predict the rating based on user and item features and proceed to deploy it to the Triton Inference Server.</p>
 <p>It is important to note that the steps take in this notebook are generalized and can be applied to any set of workflow and models.</p>
 </div>
 <div class="section" id="tools">
@@ -163,13 +163,15 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-08-03 04:45:57.330403: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:952] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-08-03 04:45:57.331081: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:952] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-08-03 04:45:57.331261: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:952] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-08-05 10:30:58.165261: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-08-05 10:30:58.165742: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-08-05 10:30:58.165879: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
 /usr/local/lib/python3.8/dist-packages/cudf/core/frame.py:384: UserWarning: The deep parameter is ignored and is only included for pandas compatibility.
   warnings.warn(
-2022-08-03 04:46:00,360 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
-[04:46:02] task [xgboost.dask]:tcp://127.0.0.1:35989 got new rank 0
+2022-08-05 10:31:00,096 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/models/dask-worker-space/worker-zhjdex7g&#39;, purging
+2022-08-05 10:31:00,096 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/models/dask-worker-space/worker-d1sa1_qo&#39;, purging
+2022-08-05 10:31:00,096 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+[10:31:01] task [xgboost.dask]:tcp://127.0.0.1:41605 got new rank 0
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0]	train-rmse:2.36952
@@ -186,16 +188,9 @@
 <div class="section" id="create-the-ensemble-graph">
 <h2>Create the Ensemble Graph<a class="headerlink" href="#create-the-ensemble-graph" title="Permalink to this headline"></a></h2>
 <p>Let us now define an <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code> that will be used for serving predictions on the Triton Inference Server.</p>
-<p>An <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code> defines operations to be performed on incoming requests. It begins with specifying the input schema (fields that the inference request will contain).</p>
-<p>Our model was trained on data that included the <code class="docutils literal notranslate"><span class="pre">target</span></code> column. However, in production, this information will not be available to us. Let us modify the schema to reflect this.</p>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inf_schema</span> <span class="o">=</span> <span class="n">train_workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">remove_col</span><span class="p">(</span><span class="s1">&#39;rating&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<p>In general, you want to define a preprocessing workflow once and apply it throughout the lifecycle of your model, from training all the way to serving in production. Redifining the workflows on the go, or using custom written code for these operations, can be a source of subtle bugs.</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">Ensemble</span></code> defines operations to be performed on incoming requests. It begins with specifying what fields that the inference request will contain.</p>
+<p>Our model was trained on data that included the <code class="docutils literal notranslate"><span class="pre">target</span></code> column. However, in production, this information will not be available to us.</p>
+<p>In general, you want to define a preprocessing workflow once and apply it throughout the lifecycle of your model, from training all the way to serving in production. Redefining the workflows on the go, or using custom written code for these operations, can be a source of subtle bugs.</p>
 <p>In order to ensure we process our data in the same way in production as we do in training, let us now modify the training preprocessing pipeline and use it to construct our inference workflow.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -204,16 +199,16 @@
 </div>
 </div>
 </div>
-<p>Equipped with the modified data preprocessing workflow, let us define the full set of inference operations we will want to run on the Triton inference server.</p>
-<p>We begin by stating what data the server can expect (<code class="docutils literal notranslate"><span class="pre">inference_schema</span></code>). We proceed to wrap our <code class="docutils literal notranslate"><span class="pre">inference_preprocessing_workflow</span></code> in <code class="docutils literal notranslate"><span class="pre">TransformWorkflow</span></code> – an operator we can leverage to executing our NVTabular workflow during serving.</p>
-<p>Last but not least, having received and preprocessed the data, we instruct the Triton inference server to perform inference using the model that we trained.</p>
+<p>Equipped with the modified data preprocessing workflow, let us define the full set of inference operations we will want to run on the Triton Inference Server.</p>
+<p>We begin by stating what data the server can expect (<code class="docutils literal notranslate"><span class="pre">inf_workflow.input_schema.column_names</span></code>). We proceed to wrap our <code class="docutils literal notranslate"><span class="pre">inf_workflow</span></code> in <code class="docutils literal notranslate"><span class="pre">TransformWorkflow</span></code> – an operator we can leverage for executing our NVTabular workflow during serving.</p>
+<p>Last but not least, having received and preprocessed the data, we instruct the Triton Inference Server to perform inference using the model that we trained.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.fil</span> <span class="kn">import</span> <span class="n">PredictForest</span>
 <span class="kn">from</span> <span class="nn">merlin.systems.dag.ensemble</span> <span class="kn">import</span> <span class="n">Ensemble</span>
 <span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.workflow</span> <span class="kn">import</span> <span class="n">TransformWorkflow</span>
 
-<span class="n">inf_ops</span> <span class="o">=</span> <span class="n">inf_schema</span><span class="o">.</span><span class="n">column_names</span> <span class="o">&gt;&gt;</span> <span class="n">TransformWorkflow</span><span class="p">(</span><span class="n">inf_workflow</span><span class="p">)</span> \
+<span class="n">inf_ops</span> <span class="o">=</span> <span class="n">inf_workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span> <span class="o">&gt;&gt;</span> <span class="n">TransformWorkflow</span><span class="p">(</span><span class="n">inf_workflow</span><span class="p">)</span> \
                     <span class="o">&gt;&gt;</span> <span class="n">PredictForest</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">booster</span><span class="p">,</span> <span class="n">inf_workflow</span><span class="o">.</span><span class="n">output_schema</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -224,7 +219,7 @@
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">export_path</span> <span class="o">=</span> <span class="s1">&#39;ensemble&#39;</span>
 
-<span class="n">ensemble</span> <span class="o">=</span> <span class="n">Ensemble</span><span class="p">(</span><span class="n">inf_ops</span><span class="p">,</span> <span class="n">inf_schema</span><span class="p">)</span>
+<span class="n">ensemble</span> <span class="o">=</span> <span class="n">Ensemble</span><span class="p">(</span><span class="n">inf_ops</span><span class="p">,</span> <span class="n">inf_workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="p">)</span>
 <span class="n">ensemble</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">export_path</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -245,7 +240,6 @@ I0414 <span class="m">18</span>:29:50.742197 <span class="m">4067</span> http_se
 I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_server.cc:178<span class="o">]</span> Started Metrics Service at <span class="m">0</span>.0.0.0:8002
 </pre></div>
 </div>
-<p>We now are ready to start the Triton Inference Server. We do so in a subprocess in order to continue our exploration in this notebook.</p>
 </div>
 <div class="section" id="retrieving-recommendations-from-triton-inference-server">
 <h2>Retrieving Recommendations from Triton Inference Server<a class="headerlink" href="#retrieving-recommendations-from-triton-inference-server" title="Permalink to this headline"></a></h2>
@@ -355,7 +349,7 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
 <span class="kn">import</span> <span class="nn">tritonclient.grpc</span> <span class="k">as</span> <span class="nn">grpcclient</span>
 
 <span class="n">ten_examples</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rating&#39;</span><span class="p">,</span> <span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="s1">&#39;rating_binary&#39;</span><span class="p">])[:</span><span class="mi">10</span><span class="p">]</span>
-<span class="n">inputs</span> <span class="o">=</span> <span class="n">convert_df_to_triton_input</span><span class="p">(</span><span class="n">inf_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span> <span class="n">ten_examples</span><span class="p">,</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferInput</span><span class="p">)</span>
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">convert_df_to_triton_input</span><span class="p">(</span><span class="n">inf_workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span> <span class="n">ten_examples</span><span class="p">,</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferInput</span><span class="p">)</span>
 
 <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferRequestedOutput</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
@@ -386,9 +380,9 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/local/lib/python3.8/dist-packages/distributed/node.py:180: UserWarning: Port 8787 is already in use.
 Perhaps you already have a cluster running?
-Hosting the HTTP server on port 37621 instead
+Hosting the HTTP server on port 44359 instead
   warnings.warn(
-2022-08-03 04:46:05,285 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+2022-08-05 10:31:03,946 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
 </pre></div>
 </div>
 </div>

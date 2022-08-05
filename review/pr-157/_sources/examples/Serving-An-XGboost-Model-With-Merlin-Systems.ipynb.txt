@@ -30,7 +30,7 @@
    "source": [
     "<img src=\"http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png\" style=\"width: 90px; float: right;\">\n",
     "\n",
-    "# Serving An XGboost Model With Merlin Systems\n",
+    "# Serving an XGBoost Model with Merlin Systems\n",
     "\n",
     "This notebook is created using the latest stable [merlin-tensorflow](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow) container. This Jupyter notebook example demonstrates how to deploy an `XGBoost` model to Triton Inference Server (TIS) and generate prediction results for a given query.\n",
     "\n",
@@ -50,7 +50,7 @@
     "\n",
     "### Dataset\n",
     "\n",
-    "We use the [MovieLens 100k Dataset](https://grouplens.org/datasets/movielens/100k/). It consists of ratings a user has given a movie along with some metadata for the user and the movie. We train an XGBoost model to predict the rating based on user and item features and proceed to deployt it to the Triton Inference Server.\n",
+    "We use the [MovieLens 100k Dataset](https://grouplens.org/datasets/movielens/100k/). It consists of ratings a user has given a movie along with some metadata for the user and the movie. We train an XGBoost model to predict the rating based on user and item features and proceed to deploy it to the Triton Inference Server.\n",
     "\n",
     "It is important to note that the steps take in this notebook are generalized and can be applied to any set of workflow and models. \n",
     "\n",
@@ -82,7 +82,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
+   "execution_count": 3,
    "id": "0a2d3208",
    "metadata": {},
    "outputs": [
@@ -90,13 +90,15 @@
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "2022-08-03 04:45:57.330403: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:952] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
-      "2022-08-03 04:45:57.331081: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:952] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
-      "2022-08-03 04:45:57.331261: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:952] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
+      "2022-08-05 10:30:58.165261: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
+      "2022-08-05 10:30:58.165742: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
+      "2022-08-05 10:30:58.165879: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
       "/usr/local/lib/python3.8/dist-packages/cudf/core/frame.py:384: UserWarning: The deep parameter is ignored and is only included for pandas compatibility.\n",
       "  warnings.warn(\n",
-      "2022-08-03 04:46:00,360 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize\n",
-      "[04:46:02] task [xgboost.dask]:tcp://127.0.0.1:35989 got new rank 0\n"
+      "2022-08-05 10:31:00,096 - distributed.diskutils - INFO - Found stale lock file and directory '/models/dask-worker-space/worker-zhjdex7g', purging\n",
+      "2022-08-05 10:31:00,096 - distributed.diskutils - INFO - Found stale lock file and directory '/models/dask-worker-space/worker-d1sa1_qo', purging\n",
+      "2022-08-05 10:31:00,096 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize\n",
+      "[10:31:01] task [xgboost.dask]:tcp://127.0.0.1:41605 got new rank 0\n"
      ]
     },
     {
@@ -153,27 +155,11 @@
    "source": [
     "Let us now define an `Ensemble` that will be used for serving predictions on the Triton Inference Server.\n",
     "\n",
-    "An `Ensemble` defines operations to be performed on incoming requests. It begins with specifying the input schema (fields that the inference request will contain).\n",
+    "An `Ensemble` defines operations to be performed on incoming requests. It begins with specifying what fields that the inference request will contain.\n",
     "\n",
-    "Our model was trained on data that included the `target` column. However, in production, this information will not be available to us. Let us modify the schema to reflect this."
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 3,
-   "id": "c2728a23",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "inf_schema = train_workflow.input_schema.remove_col('rating')"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "ad7c46d7",
-   "metadata": {},
-   "source": [
-    "In general, you want to define a preprocessing workflow once and apply it throughout the lifecycle of your model, from training all the way to serving in production. Redifining the workflows on the go, or using custom written code for these operations, can be a source of subtle bugs.\n",
+    "Our model was trained on data that included the `target` column. However, in production, this information will not be available to us.\n",
+    "\n",
+    "In general, you want to define a preprocessing workflow once and apply it throughout the lifecycle of your model, from training all the way to serving in production. Redefining the workflows on the go, or using custom written code for these operations, can be a source of subtle bugs.\n",
     "\n",
     "In order to ensure we process our data in the same way in production as we do in training, let us now modify the training preprocessing pipeline and use it to construct our inference workflow."
    ]
@@ -193,11 +179,11 @@
    "id": "d71c5636",
    "metadata": {},
    "source": [
-    "Equipped with the modified data preprocessing workflow, let us define the full set of inference operations we will want to run on the Triton inference server.\n",
+    "Equipped with the modified data preprocessing workflow, let us define the full set of inference operations we will want to run on the Triton Inference Server.\n",
     "\n",
-    "We begin by stating what data the server can expect (`inference_schema`). We proceed to wrap our `inference_preprocessing_workflow` in `TransformWorkflow` -- an operator we can leverage to executing our NVTabular workflow during serving.\n",
+    "We begin by stating what data the server can expect (`inf_workflow.input_schema.column_names`). We proceed to wrap our `inf_workflow` in `TransformWorkflow` -- an operator we can leverage for executing our NVTabular workflow during serving.\n",
     "\n",
-    "Last but not least, having received and preprocessed the data, we instruct the Triton inference server to perform inference using the model that we trained. "
+    "Last but not least, having received and preprocessed the data, we instruct the Triton Inference Server to perform inference using the model that we trained. "
    ]
   },
   {
@@ -211,7 +197,7 @@
     "from merlin.systems.dag.ensemble import Ensemble\n",
     "from merlin.systems.dag.ops.workflow import TransformWorkflow\n",
     "\n",
-    "inf_ops = inf_schema.column_names >> TransformWorkflow(inf_workflow) \\\n",
+    "inf_ops = inf_workflow.input_schema.column_names >> TransformWorkflow(inf_workflow) \\\n",
     "                    >> PredictForest(model.booster, inf_workflow.output_schema)"
    ]
   },
@@ -232,7 +218,7 @@
    "source": [
     "export_path = 'ensemble'\n",
     "\n",
-    "ensemble = Ensemble(inf_ops, inf_schema)\n",
+    "ensemble = Ensemble(inf_ops, inf_workflow.input_schema)\n",
     "ensemble.export(export_path);"
    ]
   },
@@ -266,14 +252,6 @@
     "I0414 18:29:50.742197 4067 http_server.cc:3113] Started HTTPService at 0.0.0.0:8000\n",
     "I0414 18:29:50.783470 4067 http_server.cc:178] Started Metrics Service at 0.0.0.0:8002\n",
     "```"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "2feebda1",
-   "metadata": {},
-   "source": [
-    "We now are ready to start the Triton Inference Server. We do so in a subprocess in order to continue our exploration in this notebook."
    ]
   },
   {
@@ -432,7 +410,7 @@
     "import tritonclient.grpc as grpcclient\n",
     "\n",
     "ten_examples = train.compute().drop(columns=['rating', 'title', 'rating_binary'])[:10]\n",
-    "inputs = convert_df_to_triton_input(inf_schema.column_names, ten_examples, grpcclient.InferInput)\n",
+    "inputs = convert_df_to_triton_input(inf_workflow.input_schema.column_names, ten_examples, grpcclient.InferInput)\n",
     "\n",
     "outputs = [\n",
     "    grpcclient.InferRequestedOutput(col)\n",
@@ -473,9 +451,9 @@
      "text": [
       "/usr/local/lib/python3.8/dist-packages/distributed/node.py:180: UserWarning: Port 8787 is already in use.\n",
       "Perhaps you already have a cluster running?\n",
-      "Hosting the HTTP server on port 37621 instead\n",
+      "Hosting the HTTP server on port 44359 instead\n",
       "  warnings.warn(\n",
-      "2022-08-03 04:46:05,285 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize\n"
+      "2022-08-05 10:31:03,946 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize\n"
      ]
     }
    ],
