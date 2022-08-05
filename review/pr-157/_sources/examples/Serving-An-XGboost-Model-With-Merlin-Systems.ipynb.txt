@@ -82,7 +82,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
+   "execution_count": 3,
    "id": "0a2d3208",
    "metadata": {},
    "outputs": [
@@ -90,19 +90,17 @@
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "2022-08-05 14:27:44.797751: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
-      "2022-08-05 14:27:44.798226: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
-      "2022-08-05 14:27:44.798359: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
-      "downloading ml-100k.zip: 4.94MB [00:03, 1.34MB/s]                                                                                                                                                                                                                                                                                                                                         \n",
-      "unzipping files: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 24/24 [00:00<00:00, 252.91files/s]\n",
+      "2022-08-05 22:27:29.446602: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
+      "2022-08-05 22:27:29.447091: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
+      "2022-08-05 22:27:29.447227: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
+      "downloading ml-100k.zip: 4.94MB [00:03, 1.45MB/s]                                                                                                                                                                                                                                                                                                                                         \n",
+      "unzipping files: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 24/24 [00:00<00:00, 262.32files/s]\n",
       "INFO:merlin.datasets.entertainment.movielens.dataset:starting ETL..\n",
       "/usr/local/lib/python3.8/dist-packages/cudf/core/frame.py:384: UserWarning: The deep parameter is ignored and is only included for pandas compatibility.\n",
       "  warnings.warn(\n",
-      "2022-08-05 14:27:54,502 - distributed.diskutils - INFO - Found stale lock file and directory '/workspace/examples/dask-worker-space/worker-tuf69elw', purging\n",
-      "2022-08-05 14:27:54,502 - distributed.diskutils - INFO - Found stale lock file and directory '/workspace/examples/dask-worker-space/worker-aqxr74h8', purging\n",
-      "2022-08-05 14:27:54,502 - distributed.diskutils - INFO - Found stale lock file and directory '/workspace/examples/dask-worker-space/worker-p3sht1ls', purging\n",
-      "2022-08-05 14:27:54,503 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize\n",
-      "[14:27:56] task [xgboost.dask]:tcp://127.0.0.1:41073 got new rank 0\n"
+      "2022-08-05 22:27:39,947 - distributed.diskutils - INFO - Found stale lock file and directory '/workspace/dask-worker-space/worker-oqemvhkv', purging\n",
+      "2022-08-05 22:27:39,947 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize\n",
+      "[22:27:41] task [xgboost.dask]:tcp://127.0.0.1:41809 got new rank 0\n"
      ]
     },
     {
@@ -170,7 +168,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
+   "execution_count": 4,
    "id": "fa8dc34a",
    "metadata": {},
    "outputs": [],
@@ -192,7 +190,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
+   "execution_count": 5,
    "id": "de9e2237",
    "metadata": {},
    "outputs": [],
@@ -202,7 +200,7 @@
     "from merlin.systems.dag.ops.workflow import TransformWorkflow\n",
     "\n",
     "inf_ops = inf_workflow.input_schema.column_names >> TransformWorkflow(inf_workflow) \\\n",
-    "                    >> PredictForest(model.booster, inf_workflow.output_schema)"
+    "                    >> PredictForest(model, inf_workflow.output_schema)"
    ]
   },
   {
@@ -215,7 +213,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 5,
+   "execution_count": 6,
    "id": "e23a7fc3",
    "metadata": {},
    "outputs": [],
@@ -274,7 +272,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": 7,
    "id": "2d61751b",
    "metadata": {},
    "outputs": [
@@ -403,7 +401,7 @@
        "4       3              0    1     Copycat (1995)  "
       ]
      },
-     "execution_count": 6,
+     "execution_count": 7,
      "metadata": {},
      "output_type": "execute_result"
     }
@@ -423,7 +421,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
+   "execution_count": 8,
    "id": "2fefd5b8",
    "metadata": {},
    "outputs": [],
@@ -453,7 +451,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
+   "execution_count": 9,
    "id": "6ddd35cc",
    "metadata": {},
    "outputs": [],
@@ -463,7 +461,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
+   "execution_count": 10,
    "id": "6f28fdfe",
    "metadata": {},
    "outputs": [
@@ -473,9 +471,9 @@
      "text": [
       "/usr/local/lib/python3.8/dist-packages/distributed/node.py:180: UserWarning: Port 8787 is already in use.\n",
       "Perhaps you already have a cluster running?\n",
-      "Hosting the HTTP server on port 36473 instead\n",
+      "Hosting the HTTP server on port 35647 instead\n",
       "  warnings.warn(\n",
-      "2022-08-05 14:29:30,435 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize\n"
+      "2022-08-05 22:28:22,197 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize\n"
      ]
     }
    ],
@@ -486,7 +484,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 10,
+   "execution_count": 11,
    "id": "e946de27",
    "metadata": {},
    "outputs": [],

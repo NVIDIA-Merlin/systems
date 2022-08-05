@@ -163,19 +163,17 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-08-05 14:27:44.797751: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-08-05 14:27:44.798226: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-08-05 14:27:44.798359: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-downloading ml-100k.zip: 4.94MB [00:03, 1.34MB/s]                                                                                                                                                                                                                                                                                                                                         
-unzipping files: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 24/24 [00:00&lt;00:00, 252.91files/s]
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2022-08-05 22:27:29.446602: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-08-05 22:27:29.447091: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-08-05 22:27:29.447227: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+downloading ml-100k.zip: 4.94MB [00:03, 1.45MB/s]                                                                                                                                                                                                                                                                                                                                         
+unzipping files: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 24/24 [00:00&lt;00:00, 262.32files/s]
 INFO:merlin.datasets.entertainment.movielens.dataset:starting ETL..
 /usr/local/lib/python3.8/dist-packages/cudf/core/frame.py:384: UserWarning: The deep parameter is ignored and is only included for pandas compatibility.
   warnings.warn(
-2022-08-05 14:27:54,502 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/workspace/examples/dask-worker-space/worker-tuf69elw&#39;, purging
-2022-08-05 14:27:54,502 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/workspace/examples/dask-worker-space/worker-aqxr74h8&#39;, purging
-2022-08-05 14:27:54,502 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/workspace/examples/dask-worker-space/worker-p3sht1ls&#39;, purging
-2022-08-05 14:27:54,503 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
-[14:27:56] task [xgboost.dask]:tcp://127.0.0.1:41073 got new rank 0
+2022-08-05 22:27:39,947 - distributed.diskutils - INFO - Found stale lock file and directory &#39;/workspace/dask-worker-space/worker-oqemvhkv&#39;, purging
+2022-08-05 22:27:39,947 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+[22:27:41] task [xgboost.dask]:tcp://127.0.0.1:41809 got new rank 0
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0]	train-rmse:2.36952
@@ -213,7 +211,7 @@ INFO:merlin.datasets.entertainment.movielens.dataset:starting ETL..
 <span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.workflow</span> <span class="kn">import</span> <span class="n">TransformWorkflow</span>
 
 <span class="n">inf_ops</span> <span class="o">=</span> <span class="n">inf_workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span> <span class="o">&gt;&gt;</span> <span class="n">TransformWorkflow</span><span class="p">(</span><span class="n">inf_workflow</span><span class="p">)</span> \
-                    <span class="o">&gt;&gt;</span> <span class="n">PredictForest</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">booster</span><span class="p">,</span> <span class="n">inf_workflow</span><span class="o">.</span><span class="n">output_schema</span><span class="p">)</span>
+                    <span class="o">&gt;&gt;</span> <span class="n">PredictForest</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">inf_workflow</span><span class="o">.</span><span class="n">output_schema</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -402,9 +400,9 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/local/lib/python3.8/dist-packages/distributed/node.py:180: UserWarning: Port 8787 is already in use.
 Perhaps you already have a cluster running?
-Hosting the HTTP server on port 36473 instead
+Hosting the HTTP server on port 35647 instead
   warnings.warn(
-2022-08-05 14:29:30,435 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
+2022-08-05 22:28:22,197 - distributed.preloading - INFO - Import preload module: dask_cuda.initialize
 </pre></div>
 </div>
 </div>
