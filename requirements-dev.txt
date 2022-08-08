@@ -1,20 +1,10 @@
-# packages necessary to run tests and push PRs
-# assumes requirements for nvtabular logic are already installed
-
+# Required to generate docs and also run tests
 tritonclient[all]
-nvtabular
-
-# testing
-pytest>=5
-pytest-cov>=2
-scikit-learn>=0.20
-git+https://github.com/rapidsai/asvdb.git
-testbook
 
 # linting
 pylint==2.7.4
 click==8.0.3
-black==21.7b0
+black==22.6.0
 flake8==3.9.2
 isort==5.9.3
 bandit==1.7.0
@@ -35,4 +25,3 @@ natsort==8.0.1
 myst-nb==0.13.2
 linkify-it-py==1.0.3
 sphinx-external-toc==0.2.4
-

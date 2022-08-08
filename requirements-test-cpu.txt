@@ -1,0 +1,4 @@
+-r requirements-test.txt
+
+faiss-cpu==1.7.2
+tensorflow<=2.9.0
