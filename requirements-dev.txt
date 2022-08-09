@@ -13,15 +13,3 @@ cpplint>=1.5
 codespell
 interrogate==1.5.0
 click<8.1.0
-
-# docs
-Sphinx==3.5.4
-sphinx_rtd_theme==1.0.0
-sphinx-multiversion@git+https://github.com/mikemckiernan/sphinx-multiversion.git
-sphinxcontrib-copydirs@git+https://github.com/mikemckiernan/sphinxcontrib-copydirs.git
-recommonmark==0.7.1
-Jinja2<3.1
-natsort==8.0.1
-myst-nb==0.13.2
-linkify-it-py==1.0.3
-sphinx-external-toc==0.2.4

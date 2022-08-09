@@ -37,9 +37,6 @@ jobs:
     - name: Run tests
       run: |
         tox -e test-cpu
-    - name: Run FIL tests
-      run: |
-        tox -e test-fil-cpu
     - name: Generate package for pypi
       run: |
         python setup.py sdist
@@ -48,14 +45,10 @@ jobs:
       with:
         name: dist
         path: dist
-
-    # Build docs, treat warnings as errors
-    # - name: Building docs
-    #   uses: ammaraskar/sphinx-action@master
-    #   with:
-    #     docs-folder: "docs/"
-      # run: |
-      #   tox -e docs
+    - name: Building docs
+      run: |
+        python -m pip install -r requirements-docs.txt
+        make -C docs html SPHINXOPTS="-q"
     - name: Upload HTML
       uses: actions/upload-artifact@v2
       with:
