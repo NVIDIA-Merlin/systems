@@ -1,0 +1,20 @@
+-r requirements.txt
+-r requirements-dev.txt
+
+# This contains common libraries for testing.
+
+# NOTE: You should pip install requirements-test-[cpu|gpu].txt for device-specific test
+# requirements, which will include the dependencies defined in this file.
+
+pytest>=5
+pytest-cov>=2
+scikit-learn>=0.20
+git+https://github.com/rapidsai/asvdb.git
+testbook==0.4.2
+
+# packages necessary to run tests and push PRs
+feast==0.19.4
+xgboost==1.6.1
+
+# TODO: do we need more of these?
+# https://github.com/NVIDIA-Merlin/Merlin/blob/a1cc48fe23c4dfc627423168436f26ef7e028204/ci/dockerfile.ci#L13-L18
