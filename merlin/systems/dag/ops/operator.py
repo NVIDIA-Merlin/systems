@@ -14,7 +14,7 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import BaseOperator  # noqa
 from merlin.dag.selector import ColumnSelector  # noqa
-from merlin.schema import Schema  # noqa
+from merlin.schema import Schema, Tags  # noqa
 from merlin.systems.dag.node import InferenceNode  # noqa
 from merlin.systems.triton.export import _convert_dtype  # noqa
 
@@ -299,6 +299,7 @@ def _schema_to_dict(schema: Schema) -> dict:
             "dtype": col_schema.dtype.name,
             "is_list": col_schema.is_list,
             "is_ragged": col_schema.is_ragged,
+            "tags": [tag.value if isinstance(tag, Tags) else str(tag) for tag in col_schema.tags],
         }
 
     return schema_dict
