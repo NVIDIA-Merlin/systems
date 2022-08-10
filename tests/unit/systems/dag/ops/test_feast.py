@@ -11,6 +11,8 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.feast import QueryFeast
 from merlin.systems.dag.ops.operator import InferenceDataFrame
 
+pytest.importorskip("feast")
+
 
 def test_feast_config_round_trip():
     """
