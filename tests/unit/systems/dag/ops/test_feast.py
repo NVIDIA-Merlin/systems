@@ -3,15 +3,17 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-from feast.online_response import OnlineResponse
-from feast.protos.feast.serving import ServingService_pb2
-from feast.protos.feast.types import Value_pb2
 
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.feast import QueryFeast
 from merlin.systems.dag.ops.operator import InferenceDataFrame
 
-pytest.importorskip("feast")
+feast = pytest.importorskip("feast")  # noqa
+
+from feast.online_response import OnlineResponse  # noqa
+from feast.protos.feast.serving import ServingService_pb2  # noqa
+from feast.protos.feast.types import Value_pb2  # noqa
+
+from merlin.systems.dag.ops.feast import QueryFeast  # noqa
 
 
 def test_feast_config_round_trip():
