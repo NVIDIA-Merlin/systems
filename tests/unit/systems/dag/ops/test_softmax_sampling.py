@@ -8,10 +8,23 @@ import pytest
 from google.protobuf import text_format
 from tritonclient.grpc import model_config_pb2
 
-from merlin.schema import ColumnSchema, Schema
+import nvtabular.ops as wf_ops
+from merlin.schema import ColumnSchema, Schema, Tags
+from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.operator import InferenceDataFrame
 from merlin.systems.dag.ops.softmax_sampling import SoftmaxSampling
+from merlin.systems.dag.ops.tensorflow import PredictTensorflow
+from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
+from nvtabular import Workflow  # noqa
 from nvtabular import ColumnSelector
+
+loader_tf_utils = pytest.importorskip("nvtabular.loader.tf_utils")
+
+# everything tensorflow related must be imported after this.
+loader_tf_utils.configure_tensorflow()
+tf = pytest.importorskip("tensorflow")
+
+export = pytest.importorskip("merlin.systems.dag.ensemble")
 
 
 def test_softmax_output_dtype_keeps_input_dtype():
@@ -31,7 +44,7 @@ def test_softmax_output_dtype_keeps_input_dtype():
 
 @pytest.mark.parametrize("dtype", [np.float32, pd.StringDtype])
 @pytest.mark.parametrize(
-    "input_cols", [["input_col1"], ["input_col2"], ["input_col1", "input_col2"]]
+    "input_cols", [["input_col1"], ["input_col2"], ["input_col1", "input_col2"], []]
 )
 def test_softmax_output_dtype__with_multiple_inputs_keeps_input_dtype(input_cols, dtype):
     # We expect the method to not change the output dtype
@@ -47,6 +60,63 @@ def test_softmax_output_dtype__with_multiple_inputs_keeps_input_dtype(input_cols
 
     actual = s.compute_output_schema(input_schema, ColumnSelector(input_cols))
     assert actual == Schema(input_col_schema)
+
+
+@pytest.mark.parametrize("engine", ["parquet"])
+def test_softmax_schema_in_ensemble(dataset, engine):
+    # Create a Workflow
+    schema = dataset.schema
+
+    # make the id column a str dtype to ensure that it gets passed through
+    dataset.schema.column_schemas["id"] = ColumnSchema(name="id", dtype=str)
+
+    # tag them as user features
+    for name in ["x", "y", "id"]:
+        dataset.schema.column_schemas[name] = dataset.schema.column_schemas[name].with_tags(
+            [Tags.USER]
+        )
+
+    selector = ColumnSelector(["x", "y", "id"])
+
+    # Make a workflow that renames all of the columns
+    # And only fits x_nvt?
+    workflow_ops = selector >> wf_ops.Rename(postfix="_nvt")
+    workflow = Workflow(workflow_ops["x_nvt"])
+    workflow.fit(dataset)
+
+    # Create Tensorflow Model
+    # Input: x_nvt
+    # Output: output
+    model = tf.keras.models.Sequential(
+        [
+            tf.keras.Input(name="x_nvt", dtype=tf.float64, shape=(1,)),
+            tf.keras.layers.Dense(16, activation="relu"),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(1, name="output"),
+        ]
+    )
+    model.compile(
+        optimizer="adam",
+        loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=[tf.metrics.SparseCategoricalAccuracy()],
+    )
+
+    # Carried schema for raknking: [x, y, id] -> [x_nvt] -> [output]
+    ranking = selector >> TransformWorkflow(workflow) >> PredictTensorflow(model)
+
+    # Softmax sampling: keep columns `id` and `x` from the input schema based on the score
+    # ["id", "x"] -> ??? -> ["output"]
+    triton_chain_with_softmax = ["id", "x"] >> SoftmaxSampling(relevance_col=ranking["output"])
+    ensemble = Ensemble(triton_chain_with_softmax, schema)
+
+    # We expect the output to contain both `id` and `x` and `id` should be a string.
+    assert ensemble.graph.output_schema is not None
+    assert ensemble.graph.output_schema == Schema(
+        [
+            ColumnSchema(name="id", dtype=str, tags=[Tags.USER]),
+            ColumnSchema(name="x", tags=[Tags.USER]),
+        ]
+    )
 
 
 @pytest.mark.parametrize(

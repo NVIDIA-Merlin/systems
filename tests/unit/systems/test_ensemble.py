@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import os
-from distutils.spawn import find_executable
+from distutils.spawn import find_executable  # pylint: disable=deprecated-module
 
 import numpy as np
 import pandas as pd
