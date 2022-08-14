@@ -2,6 +2,7 @@
 -r requirements-dev.txt
 
 # This contains common libraries for testing.
+merlin-models>=0.6.0
 
 # NOTE: You should pip install requirements-test-[cpu|gpu].txt for device-specific test
 # requirements, which will include the dependencies defined in this file.
