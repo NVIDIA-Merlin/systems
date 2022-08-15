@@ -28,34 +28,15 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get install -y protobuf-compiler pandoc
-    - name: Install dependencies
+    - name: Install and upgrade python packages
       run: |
-        python -m pip install --upgrade pip setuptools==59.4.0 wheel
-        python -m pip install -r requirements-dev.txt
-        python -m pip install tensorflow
-        # required for ensemble tests
-        python -m pip install xgboost
-    - name: Lint with flake8
+        python -m pip install --upgrade pip setuptools==59.4.0 wheel tox
+    - name: Lint with flake8, black, isort, interrogate, codespell
       run: |
-        flake8 .
-    - name: Lint with black
+        tox -e lint
+    - name: Run tests
       run: |
-        black --check .
-    - name: Lint with isort
-      run: |
-        isort -c .
-    - name: Lint with interrogate
-      run: |
-        interrogate --config=pyproject.toml
-    - name: Lint with codespell
-      run: |
-        codespell
-    - name: Build
-      run: |
-        pip install .
-    - name: Run unittests
-      run: |
-        python -m pytest -rxs tests/unit/
+        tox -e test-cpu
     - name: Generate package for pypi
       run: |
         python setup.py sdist
@@ -64,11 +45,10 @@ jobs:
       with:
         name: dist
         path: dist
-
-    # Build docs, treat warnings as errors
     - name: Building docs
       run: |
-        make -C docs html SPHINXOPTS="-W -q"
+        python -m pip install -r requirements-docs.txt
+        make -C docs html SPHINXOPTS="-q"
     - name: Upload HTML
       uses: actions/upload-artifact@v2
       with:

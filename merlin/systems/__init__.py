@@ -15,7 +15,7 @@
 #
 import warnings
 
-from ._version import get_versions
+from . import _version
 
 # suppress some warnings with cudf warning about column ordering with dlpack
 # and numba warning about deprecated environment variables
@@ -26,5 +26,4 @@ warnings.filterwarnings("ignore", module="numba.cuda.envvars")
 warnings.filterwarnings("ignore", module="cudf.io.dlpack")
 
 
-__version__ = get_versions()["version"]
-del get_versions
+__version__ = _version.get_versions()["version"]
