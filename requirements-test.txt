@@ -15,7 +15,6 @@ testbook==0.4.2
 # packages necessary to run tests and push PRs
 feast==0.19.4
 xgboost==1.6.1
-lightgbm==3.3.2
 
 # TODO: do we need more of these?
 # https://github.com/NVIDIA-Merlin/Merlin/blob/a1cc48fe23c4dfc627423168436f26ef7e028204/ci/dockerfile.ci#L13-L18
