@@ -284,7 +284,9 @@ class PipelineableInferenceOperator(InferenceOperator):
         os.makedirs(node_export_path, exist_ok=True)
         os.makedirs(os.path.join(node_export_path, str(version)), exist_ok=True)
         copyfile(
-            os.path.join(os.path.dirname(__file__), "..", "..", "triton", "oprunner_model.py"),
+            os.path.join(
+                os.path.dirname(__file__), "..", "..", "triton", "models", "oprunner_model.py"
+            ),
             os.path.join(node_export_path, str(version), "model.py"),
         )
 
