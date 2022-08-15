@@ -129,14 +129,13 @@ class TritonPythonModel:
 
 def _parse_model_repository(model_repository: str) -> str:
     """
-    Extract the model repository path from the value passed to the TritonPythonModel
-    initialize method.
+    Extract the model repository path from the model_repository value
+    passed to the TritonPythonModel initialize method.
     """
-    model_repository_path = pathlib.Path(model_repository).parent
-
     # Handle bug in Tritonserver 22.06
     # model_repository argument became path to model.py
-    if str(model_repository).endswith(".py"):
-        model_repository_path = model_repository_path.parent
-
-    return str(model_repository_path)
+    # instead of path to model directory within the model repository
+    if model_repository.endswith(".py"):
+        return str(pathlib.Path(model_repository).parent.parent.parent)
+    else:
+        return str(pathlib.Path(model_repository).parent)
