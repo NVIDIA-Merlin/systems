@@ -1,5 +1,6 @@
 import json
 import os
+from distutils.spawn import find_executable  # pylint: disable=deprecated-module
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -9,15 +10,17 @@ from google.protobuf import text_format
 from tritonclient.grpc import model_config_pb2
 
 import nvtabular.ops as wf_ops
+from merlin.core.dispatch import make_df
 from merlin.schema import ColumnSchema, Schema, Tags
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.operator import InferenceDataFrame
 from merlin.systems.dag.ops.softmax_sampling import SoftmaxSampling
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow
-from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
-from nvtabular import Workflow  # noqa
-from nvtabular import ColumnSelector
+from merlin.systems.dag.ops.workflow import TransformWorkflow
+from nvtabular import ColumnSelector, Workflow
+from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver
 
+TRITON_SERVER_PATH = find_executable("tritonserver")
 loader_tf_utils = pytest.importorskip("nvtabular.loader.tf_utils")
 
 # everything tensorflow related must be imported after this.
@@ -117,6 +120,72 @@ def test_softmax_schema_in_ensemble(dataset, engine):
             ColumnSchema(name="x", tags=[Tags.USER]),
         ]
     )
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+@pytest.mark.parametrize("engine", ["parquet"])
+def test_softmax_in_ensemble_predictions(tmpdir, dataset, engine):
+    # Create a Workflow
+    schema = dataset.schema
+
+    # make the id column a str dtype to ensure that it gets passed through
+    dataset.schema.column_schemas["id"] = ColumnSchema(name="id", dtype=str)
+
+    # tag them as user features
+    for name in ["x", "y", "id"]:
+        dataset.schema.column_schemas[name] = dataset.schema.column_schemas[name].with_tags(
+            [Tags.USER]
+        )
+
+    selector = ColumnSelector(["x", "y", "id"])
+
+    # Make a workflow that renames all of the columns
+    # And only fits x_nvt?
+    workflow_ops = selector >> wf_ops.Rename(postfix="_nvt")
+    workflow = Workflow(workflow_ops["x_nvt"])
+    workflow.fit(dataset)
+
+    # Create Tensorflow Model
+    # Input: x_nvt
+    # Output: output
+    model = tf.keras.models.Sequential(
+        [
+            tf.keras.Input(name="x_nvt", dtype=tf.float64, shape=(1,)),
+            tf.keras.layers.Dense(16, activation="relu"),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(1, name="output"),
+        ]
+    )
+    model.compile(
+        optimizer="adam",
+        loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=[tf.metrics.SparseCategoricalAccuracy()],
+    )
+
+    # Carried schema for raknking: [x, y, id] -> [x_nvt] -> [output]
+    ranking = selector >> TransformWorkflow(workflow) >> PredictTensorflow(model)
+
+    # Softmax sampling: keep columns `id` and `x` from the input schema based on the score
+    # ["id", "x"] -> ??? -> ["output"]
+    triton_chain_with_softmax = ["id", "x"] >> SoftmaxSampling(relevance_col=ranking["output"])
+    ensemble = Ensemble(triton_chain_with_softmax, schema)
+
+    # We expect the output to contain both `id` and `x` and `id` should be a string.
+    assert ensemble.graph.output_schema is not None
+    assert ensemble.graph.output_schema == Schema(
+        [
+            ColumnSchema(name="id", dtype=str, tags=[Tags.USER]),
+            ColumnSchema(name="x", tags=[Tags.USER]),
+        ]
+    )
+
+    ensemble.export(tmpdir)
+
+    request_df = make_df({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "id": [7, 8, 9]})
+
+    output_columns = ensemble.graph.output_schema.column_names
+    response = _run_ensemble_on_tritonserver(str(tmpdir), output_columns, request_df, ensemble.name)
+    assert response.as_numpy("output").shape == (5,)
 
 
 @pytest.mark.parametrize(
