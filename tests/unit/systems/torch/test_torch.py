@@ -101,6 +101,7 @@ def test_pytorch_op_exports_own_config(tmpdir, torchscript):
         assert parsed.backend == ("pytorch" if torchscript else "python")
 
 
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 def test_torch_backend(tmpdir):
     model_repository = Path(tmpdir)
 
