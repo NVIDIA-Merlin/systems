@@ -1,0 +1,4 @@
+-r requirements-test.txt
+
+tensorflow-gpu<=2.9.0
+faiss-gpu==1.7.2
