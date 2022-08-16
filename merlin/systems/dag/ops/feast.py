@@ -87,13 +87,9 @@ class QueryFeast(PipelineableInferenceOperator):
             if is_list:
                 mh_features.append(feature.name)
 
-                values_name = cls._prefixed_name(output_prefix, f"{feature.name}_1")
-                nnzs_name = cls._prefixed_name(output_prefix, f"{feature.name}_2")
-                output_schema[values_name] = ColumnSchema(
-                    values_name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
-                )
-                output_schema[nnzs_name] = ColumnSchema(
-                    nnzs_name, dtype=np.int32, is_list=True, is_ragged=False
+                name = cls._prefixed_name(output_prefix, feature.name)
+                output_schema[name] = ColumnSchema(
+                    name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
                 )
             else:
                 features.append(feature.name)
@@ -312,13 +308,9 @@ class QueryFeast(PipelineableInferenceOperator):
             feature_value = feast_response[feature_name]
 
             prefixed_name = self.__class__._prefixed_name(self.output_prefix, feature_name)
-            feature_out_name = f"{prefixed_name}_{self.suffix_int}"
 
             nnzs = None
-            if (
-                isinstance(feature_value[0], list)
-                and self.output_schema[feature_out_name].is_ragged
-            ):
+            if isinstance(feature_value[0], list) and self.output_schema[prefixed_name].is_ragged:
                 flattened_value = []
                 for val in feature_value:
                     flattened_value.extend(val)
@@ -327,12 +319,14 @@ class QueryFeast(PipelineableInferenceOperator):
                 feature_value = [flattened_value]
 
             feature_array = np.array(feature_value).T.astype(
-                self.output_schema[feature_out_name].dtype
+                self.output_schema[prefixed_name].dtype
             )
             if not nnzs:
                 nnzs = [len(feature_array)]
+
+            feature_out_name = f"{prefixed_name}_{self.suffix_int}"
             feature_out_nnz = f"{prefixed_name}_{self.suffix_int+1}"
-            feature_nnzs = np.array([nnzs], dtype=self.output_schema[feature_out_nnz].dtype).T
+            feature_nnzs = np.array([nnzs], dtype=np.int32).T
 
             output_tensors[feature_out_name] = feature_array
             output_tensors[feature_out_nnz] = feature_nnzs

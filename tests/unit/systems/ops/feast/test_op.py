@@ -83,8 +83,7 @@ def test_feast_transform(prefix, is_ragged):
 
         # names of the features with prefix/suffix
         feature_name = f"{prefix}_feature" if prefix else "feature"
-        feature_mh_1 = f"{prefix}_mh_feature_1" if prefix else "mh_feature_1"
-        feature_mh_2 = f"{prefix}_mh_feature_2" if prefix else "mh_feature_2"
+        feature_mh = f"{prefix}_mh_feature" if prefix else "mh_feature"
 
         input_schema = Schema(
             [ColumnSchema("feature"), ColumnSchema("mh_feature", is_list=True, is_ragged=True)]
@@ -92,8 +91,7 @@ def test_feast_transform(prefix, is_ragged):
         output_schema = Schema(
             [
                 ColumnSchema(feature_name),
-                ColumnSchema(feature_mh_1, is_list=True, is_ragged=is_ragged),
-                ColumnSchema(feature_mh_2, is_list=True, is_ragged=is_ragged),
+                ColumnSchema(feature_mh, is_list=True, is_ragged=is_ragged),
             ]
         )
 
@@ -114,5 +112,5 @@ def test_feast_transform(prefix, is_ragged):
         resp = feast_op.transform(df)
         assert resp["entity_id"] == [1]
         assert resp[feature_name] == np.array([[1.0]])
-        assert np.all(resp[feature_mh_1] == np.array([[1.0], [2.0], [3.0]]))
-        assert resp[feature_mh_2] == np.array([[3.0]])
+        assert np.all(resp[feature_mh + "_1"] == np.array([[1.0], [2.0], [3.0]]))
+        assert resp[feature_mh + "_2"] == np.array([[3.0]])
