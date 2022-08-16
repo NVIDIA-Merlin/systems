@@ -28,9 +28,6 @@ from google.protobuf import text_format  # noqa
 
 from merlin.core.dispatch import make_df  # noqa
 from merlin.dag import ColumnSelector  # noqa
-from merlin.dag.node import postorder_iter_nodes  # noqa
-from merlin.dag.ops.concat_columns import ConcatColumns  # noqa
-from merlin.dag.ops.selection import SelectionOp  # noqa
 from merlin.io import Dataset  # noqa
 from merlin.schema import ColumnSchema, Schema, Tags  # noqa
 from merlin.systems.dag.ops.fil import PredictForest  # noqa
@@ -170,18 +167,6 @@ def test_workflow_tf_e2e_multi_op_run(tmpdir, dataset, engine):
 
     response = _run_ensemble_on_tritonserver(str(tmpdir), ["output"], df, triton_ens.name)
     assert len(response.as_numpy("output")) == df.shape[0]
-
-
-def test_graph_traverse_algo():
-    chain_1 = ["name-cat"] >> TransformWorkflow(Workflow(["name-cat"] >> wf_ops.Categorify()))
-    chain_2 = ["name-string"] >> TransformWorkflow(Workflow(["name-string"] >> wf_ops.Categorify()))
-
-    triton_chain = chain_1 + chain_2
-
-    ordered_list = list(postorder_iter_nodes(triton_chain))
-    assert len(ordered_list) == 5
-    assert isinstance(ordered_list[0].op, SelectionOp)
-    assert isinstance(ordered_list[-1].op, ConcatColumns)
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
