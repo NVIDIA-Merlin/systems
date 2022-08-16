@@ -16,6 +16,7 @@
 import os
 import pathlib
 import tempfile
+from collections import defaultdict
 from shutil import copytree
 
 # this needs to be before any modules that import protobuf
@@ -58,7 +59,7 @@ class PredictTensorflow(InferenceOperator):
             self.path = None
             self.model = model_or_path
 
-        self.input_schema, self.output_schema = self._construct_schemas_from_model(self.model)
+        self.input_schema, self.output_schema = self._infer_schemas_from_model(self.model)
 
     def export(self, path, input_schema, output_schema, node_id=None, version=1):
         """Create a directory inside supplied path based on our export name"""
@@ -133,7 +134,7 @@ class PredictTensorflow(InferenceOperator):
             text_format.PrintMessage(config, o)
         return config
 
-    def _construct_schemas_from_model(self, model):
+    def _infer_schemas_from_model(self, model):
         signatures = getattr(model, "signatures", {}) or {}
         default_signature = signatures.get("serving_default")
 
@@ -147,15 +148,32 @@ class PredictTensorflow(InferenceOperator):
                 reloaded = tf.keras.models.load_model(tf_model_path)
                 default_signature = reloaded.signatures["serving_default"]
 
+        signature_inputs = default_signature.structured_input_signature[1]
+        signature_outputs = default_signature.structured_outputs
+
+        # Detect pairs of columns with `_1` and `_2` suffixes
+        col_suffixes = defaultdict(set)
+        for col_name, _ in signature_inputs.items():
+            elements = col_name.split("_")
+            stem = elements[:-1].join("_")
+            suffix = elements[-1]
+            col_suffixes[stem] |= {suffix}
+
+        for stem, suffixes in col_suffixes.items():
+            if suffixes == {1, 2}:
+                # This is a multi-hot column
+                # TODO: Figure out how to condense the column schemas
+                ...
+
         input_schema = Schema()
-        for col_name, col in default_signature.structured_input_signature[1].items():
+        for col_name, col in signature_inputs.items():
             col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype)
             if col.shape[1] and col.shape[1] > 1:
                 col_schema = self._set_list_length(col_schema, col.shape[1])
             input_schema.column_schemas[col_name] = col_schema
 
         output_schema = Schema()
-        for col_name, col in default_signature.structured_outputs.items():
+        for col_name, col in signature_outputs.items():
             col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype)
             if col.shape[1] and col.shape[1] > 1:
                 col_schema = self._set_list_length(col_schema, col.shape[1])
