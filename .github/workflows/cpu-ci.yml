@@ -27,7 +27,7 @@ jobs:
     - name: Install Ubuntu packages
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y protobuf-compiler pandoc
+        sudo apt-get install -y protobuf-compiler
     - name: Install and upgrade python packages
       run: |
         python -m pip install --upgrade pip setuptools==59.4.0 wheel tox
@@ -47,8 +47,7 @@ jobs:
         path: dist
     - name: Building docs
       run: |
-        python -m pip install -r requirements-docs.txt
-        make -C docs html SPHINXOPTS="-q"
+        tox -e docs
     - name: Upload HTML
       uses: actions/upload-artifact@v2
       with:
