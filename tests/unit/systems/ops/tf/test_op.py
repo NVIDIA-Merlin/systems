@@ -130,7 +130,7 @@ def test_tf_schema_validation():
     assert "Mismatched dtypes for column 'input'" in str(exception_info.value)
 
 
-def test_tf_op_infers_schema_for_input_tuples():
+def test_tf_op_infers_schema_for_fixed_size_input_tuples():
     inputs = (tf.keras.Input(shape=(128,)), tf.keras.Input(shape=(128,)))
     towers = (tf.keras.layers.Dense(64)(inputs[0]), tf.keras.layers.Dense(64)(inputs[1]))
     outputs = tf.keras.layers.dot(towers, [1, 1])
@@ -165,4 +165,40 @@ def test_tf_op_infers_schema_for_input_tuples():
     )
     assert triton_op.output_schema == Schema(
         [ColumnSchema("dot", dtype=np.float32, is_list=False, is_ragged=False)]
+    )
+
+
+def test_tf_op_infers_schema_for_fixed_or_ragged_list_columns():
+    # The shape of this input mimics a column with 128 rows and
+    # lists that might have either exactly 4 elements in each row,
+    # or a variable number of elements that happen to add up to 512.
+    # The details of the model don't matter for this test, only the
+    # shape of the inputs.
+
+    inputs = (tf.keras.Input(shape=(512,)), tf.keras.Input(shape=(128,)))
+    towers = (tf.keras.layers.Dense(64)(inputs[0]), tf.keras.layers.Dense(64)(inputs[1]))
+    outputs = tf.keras.layers.dot(towers, [1, 1])
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    model.compile(
+        optimizer="adam",
+        loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=[tf.metrics.SparseCategoricalAccuracy()],
+    )
+
+    # Triton
+    triton_op = tf_op.PredictTensorflow(model)
+    assert triton_op.input_schema == Schema(
+        [
+            ColumnSchema(
+                name="input",
+                tags=set(),
+                dtype=np.dtype("float32"),
+                is_list=True,
+                is_ragged=True,
+            ),
+        ]
+    )
+    assert triton_op.output_schema == Schema(
+        [ColumnSchema("dot", dtype=np.float32, is_list=True, is_ragged=True)]
     )
