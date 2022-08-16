@@ -31,12 +31,6 @@ from merlin.systems.dag.ops.fil import PredictForest  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
 
-loader_tf_utils = pytest.importorskip("nvtabular.loader.tf_utils")
-
-# everything tensorflow related must be imported after this.
-loader_tf_utils.configure_tensorflow()
-tf = pytest.importorskip("tensorflow")
-
 triton = pytest.importorskip("merlin.systems.triton")
 export = pytest.importorskip("merlin.systems.dag.ensemble")
 
@@ -45,7 +39,6 @@ from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
 from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
 
 tritonclient = pytest.importorskip("tritonclient")
-
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
