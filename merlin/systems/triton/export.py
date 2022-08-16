@@ -360,7 +360,7 @@ def generate_nvtabular_model(
     # copy the model file over. note that this isn't necessary with the c++ backend, but
     # does provide us to use the python backend with just changing the 'backend' parameter
     copyfile(
-        os.path.join(os.path.dirname(__file__), "workflow_model.py"),
+        os.path.join(os.path.dirname(__file__), "models", "workflow_model.py"),
         os.path.join(output_path, str(version), "model.py"),
     )
 
@@ -403,7 +403,7 @@ def _generate_nvtabular_config(
     and outputs to that workflow"""
     config = model_config.ModelConfig(name=name, backend=backend, max_batch_size=max_batch_size)
 
-    config.parameters["python_module"].string_value = "merlin.systems.triton.workflow_model"
+    config.parameters["python_module"].string_value = "merlin.systems.triton.models.workflow_model"
     config.parameters["output_model"].string_value = output_model if output_model else ""
 
     config.parameters["cats"].string_value = json.dumps(cats) if cats else ""
