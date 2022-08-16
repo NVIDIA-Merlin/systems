@@ -16,4 +16,4 @@
 
 import pytest
 
-pytest.importorskip("torch")
+pytest.importorskip("nvtabular")
