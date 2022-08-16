@@ -16,7 +16,7 @@ from feast.protos.feast.types import Value_pb2  # noqa
 from merlin.systems.dag.ops.feast import QueryFeast  # noqa
 
 
-def test_feast_config_round_trip():
+def test_feast_config_round_trip(tmpdir):
     """
     This builds a QueryFeast op via the constructor, exports the config, and then builds another
     QueryFeast op via from_config to ensure that the constructor arguments match the original.
@@ -47,7 +47,7 @@ def test_feast_config_round_trip():
         kwargs = {"include_id": True, "output_prefix": "prefix"}
         feast_op = QueryFeast(*args, **kwargs)
 
-        created_config = feast_op.export("export_path", input_schema, output_schema)
+        created_config = feast_op.export(tmpdir + "/export_path/", input_schema, output_schema)
         created_config_dict = json.loads(created_config.parameters["queryfeast"].string_value)
 
         # now mock the QueryFeast constructor so we can inspect its arguments.
