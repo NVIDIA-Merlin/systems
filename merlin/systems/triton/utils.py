@@ -30,9 +30,12 @@ def run_triton_server(modelpath, grpc_host="localhost", grpc_port=8001):
     """
     grpc_url = f"{grpc_host}:{grpc_port}"
 
-    with grpcclient.InferenceServerClient(grpc_url) as client:
-        if client.is_server_ready():
-            raise RuntimeError(f"Another tritonserver is already running on {grpc_url}")
+    try:
+        with grpcclient.InferenceServerClient(grpc_url) as client:
+            if client.is_server_ready():
+                raise RuntimeError(f"Another tritonserver is already running on {grpc_url}")
+    except tritonclient.utils.InferenceServerException:
+        pass
 
     cmdline = [
         TRITON_SERVER_PATH,
