@@ -34,5 +34,5 @@ def test_example_serving_xgboost(tb):
     )
     tb.execute_cell(list(range(0, 14)))
 
-    with run_triton_server("ensemble"):
+    with run_triton_server("ensemble", grpc_port=8001):
         tb.execute_cell(list(range(14, NUM_OF_CELLS)))
