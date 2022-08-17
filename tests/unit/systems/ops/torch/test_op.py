@@ -1,3 +1,19 @@
+#
+# Copyright (c) 2022, NVIDIA CORPORATION.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 import pathlib
 from distutils.spawn import find_executable  # pylint: disable=deprecated-module
 from pathlib import Path
@@ -5,9 +21,7 @@ from typing import Dict
 
 import numpy as np
 import pytest
-import torch
-from google.protobuf import text_format  # noqa
-from torch import Tensor
+from google.protobuf import text_format
 
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
@@ -15,6 +29,7 @@ from tests.unit.systems.utils.triton import run_triton_server
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
+torch = pytest.importorskip("torch")
 triton = pytest.importorskip("merlin.systems.triton")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 ptorch_op = pytest.importorskip("merlin.systems.dag.ops.pytorch")
@@ -26,7 +41,7 @@ class CustomModel(torch.nn.Module):
         super().__init__()
         self.linear = torch.nn.Linear(3, 1)
 
-    def forward(self, input_dict: Dict[str, Tensor]):
+    def forward(self, input_dict: Dict[str, torch.Tensor]):
         linear_out = self.linear(input_dict["input"].to(self.linear.weight.device))
 
         return linear_out
