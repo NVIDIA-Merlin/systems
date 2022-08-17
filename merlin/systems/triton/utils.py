@@ -19,7 +19,7 @@ def run_triton_server(
     model_repository: str,
     *,
     grpc_host: str = "localhost",
-    grpc_port: int = 0,
+    grpc_port: int = 8001,
     backend_config: str = "tensorflow,version=2",
 ):
     """This function starts up a Triton server instance and returns a client to it.
@@ -33,7 +33,7 @@ def run_triton_server(
         Default is localhost.
     grpc_port : int
         The port for the triton gRPC server to listen on for requests.
-        Default is 0. In this case a random available port will be used.
+        Default is 8001.
     backend_config : string
         A backend-specific configuration.
         Following the pattern <backend_name>,<setting>=<value>.
