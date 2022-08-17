@@ -74,8 +74,10 @@
 <span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pathlib</span>
-<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractclassmethod</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">abstractmethod</span>
 <span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copyfile</span>
+
+<span class="kn">from</span> <span class="nn">merlin.systems.model_registry</span> <span class="kn">import</span> <span class="n">ModelRegistry</span>
 
 <span class="c1"># this needs to be before any modules that import protobuf</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;python&quot;</span>
@@ -193,6 +195,45 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">InferenceNode</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span>
 
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_model_registry</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">registry</span><span class="p">:</span> <span class="n">ModelRegistry</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;InferenceOperator&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the InferenceOperator from the provided ModelRegistry.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        registry : ModelRegistry</span>
+<span class="sd">            A ModleRegistry object that will provide the path to the model.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Other kwargs to pass to your InferenceOperator&#39;s constructor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        InferenceOperator</span>
+<span class="sd">            New node for Ensemble graph.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_path</span><span class="p">(</span><span class="n">registry</span><span class="o">.</span><span class="n">get_artifact_uri</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;InferenceOperator&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads the InferenceOperator from the path where it was exported after training.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path : str</span>
+<span class="sd">            Path to the exported model.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Other kwargs to pass to your InferenceOperator&#39;s constructor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        InferenceOperator</span>
+<span class="sd">            New node for Ensemble graph.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> operators cannot be instantiated with a path.&quot;</span><span class="p">)</span>
+
 
 <span class="k">class</span> <span class="nc">PipelineableInferenceOperator</span><span class="p">(</span><span class="n">InferenceOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -201,15 +242,20 @@
 <span class="sd">    same model. This remove tritonserver overhead between operators of this type.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@abstractclassmethod</span>
-    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="nd">@classmethod</span>
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instantiate a class object given a config.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        config : dict</span>
-
+<span class="sd">        **kwargs</span>
+<span class="sd">          contains the following:</span>
+<span class="sd">            * model_repository: Model repository path</span>
+<span class="sd">            * model_version: Model version</span>
+<span class="sd">            * model_name: Model name</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -305,13 +351,15 @@
                 <span class="p">)</span>
             <span class="p">)</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="s2">&quot;config.pbtxt&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="s2">&quot;config.pbtxt&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span>
             <span class="n">text_format</span><span class="o">.</span><span class="n">PrintMessage</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
 
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">)),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">copyfile</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;triton&quot;</span><span class="p">,</span> <span class="s2">&quot;oprunner_model.py&quot;</span><span class="p">),</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;triton&quot;</span><span class="p">,</span> <span class="s2">&quot;models&quot;</span><span class="p">,</span> <span class="s2">&quot;oprunner_model.py&quot;</span>
+            <span class="p">),</span>
             <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">),</span> <span class="s2">&quot;model.py&quot;</span><span class="p">),</span>
         <span class="p">)</span>
 
@@ -329,6 +377,30 @@
         <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">schema_dict</span>
+
+
+<span class="k">def</span> <span class="nf">_add_model_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">paramclass</span><span class="p">,</span> <span class="n">col_schema</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="n">dims</span> <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_list</span> <span class="ow">and</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_ragged</span><span class="p">:</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">paramclass</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">col_schema</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;__values&quot;</span><span class="p">,</span>
+                <span class="n">data_type</span><span class="o">=</span><span class="n">_convert_dtype</span><span class="p">(</span><span class="n">col_schema</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>
+                <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">paramclass</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">col_schema</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;__nnzs&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">model_config</span><span class="o">.</span><span class="n">TYPE_INT32</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_list</span><span class="p">:</span>
+            <span class="n">value_count</span> <span class="o">=</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value_count&quot;</span><span class="p">,</span> <span class="p">{})</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">value_count</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">paramclass</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">col_schema</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">_convert_dtype</span><span class="p">(</span><span class="n">col_schema</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">)</span>
+        <span class="p">)</span>
 </pre></div>
 
            </div>
