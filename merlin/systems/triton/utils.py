@@ -14,7 +14,7 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
 @contextlib.contextmanager
-def run_triton_server(modelpath):
+def run_triton_server(modelpath, grpc_host="localhost", grpc_port=8001):
     """This function starts up a Triton server instance and returns a client to it.
 
     Parameters
@@ -28,8 +28,6 @@ def run_triton_server(modelpath):
         The client connected to the Triton server.
 
     """
-    grpc_host = "localhost"
-    grpc_port = 8001
     grpc_url = f"{grpc_host}:{grpc_port}"
 
     with grpcclient.InferenceServerClient(grpc_url) as client:
