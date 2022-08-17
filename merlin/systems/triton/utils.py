@@ -30,8 +30,10 @@ def run_triton_server(
         The path to the model repository directory.
     grpc_host : string
         The host address for the triton gRPC server to bind to.
+        Default is localhost.
     grpc_port : int
         The port for the triton gRPC server to listen on for requests.
+        Default is 0. In this case a random available port will be used.
     backend_config : string
         A backend-specific configuration.
         Following the pattern <backend_name>,<setting>=<value>.
