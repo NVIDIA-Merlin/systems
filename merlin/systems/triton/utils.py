@@ -1,6 +1,7 @@
 import contextlib
 import os
 import signal
+import socket
 import subprocess
 import time
 from distutils.spawn import find_executable
@@ -8,13 +9,15 @@ from distutils.spawn import find_executable
 import tritonclient
 import tritonclient.grpc as grpcclient
 
-import merlin.systems.triton as triton
+from merlin.systems import triton
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
 @contextlib.contextmanager
-def run_triton_server(modelpath, grpc_host="localhost", grpc_port=8001):
+def run_triton_server(
+    modelpath, grpc_host="localhost", grpc_port=None, backend_config="tensorflow,version=2"
+):
     """This function starts up a Triton server instance and returns a client to it.
 
     Parameters
@@ -28,6 +31,8 @@ def run_triton_server(modelpath, grpc_host="localhost", grpc_port=8001):
         The client connected to the Triton server.
 
     """
+    if grpc_port == 0 or grpc_port is None:
+        grpc_port = _get_random_free_port()
     grpc_url = f"{grpc_host}:{grpc_port}"
 
     try:
@@ -41,7 +46,9 @@ def run_triton_server(modelpath, grpc_host="localhost", grpc_port=8001):
         TRITON_SERVER_PATH,
         "--model-repository",
         modelpath,
-        "--backend-config=tensorflow,version=2",
+        f"--backend-config={backend_config}",
+        f"--grpc-port={grpc_port}",
+        f"--grpc-address={grpc_host}",
     ]
     env = os.environ.copy()
     env["CUDA_VISIBLE_DEVICES"] = "0"
@@ -69,6 +76,13 @@ def run_triton_server(modelpath, grpc_host="localhost", grpc_port=8001):
         finally:
             # signal triton to shutdown
             process.send_signal(signal.SIGINT)
+
+
+def _get_random_free_port():
+    """Return a random free port."""
+    with socket.socket() as s:
+        s.bind(("", 0))
+        return s.getsockname()[1]
 
 
 def run_ensemble_on_tritonserver(
