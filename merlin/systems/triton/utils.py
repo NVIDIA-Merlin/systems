@@ -16,14 +16,26 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 
 @contextlib.contextmanager
 def run_triton_server(
-    modelpath, grpc_host="localhost", grpc_port=None, backend_config="tensorflow,version=2"
+    model_repository: str,
+    *,
+    grpc_host: str = "localhost",
+    grpc_port: int = 0,
+    backend_config: str = "tensorflow,version=2",
 ):
     """This function starts up a Triton server instance and returns a client to it.
 
     Parameters
     ----------
-    modelpath : string
-        The path to the model to load.
+    model_repository : string
+        The path to the model repository directory.
+    grpc_host : string
+        The host address for the triton gRPC server to bind to.
+    grpc_port : int
+        The port for the triton gRPC server to listen on for requests.
+    backend_config : string
+        A backend-specific configuration.
+        Following the pattern <backend_name>,<setting>=<value>.
+        Where <backend_name> is the name of the backend, such as 'tensorflow'
 
     Yields
     ------
@@ -45,7 +57,7 @@ def run_triton_server(
     cmdline = [
         TRITON_SERVER_PATH,
         "--model-repository",
-        modelpath,
+        model_repository,
         f"--backend-config={backend_config}",
         f"--grpc-port={grpc_port}",
         f"--grpc-address={grpc_host}",
