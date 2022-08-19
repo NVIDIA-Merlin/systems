@@ -30,7 +30,7 @@ def test_feast_config_round_trip(tmpdir):
     # These must be done in a context manager so we don't modify the classes globally and
     # affect other tests.
     with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)), patch(
-        "merlin.systems.dag.ops.feast.__init__", MagicMock(return_value=None)
+        "merlin.systems.dag.ops.feast.QueryFeast", MagicMock(side_effect=QueryFeast)
     ) as qf_init:
 
         # Define the args & kwargs. We want to ensure the round-tripped version uses these same
@@ -44,26 +44,28 @@ def test_feast_config_round_trip(tmpdir):
             ["mh_features"],
             input_schema,
             output_schema,
+            True,  # include_id
+            "prefix",  # output_prefix
+            1,  # suffix_int
         ]
-        kwargs = {"include_id": True, "output_prefix": "prefix"}
-        feast_op = QueryFeast(*args, **kwargs)
+        feast_op = QueryFeast(*args)
 
         created_config = feast_op.export(tmpdir + "/export_path/", input_schema, output_schema)
         created_config_dict = json.loads(created_config.parameters["queryfeast"].string_value)
 
         # now mock the QueryFeast constructor so we can inspect its arguments.
         QueryFeast.from_config(created_config_dict)
-        assert qf_init.called_with(*args, **kwargs)
+        qf_init.assert_called_with(*args)
 
 
 def test_feast_from_feature_view(tmpdir):
 
-    input_schema = Schema()
-    output_schema = Schema()
-
     with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)), patch(
         "feast.feature_store.Registry.__init__", MagicMock(return_value=None)
-    ), patch("merlin.systems.dag.ops.feast.__init__", MagicMock(return_value=None)) as qf_init:
+    ), patch(
+        "merlin.systems.dag.ops.feast.QueryFeast",
+        MagicMock(side_effect=QueryFeast),
+    ) as qf_init:
         input_source = feast.FileSource(
             path=tmpdir,
             event_timestamp_column="datetime",
@@ -92,23 +94,11 @@ def test_feast_from_feature_view(tmpdir):
         fs.get_feature_view = MagicMock(return_value=feature_view)
         fs._registry.get_feature_view = MagicMock(return_value=feature_view)
 
-        # # Define the args & kwargs. We want to ensure the round-tripped version uses these same
-        # # arguments.
-        args = [
-            "zzz",
-            "item_id",
-            "item_features",
-            "item_id",
-            ["int_feature", "float_feature", "int_list_feature", "float_list_feature"],
-            [],
-            input_schema,
-            output_schema,
-        ]
-        kwargs = {"include_id": False, "output_prefix": "prefix"}
-        feast_op = QueryFeast.from_feature_view(
-            fs, "item_features", "item_id", output_prefix="prefix", include_id=False
+        expected_input_schema = Schema(
+            column_schemas=[ColumnSchema(name="item_id", dtype=np.int32)]
         )
 
+        # The expected output is all of the feature columns plus the item_id column
         expected_output_schema = Schema(
             column_schemas=[
                 ColumnSchema(name="prefix_int_feature", dtype=np.int32),
@@ -128,14 +118,29 @@ def test_feast_from_feature_view(tmpdir):
                     dtype=np.int32,
                     is_list=True,
                 ),
+                ColumnSchema(name="item_id", dtype=np.int32),
             ]
         )
-        assert feast_op.input_schema == Schema(
-            column_schemas=[ColumnSchema(name="item_id", dtype=np.int32)]
+
+        feast_op: QueryFeast = QueryFeast.from_feature_view(
+            fs, "item_features", "item_id", output_prefix="prefix", include_id=True
         )
+
+        assert feast_op.input_schema == expected_input_schema
         assert feast_op.output_schema.column_schemas == expected_output_schema.column_schemas
 
-        assert qf_init.called_with(*args, **kwargs)
+        args = [
+            "repo_path",
+            "item_id",
+            "item_features",
+            "item_id",
+            ["int_feature", "float_feature"],
+            ["int_list_feature", "float_list_feature"],
+            expected_input_schema,
+            expected_output_schema,
+        ]
+        kwargs = {"include_id": True, "output_prefix": "prefix", "suffix_int": 1}
+        qf_init.assert_called_with(*args, **kwargs)
 
 
 @pytest.mark.parametrize("is_ragged", [True, False])
