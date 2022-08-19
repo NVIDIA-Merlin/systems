@@ -58,7 +58,7 @@ def test_feast_config_round_trip(tmpdir):
         qf_init.assert_called_with(*args)
 
 
-@pytest.mark.parametrize("suffix_int", [1, 2, 3])
+@pytest.mark.parametrize("suffix_int", [1, 2])
 def test_feast_from_feature_view(tmpdir, suffix_int):
 
     with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)), patch(
@@ -129,7 +129,12 @@ def test_feast_from_feature_view(tmpdir, suffix_int):
         )
 
         feast_op: QueryFeast = QueryFeast.from_feature_view(
-            fs, "item_features", "item_id", output_prefix="prefix", include_id=True
+            fs,
+            "item_features",
+            "item_id",
+            output_prefix="prefix",
+            include_id=True,
+            suffix_int=suffix_int,
         )
 
         assert feast_op.input_schema == expected_input_schema
