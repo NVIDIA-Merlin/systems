@@ -58,7 +58,8 @@ def test_feast_config_round_trip(tmpdir):
         qf_init.assert_called_with(*args)
 
 
-def test_feast_from_feature_view(tmpdir):
+@pytest.mark.parametrize("suffix_int", [1, 2, 3])
+def test_feast_from_feature_view(tmpdir, suffix_int):
 
     with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)), patch(
         "feast.feature_store.Registry.__init__", MagicMock(return_value=None)
@@ -104,17 +105,22 @@ def test_feast_from_feature_view(tmpdir):
                 ColumnSchema(name="prefix_int_feature", dtype=np.int32),
                 ColumnSchema(name="prefix_float_feature", dtype=np.float32),
                 ColumnSchema(
-                    name="prefix_int_list_feature_1", dtype=np.int32, is_list=True, is_ragged=True
+                    name=f"prefix_int_list_feature_{suffix_int}",
+                    dtype=np.int32,
+                    is_list=True,
+                    is_ragged=True,
                 ),
-                ColumnSchema(name="prefix_int_list_feature_2", dtype=np.int32, is_list=True),
                 ColumnSchema(
-                    name="prefix_float_list_feature_1",
+                    name=f"prefix_int_list_feature_{suffix_int+1}", dtype=np.int32, is_list=True
+                ),
+                ColumnSchema(
+                    name=f"prefix_float_list_feature_{suffix_int}",
                     dtype=np.float32,
                     is_list=True,
                     is_ragged=True,
                 ),
                 ColumnSchema(
-                    name="prefix_float_list_feature_2",
+                    name=f"prefix_float_list_feature_{suffix_int+1}",
                     dtype=np.int32,
                     is_list=True,
                 ),
@@ -139,7 +145,7 @@ def test_feast_from_feature_view(tmpdir):
             expected_input_schema,
             expected_output_schema,
         ]
-        kwargs = {"include_id": True, "output_prefix": "prefix", "suffix_int": 1}
+        kwargs = {"include_id": True, "output_prefix": "prefix", "suffix_int": suffix_int}
         qf_init.assert_called_with(*args, **kwargs)
 
 
