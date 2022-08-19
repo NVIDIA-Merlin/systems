@@ -127,7 +127,7 @@ def test_feast_from_feature_view(tmpdir):
         )
 
         assert feast_op.input_schema == expected_input_schema
-        assert feast_op.output_schema.column_schemas == expected_output_schema.column_schemas
+        assert feast_op.output_schema == expected_output_schema
 
         args = [
             "repo_path",
