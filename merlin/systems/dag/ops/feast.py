@@ -12,10 +12,10 @@ from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInfe
 feast_2_numpy = {
     ValueType.INT64: (np.int64, False, False),
     ValueType.INT32: (np.int32, False, False),
-    ValueType.FLOAT: (np.float, False, False),
+    ValueType.FLOAT: (np.float32, False, False),
     ValueType.INT64_LIST: (np.int64, True, True),
     ValueType.INT32_LIST: (np.int32, True, True),
-    ValueType.FLOAT_LIST: (np.float, True, True),
+    ValueType.FLOAT_LIST: (np.float32, True, True),
 }
 
 
