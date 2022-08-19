@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -52,6 +53,88 @@ def test_feast_config_round_trip(tmpdir):
 
         # now mock the QueryFeast constructor so we can inspect its arguments.
         QueryFeast.from_config(created_config_dict)
+        assert qf_init.called_with(*args, **kwargs)
+
+
+def test_feast_from_feature_view(tmpdir):
+
+    input_schema = Schema()
+    output_schema = Schema()
+
+    with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)), patch(
+        "feast.feature_store.Registry.__init__", MagicMock(return_value=None)
+    ), patch("merlin.systems.dag.ops.feast.__init__", MagicMock(return_value=None)) as qf_init:
+        input_source = feast.FileSource(
+            path=tmpdir,
+            event_timestamp_column="datetime",
+            created_timestamp_column="created",
+        )
+        feature_view = feast.FeatureView(
+            name="item_features",
+            entities=["item_id"],
+            ttl=timedelta(seconds=100),
+            features=[
+                feast.Feature(name="int_feature", dtype=feast.ValueType.INT32),
+                feast.Feature(name="float_feature", dtype=feast.ValueType.FLOAT),
+                feast.Feature(name="int_list_feature", dtype=feast.ValueType.INT32_LIST),
+                feast.Feature(name="float_list_feature", dtype=feast.ValueType.FLOAT_LIST),
+            ],
+            online=True,
+            input=input_source,
+            tags={},
+        )
+        fs = feast.FeatureStore("repo_path")
+        fs.repo_path = "repo_path"
+        fs._registry = feast.feature_store.Registry(None, None)
+        fs.list_entities = MagicMock(
+            return_value=[feast.Entity(name="item_id", value_type=feast.ValueType.INT32)]
+        )
+        fs.get_feature_view = MagicMock(return_value=feature_view)
+        fs._registry.get_feature_view = MagicMock(return_value=feature_view)
+
+        # # Define the args & kwargs. We want to ensure the round-tripped version uses these same
+        # # arguments.
+        args = [
+            "zzz",
+            "item_id",
+            "item_features",
+            "item_id",
+            ["int_feature", "float_feature", "int_list_feature", "float_list_feature"],
+            [],
+            input_schema,
+            output_schema,
+        ]
+        kwargs = {"include_id": False, "output_prefix": "prefix"}
+        feast_op = QueryFeast.from_feature_view(
+            fs, "item_features", "item_id", output_prefix="prefix", include_id=False
+        )
+
+        expected_output_schema = Schema(
+            column_schemas=[
+                ColumnSchema(name="prefix_int_feature", dtype=np.int32),
+                ColumnSchema(name="prefix_float_feature", dtype=np.float32),
+                ColumnSchema(
+                    name="prefix_int_list_feature_1", dtype=np.int32, is_list=True, is_ragged=True
+                ),
+                ColumnSchema(name="prefix_int_list_feature_2", dtype=np.int32, is_list=True),
+                ColumnSchema(
+                    name="prefix_float_list_feature_1",
+                    dtype=np.float32,
+                    is_list=True,
+                    is_ragged=True,
+                ),
+                ColumnSchema(
+                    name="prefix_float_list_feature_2",
+                    dtype=np.int32,
+                    is_list=True,
+                ),
+            ]
+        )
+        assert feast_op.input_schema == Schema(
+            column_schemas=[ColumnSchema(name="item_id", dtype=np.int32)]
+        )
+        assert feast_op.output_schema.column_schemas == expected_output_schema.column_schemas
+
         assert qf_init.called_with(*args, **kwargs)
 
 
