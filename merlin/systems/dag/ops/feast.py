@@ -37,6 +37,7 @@ class QueryFeast(PipelineableInferenceOperator):
         column: str,
         output_prefix: str = None,
         include_id: bool = False,
+        suffix_int: int = 1,
     ):
         """
         Allows for the creation of a QueryFeast operator from already created Feast artifacts.
@@ -55,6 +56,9 @@ class QueryFeast(PipelineableInferenceOperator):
             A column prefix that can be added to each output column, by default None
         include_id : bool, optional
             A boolean to decide to include the input column in output, by default False
+        suffix_int : int, optional
+            For multi-hot columns, we will use this number for the feature value(s) and
+            `suffix_int + 1` for the nnz column.
 
         Returns
         -------
@@ -87,8 +91,8 @@ class QueryFeast(PipelineableInferenceOperator):
             if is_list:
                 mh_features.append(feature.name)
 
-                values_name = cls._prefixed_name(output_prefix, f"{feature.name}_1")
-                nnzs_name = cls._prefixed_name(output_prefix, f"{feature.name}_2")
+                values_name = cls._prefixed_name(output_prefix, f"{feature.name}_{suffix_int}")
+                nnzs_name = cls._prefixed_name(output_prefix, f"{feature.name}_{suffix_int+1}")
                 output_schema[values_name] = ColumnSchema(
                     values_name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
                 )
@@ -118,7 +122,7 @@ class QueryFeast(PipelineableInferenceOperator):
             output_schema,
             include_id=include_id,
             output_prefix=output_prefix or "",
-            suffix_int=1,
+            suffix_int=suffix_int,
         )
 
     def __init__(
