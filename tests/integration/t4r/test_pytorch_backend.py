@@ -51,7 +51,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
     merlin_yoochoose_schema = Schema()
     for column in t4r_yoochoose_schema:
         name = column.name
-        dtype = {0: np.uint, 2: np.int, 3: np.float}[column.type]
+        dtype = {0: np.int, 2: np.int, 3: np.float}[column.type]
         tags = column.tags
         value_count = {"min": column.value_count.min, "max": column.value_count.max}
         is_list = bool(value_count)
@@ -91,18 +91,20 @@ def test_serve_t4r_with_torchscript(tmpdir):
         traced_model(torch_yoochoose_like)["predictions"],
     )
 
-    output_schema = Schema()
+    output_schema = Schema([ColumnSchema("output")])
 
     torch_op = merlin_yoochoose_schema.column_names >> PredictPyTorch(
         traced_model, merlin_yoochoose_schema, output_schema
     )
 
     ensemble = Ensemble(torch_op, merlin_yoochoose_schema)
-    ensemble.export(str(tmpdir))
+    ens_config, node_configs = ensemble.export(str(tmpdir))
 
     df_cols = {}
     for name, tensor in torch_yoochoose_like.items():
         df_cols[name] = tensor.numpy()
+        if len(tensor.shape) > 1:
+            df_cols[name] = df_cols[name].tolist()
 
     df = make_df(df_cols)[merlin_yoochoose_schema.column_names].iloc[:3]
 
@@ -112,6 +114,6 @@ def test_serve_t4r_with_torchscript(tmpdir):
     outputs = [grpcclient.InferRequestedOutput(col) for col in output_schema.column_names]
     response = None
     with run_triton_server(tmpdir) as client:
-        response = client.infer("ensemble", inputs, outputs=outputs)
+        response = client.infer("ensemble_model", inputs, outputs=outputs)
 
     assert response
