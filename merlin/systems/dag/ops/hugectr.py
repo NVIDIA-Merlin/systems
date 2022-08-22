@@ -16,6 +16,7 @@
 import json
 import os
 import pathlib
+from typing import Optional
 
 import numpy as np
 import tritonclient.grpc.model_config_pb2 as model_config
@@ -222,7 +223,9 @@ class HugeCTR(InferenceOperator):
         return config
 
 
-def _hugectr_config(name, hugectr_params, max_batch_size=None):
+def _hugectr_config(
+    name: str, parameters: dict, max_batch_size: Optional[int] = None
+) -> model_config.ModelConfig:
     """Create a config for a HugeCTR model.
 
     Parameters
@@ -239,63 +242,29 @@ def _hugectr_config(name, hugectr_params, max_batch_size=None):
     config
         Dictionary representation of hugectr config.
     """
-    config = model_config.ModelConfig(name=name, backend="hugectr", max_batch_size=max_batch_size)
-
-    config.input.append(
-        model_config.ModelInput(name="DES", data_type=model_config.TYPE_FP32, dims=[-1])
+    config = model_config.ModelConfig(
+        name=name,
+        backend="hugectr",
+        max_batch_size=max_batch_size,
+        input=[
+            model_config.ModelInput(name="DES", data_type=model_config.TYPE_FP32, dims=[-1]),
+            model_config.ModelInput(name="CATCOLUMN", data_type=model_config.TYPE_INT64, dims=[-1]),
+            model_config.ModelInput(name="ROWINDEX", data_type=model_config.TYPE_INT32, dims=[-1]),
+        ],
+        output=[
+            model_config.ModelOutput(name="OUTPUT0", data_type=model_config.TYPE_FP32, dims=[-1])
+        ],
+        instance_group=[model_config.ModelInstanceGroup(gpus=[0], count=1, kind=1)],
     )
 
-    config.input.append(
-        model_config.ModelInput(name="CATCOLUMN", data_type=model_config.TYPE_INT64, dims=[-1])
-    )
+    for parameter_key, parameter_value in parameters.items():
+        if parameter_value is None:
+            continue
 
-    config.input.append(
-        model_config.ModelInput(name="ROWINDEX", data_type=model_config.TYPE_INT32, dims=[-1])
-    )
-
-    config.output.append(
-        model_config.ModelOutput(name="OUTPUT0", data_type=model_config.TYPE_FP32, dims=[-1])
-    )
-
-    config.instance_group.append(model_config.ModelInstanceGroup(gpus=[0], count=1, kind=1))
-
-    config_hugectr = model_config.ModelParameter(string_value=hugectr_params["config"])
-    config.parameters["config"].CopyFrom(config_hugectr)
-
-    gpucache_val = hugectr_params["gpucache"]
-    gpucache = model_config.ModelParameter(string_value=gpucache_val)
-    config.parameters["gpucache"].CopyFrom(gpucache)
-
-    gpucacheper_val = str(hugectr_params["gpucacheper"])
-    gpucacheper = model_config.ModelParameter(string_value=gpucacheper_val)
-    config.parameters["gpucacheper"].CopyFrom(gpucacheper)
-
-    label_dim = model_config.ModelParameter(string_value=str(hugectr_params["label_dim"]))
-    config.parameters["label_dim"].CopyFrom(label_dim)
-
-    slots = model_config.ModelParameter(string_value=str(hugectr_params["slots"]))
-    config.parameters["slots"].CopyFrom(slots)
-
-    des_feature_num = model_config.ModelParameter(
-        string_value=str(hugectr_params["des_feature_num"])
-    )
-    config.parameters["des_feature_num"].CopyFrom(des_feature_num)
-
-    cat_feature_num = model_config.ModelParameter(
-        string_value=str(hugectr_params["cat_feature_num"])
-    )
-    config.parameters["cat_feature_num"].CopyFrom(cat_feature_num)
-
-    max_nnz = model_config.ModelParameter(string_value=str(hugectr_params["max_nnz"]))
-    config.parameters["max_nnz"].CopyFrom(max_nnz)
-
-    embedding_vector_size = model_config.ModelParameter(
-        string_value=str(hugectr_params["embedding_vector_size"])
-    )
-    config.parameters["embedding_vector_size"].CopyFrom(embedding_vector_size)
-
-    embeddingkey_long_type_val = hugectr_params["embeddingkey_long_type"]
-    embeddingkey_long_type = model_config.ModelParameter(string_value=embeddingkey_long_type_val)
-    config.parameters["embeddingkey_long_type"].CopyFrom(embeddingkey_long_type)
+        if isinstance(parameter_value, list):
+            config.parameters[parameter_key].string_value = json.dumps(parameter_value)
+        elif isinstance(parameter_value, bool):
+            config.parameters[parameter_key].string_value = str(parameter_value).lower()
+        config.parameters[parameter_key].string_value = str(parameter_value)
 
     return config
