@@ -146,7 +146,11 @@ class PredictPyTorch(InferenceOperator):
 
             if col_schema.is_list and not col_schema.is_ragged:
                 value_count = col_schema.properties.get("value_count", None)
-                if value_count and value_count["min"] == value_count["max"]:
+                if (
+                    value_count
+                    and value_count["max"] > 0
+                    and value_count["min"] == value_count["max"]
+                ):
                     dims = [-1, value_count["max"]]
 
             config.input.append(
