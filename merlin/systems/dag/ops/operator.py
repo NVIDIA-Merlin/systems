@@ -307,7 +307,7 @@ def _schema_to_dict(schema: Schema) -> dict:
 
 
 def _add_model_param(params, paramclass, col_schema, dims=None):
-    dims = dims if dims is not None else [-1, 1]
+    dims = dims if dims is not None else _compute_dims(col_schema)
     if col_schema.is_list and col_schema.is_ragged:
         params.append(
             paramclass(
@@ -322,9 +322,19 @@ def _add_model_param(params, paramclass, col_schema, dims=None):
             )
         )
     else:
-        if col_schema.is_list:
-            value_count = col_schema.properties.get("value_count", {})
-            dims = [-1, value_count.get("max", 1)]
         params.append(
             paramclass(name=col_schema.name, data_type=_convert_dtype(col_schema.dtype), dims=dims)
         )
+
+
+def _compute_dims(col_schema):
+    dims = [-1, 1]
+
+    if col_schema.is_list:
+        value_count = col_schema.properties.get("value_count", None)
+        if value_count and value_count["max"] > 0 and value_count["min"] == value_count["max"]:
+            dims = [-1, value_count["max"]]
+        else:
+            dims = [-1, -1]
+
+    return dims
