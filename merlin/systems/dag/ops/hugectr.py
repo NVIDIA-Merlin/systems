@@ -151,7 +151,8 @@ class HugeCTR(InferenceOperator):
 
         self.model.graph_to_json(graph_config_file=network_file)
         self.model.save_params_to_files(str(hugectr_model_path) + "/")
-        model_json = json.loads(open(network_file, "r").read())
+        with open(network_file, "r", encoding="utf-8") as f:
+            model_json = json.loads(f.read())
         dense_pattern = "*_dense_*.model"
         dense_path = [
             os.path.join(hugectr_model_path, path.name)
@@ -165,7 +166,7 @@ class HugeCTR(InferenceOperator):
             if "opt" not in path.name
         ]
 
-        config_dict = dict()
+        config_dict = {}
         config_dict["supportlonglong"] = True
 
         data_layer = model_json["layers"][0]
@@ -177,7 +178,7 @@ class HugeCTR(InferenceOperator):
         num_cat_columns = sum(x["slot_num"] for x in data_layer["sparse"])
         vec_size = [x["sparse_embedding_hparam"]["embedding_vec_size"] for x in sparse_layers]
 
-        model = dict()
+        model = {}
         model["model"] = model_name
         model["slot_num"] = num_cat_columns
         model["sparse_files"] = sparse_paths
@@ -201,7 +202,7 @@ class HugeCTR(InferenceOperator):
         config_dict["models"] = [model]
 
         parameter_server_config_path = str(node_export_path.parent / "ps.json")
-        with open(parameter_server_config_path, "w") as f:
+        with open(parameter_server_config_path, "w", encoding="utf-8") as f:
             f.write(json.dumps(config_dict))
 
         self.hugectr_params["config"] = network_file
@@ -215,7 +216,7 @@ class HugeCTR(InferenceOperator):
 
         config = _hugectr_config(node_name, self.hugectr_params, max_batch_size=self.max_batch_size)
 
-        with open(os.path.join(node_export_path, "config.pbtxt"), "w") as o:
+        with open(os.path.join(node_export_path, "config.pbtxt"), "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)
 
         return config
