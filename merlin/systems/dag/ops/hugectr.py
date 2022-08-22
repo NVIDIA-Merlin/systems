@@ -176,6 +176,7 @@ class HugeCTR(InferenceOperator):
             for layer in model_json["layers"]
             if layer["type"] == "DistributedSlotSparseEmbeddingHash"
         ]
+        full_slots = [x["sparse_embedding_hparam"]["slot_size_array"] for x in sparse_layers]
         num_cat_columns = sum(x["slot_num"] for x in data_layer["sparse"])
         vec_size = [x["sparse_embedding_hparam"]["embedding_vec_size"] for x in sparse_layers]
 
@@ -214,7 +215,7 @@ class HugeCTR(InferenceOperator):
         self.hugectr_params["embedding_vector_size"] = vec_size[0]
         self.hugectr_params["slots"] = num_cat_columns
         self.hugectr_params["label_dim"] = data_layer["label"]["label_dim"]
-
+        self.hugectr_params["slot_sizes"] = full_slots
         config = _hugectr_config(node_name, self.hugectr_params, max_batch_size=self.max_batch_size)
 
         with open(os.path.join(node_export_path, "config.pbtxt"), "w", encoding="utf-8") as o:
