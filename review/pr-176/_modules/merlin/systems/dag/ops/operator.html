@@ -380,7 +380,7 @@
 
 
 <span class="k">def</span> <span class="nf">_add_model_param</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">paramclass</span><span class="p">,</span> <span class="n">col_schema</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="n">dims</span> <span class="o">=</span> <span class="n">dims</span> <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="n">dims</span> <span class="k">if</span> <span class="n">dims</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_compute_dims</span><span class="p">(</span><span class="n">col_schema</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_list</span> <span class="ow">and</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_ragged</span><span class="p">:</span>
         <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">paramclass</span><span class="p">(</span>
@@ -395,12 +395,22 @@
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_list</span><span class="p">:</span>
-            <span class="n">value_count</span> <span class="o">=</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value_count&quot;</span><span class="p">,</span> <span class="p">{})</span>
-            <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">value_count</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
         <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">paramclass</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">col_schema</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">_convert_dtype</span><span class="p">(</span><span class="n">col_schema</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="n">dims</span><span class="p">)</span>
         <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_compute_dims</span><span class="p">(</span><span class="n">col_schema</span><span class="p">):</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_list</span><span class="p">:</span>
+        <span class="n">value_count</span> <span class="o">=</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value_count&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value_count</span> <span class="ow">and</span> <span class="n">value_count</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">value_count</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">value_count</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">value_count</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">dims</span>
 </pre></div>
 
            </div>
