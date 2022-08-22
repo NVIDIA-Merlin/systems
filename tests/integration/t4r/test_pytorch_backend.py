@@ -15,6 +15,7 @@
 #
 
 import numpy as np
+import pandas as pd
 import pytest
 
 pytorch = pytest.importorskip("torch")
@@ -26,6 +27,8 @@ data_conversions = pytest.importorskip("merlin.systems.triton.conversions")
 
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
+
+from tritonclient.utils import np_to_triton_dtype  # noqa
 
 from merlin.core.dispatch import make_df  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
@@ -46,12 +49,18 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # TODO: This schema is some weird list thing, but it should be a Merlin schema.
     #       For now, let's convert it across in this test, but ultimately we should
     #       rework T4R to use Merlin Schemas.
-    # breakpoint()
 
     merlin_yoochoose_schema = Schema()
     for column in t4r_yoochoose_schema:
         name = column.name
-        dtype = {0: np.int, 2: np.int, 3: np.float}[column.type]
+
+        # The feature types in the T4R schemas are a bit hard to work with:
+        # https://github.com/NVIDIA-Merlin/Transformers4Rec/blob/538fc54bb8f2e3dc79224e497bebee15b00e4ab7/merlin_standard_lib/proto/schema_bp.py#L43-L53
+
+        # Getting tritonclient.utils.InferenceServerException: [StatusCode.INVALID_ARGUMENT]
+        # inference input data-type is 'FP32', model expects 'INT32' for 'ensemble_model'
+        # which may (or may not) be related to the following line
+        dtype = {0: np.int32, 2: np.int32, 3: np.float32}[column.type]
         tags = column.tags
         value_count = {"min": column.value_count.min, "max": column.value_count.max}
         is_list = bool(value_count)
@@ -102,18 +111,53 @@ def test_serve_t4r_with_torchscript(tmpdir):
 
     df_cols = {}
     for name, tensor in torch_yoochoose_like.items():
-        df_cols[name] = tensor.numpy()
+        df_cols[name] = tensor.numpy().astype(merlin_yoochoose_schema[name].dtype)
         if len(tensor.shape) > 1:
-            df_cols[name] = df_cols[name].tolist()
+            df_cols[name] = list(df_cols[name])
 
     df = make_df(df_cols)[merlin_yoochoose_schema.column_names].iloc[:3]
 
     # response = _run_ensemble_on_tritonserver(str(tmpdir), ["output"], df, ensemble.name)
 
-    inputs = triton.convert_df_to_triton_input(df.columns, df)
+    inputs = convert_df_to_triton_input(merlin_yoochoose_schema, df)
+
     outputs = [grpcclient.InferRequestedOutput(col) for col in output_schema.column_names]
+
     response = None
     with run_triton_server(tmpdir) as client:
         response = client.infer("ensemble_model", inputs, outputs=outputs)
 
     assert response
+
+
+def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput, dtype="int32"):
+    columns = [(col_name, batch[col_name]) for col_name in schema.column_names]
+    inputs = []
+    for i, (col_name, col) in enumerate(columns):
+        if schema[col_name].is_list and schema[col_name].is_ragged:
+            if isinstance(col, pd.Series):
+                raise ValueError("this function doesn't support CPU list values yet")
+            inputs.append(
+                _convert_column_to_triton_input(
+                    col._column.offsets.values_host.astype(schema[col_name].dtype),
+                    col_name + "__nnzs",
+                    input_class,
+                )
+            )
+            inputs.append(
+                _convert_column_to_triton_input(
+                    col.list.leaves.values_host.astype("int32"), col_name + "__values", input_class
+                )
+            )
+        else:
+            values = col.values if isinstance(col, pd.Series) else col.values_host
+            inputs.append(_convert_column_to_triton_input(values, col_name, input_class))
+    return inputs
+
+
+def _convert_column_to_triton_input(col, name, input_class=grpcclient.InferInput):
+    col = col.reshape(len(col), 1)
+    dtype = np_to_triton_dtype(col.dtype)
+    input_tensor = input_class(name, col.shape, dtype)
+    input_tensor.set_data_from_numpy(col)
+    return input_tensor
