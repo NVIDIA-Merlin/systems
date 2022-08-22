@@ -120,7 +120,7 @@ class HugeCTR(InferenceOperator):
         """
         return Schema([ColumnSchema("OUTPUT0", dtype=np.float32)])
 
-    def export(self, path, input_schema, output_schema, node_id=None, version=1):
+    def export(self, path, input_schema, output_schema, node_id=None, params=None, version=1):
         """Create and export the required config files for the hugectr model.
 
         Parameters
