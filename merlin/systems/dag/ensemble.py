@@ -108,17 +108,34 @@ class Ensemble:
                     model_name=node_name, model_version=-1
                 )
 
-                for input_col_name in node.input_schema.column_names:
+                for input_col_name, input_col_schema in node.input_schema.column_schemas.items():
                     source = _find_column_source(node.parents_with_dependencies, input_col_name)
                     source_id = node_id_lookup.get(source, None)
                     in_suffix = f"_{source_id}" if source_id is not None else ""
-                    config_step.input_map[input_col_name] = input_col_name + in_suffix
+                    if input_col_schema.is_list and input_col_schema.is_ragged:
+                        config_step.input_map[input_col_name + "__values"] = (
+                            input_col_name + "__values" + in_suffix
+                        )
+                        config_step.input_map[input_col_name + "__nnzs"] = (
+                            input_col_name + "__nnzs" + in_suffix
+                        )
+                    else:
+                        config_step.input_map[input_col_name] = input_col_name + in_suffix
 
-                for output_col_name in node.output_schema.column_names:
+                for output_col_name, output_col_schema in node.output_schema.column_schemas.items():
                     out_suffix = (
                         f"_{node_id}" if node_id is not None and node_id < node_idx - 1 else ""
                     )
-                    config_step.output_map[output_col_name] = output_col_name + out_suffix
+
+                    if output_col_schema.is_list and output_col_schema.is_ragged:
+                        config_step.output_map[output_col_name + "__values"] = (
+                            output_col_name + "__values" + out_suffix
+                        )
+                        config_step.output_map[output_col_name + "__nnzs"] = (
+                            output_col_name + "__nnzs" + out_suffix
+                        )
+                    else:
+                        config_step.output_map[output_col_name] = output_col_name + out_suffix
 
                 ensemble_config.ensemble_scheduling.step.append(config_step)
                 node_configs.append(node_config)
