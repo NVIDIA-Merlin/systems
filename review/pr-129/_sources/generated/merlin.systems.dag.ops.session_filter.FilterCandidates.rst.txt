@@ -22,6 +22,8 @@
       ~FilterCandidates.create_node
       ~FilterCandidates.export
       ~FilterCandidates.from_config
+      ~FilterCandidates.from_model_registry
+      ~FilterCandidates.from_path
       ~FilterCandidates.output_column_names
       ~FilterCandidates.transform
    

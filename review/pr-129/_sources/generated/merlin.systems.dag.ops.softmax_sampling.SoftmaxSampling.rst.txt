@@ -22,6 +22,8 @@
       ~SoftmaxSampling.create_node
       ~SoftmaxSampling.export
       ~SoftmaxSampling.from_config
+      ~SoftmaxSampling.from_model_registry
+      ~SoftmaxSampling.from_path
       ~SoftmaxSampling.output_column_names
       ~SoftmaxSampling.transform
    
