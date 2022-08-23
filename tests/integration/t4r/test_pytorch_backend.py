@@ -40,15 +40,22 @@ from merlin.systems.triton.utils import run_triton_server  # noqa
 
 
 def test_serve_t4r_with_torchscript(tmpdir):
+    # ===========================================
+    # Generate training data
+    # ===========================================
     torch_yoochoose_like = tr.data.tabular_sequence_testing_data.torch_synthetic_data(
         num_rows=100, min_session_length=5, max_session_length=20
     )
 
-    t4r_yoochoose_schema = t4r.data.tabular_sequence_testing_data.schema
+    # ===========================================
+    # Translate T4R schema to Merlin schema
+    # ===========================================
 
     # TODO: This schema is some weird list thing, but it should be a Merlin schema.
     #       For now, let's convert it across in this test, but ultimately we should
     #       rework T4R to use Merlin Schemas.
+
+    t4r_yoochoose_schema = t4r.data.tabular_sequence_testing_data.schema
 
     merlin_yoochoose_schema = Schema()
     for column in t4r_yoochoose_schema:
@@ -77,6 +84,10 @@ def test_serve_t4r_with_torchscript(tmpdir):
         )
         merlin_yoochoose_schema[name] = col_schema
 
+    # ===========================================
+    # Build, train, test, and JIT the model
+    # ===========================================
+
     input_module = t4r.torch.TabularSequenceFeatures.from_schema(
         t4r_yoochoose_schema,
         max_sequence_length=20,
@@ -100,6 +111,10 @@ def test_serve_t4r_with_torchscript(tmpdir):
         traced_model(torch_yoochoose_like)["predictions"],
     )
 
+    # ===========================================
+    # Build a simple Ensemble graph
+    # ===========================================
+
     output_schema = Schema([ColumnSchema("output")])
 
     torch_op = merlin_yoochoose_schema.column_names >> PredictPyTorch(
@@ -108,6 +123,10 @@ def test_serve_t4r_with_torchscript(tmpdir):
 
     ensemble = Ensemble(torch_op, merlin_yoochoose_schema)
     ens_config, node_configs = ensemble.export(str(tmpdir))
+
+    # ===========================================
+    # Convert training data to Triton format
+    # ===========================================
 
     df_cols = {}
     for name, tensor in torch_yoochoose_like.items():
@@ -120,6 +139,10 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # response = _run_ensemble_on_tritonserver(str(tmpdir), ["output"], df, ensemble.name)
 
     inputs = convert_df_to_triton_input(merlin_yoochoose_schema, df)
+
+    # ===========================================
+    # Send request to Triton and check response
+    # ===========================================
 
     outputs = [grpcclient.InferRequestedOutput(col) for col in output_schema.column_names]
 
