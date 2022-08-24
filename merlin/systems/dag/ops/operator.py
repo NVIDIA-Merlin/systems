@@ -1,8 +1,10 @@
 import json
 import os
 import pathlib
-from abc import abstractclassmethod, abstractmethod
+from abc import abstractmethod
 from shutil import copyfile
+
+from merlin.systems.model_registry import ModelRegistry
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -120,6 +122,45 @@ class InferenceOperator(BaseOperator):
         """
         return InferenceNode(selector)
 
+    @classmethod
+    def from_model_registry(cls, registry: ModelRegistry, **kwargs) -> "InferenceOperator":
+        """
+        Loads the InferenceOperator from the provided ModelRegistry.
+
+        Parameters
+        ----------
+        registry : ModelRegistry
+            A ModleRegistry object that will provide the path to the model.
+        **kwargs
+            Other kwargs to pass to your InferenceOperator's constructor.
+
+        Returns
+        -------
+        InferenceOperator
+            New node for Ensemble graph.
+        """
+
+        return cls.from_path(registry.get_artifact_uri(), **kwargs)
+
+    @classmethod
+    def from_path(cls, path, **kwargs) -> "InferenceOperator":
+        """
+        Loads the InferenceOperator from the path where it was exported after training.
+
+        Parameters
+        ----------
+        path : str
+            Path to the exported model.
+        **kwargs
+            Other kwargs to pass to your InferenceOperator's constructor.
+
+        Returns
+        -------
+        InferenceOperator
+            New node for Ensemble graph.
+        """
+        raise NotImplementedError(f"{cls.__name__} operators cannot be instantiated with a path.")
+
 
 class PipelineableInferenceOperator(InferenceOperator):
     """
@@ -128,15 +169,20 @@ class PipelineableInferenceOperator(InferenceOperator):
     same model. This remove tritonserver overhead between operators of this type.
     """
 
-    @abstractclassmethod
-    def from_config(cls, config: dict):
+    @classmethod
+    @abstractmethod
+    def from_config(cls, config: dict, **kwargs):
         """
         Instantiate a class object given a config.
 
         Parameters
         ----------
         config : dict
-
+        **kwargs
+          contains the following:
+            * model_repository: Model repository path
+            * model_version: Model version
+            * model_name: Model name
 
         Returns
         -------
@@ -232,13 +278,15 @@ class PipelineableInferenceOperator(InferenceOperator):
                 )
             )
 
-        with open(os.path.join(node_export_path, "config.pbtxt"), "w") as o:
+        with open(os.path.join(node_export_path, "config.pbtxt"), "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)
 
         os.makedirs(node_export_path, exist_ok=True)
         os.makedirs(os.path.join(node_export_path, str(version)), exist_ok=True)
         copyfile(
-            os.path.join(os.path.dirname(__file__), "..", "..", "triton", "oprunner_model.py"),
+            os.path.join(
+                os.path.dirname(__file__), "..", "..", "triton", "models", "oprunner_model.py"
+            ),
             os.path.join(node_export_path, str(version), "model.py"),
         )
 
@@ -256,3 +304,27 @@ def _schema_to_dict(schema: Schema) -> dict:
         }
 
     return schema_dict
+
+
+def _add_model_param(params, paramclass, col_schema, dims=None):
+    dims = dims if dims is not None else [-1, 1]
+    if col_schema.is_list and col_schema.is_ragged:
+        params.append(
+            paramclass(
+                name=col_schema.name + "__values",
+                data_type=_convert_dtype(col_schema.dtype),
+                dims=dims,
+            )
+        )
+        params.append(
+            paramclass(
+                name=col_schema.name + "__nnzs", data_type=model_config.TYPE_INT32, dims=dims
+            )
+        )
+    else:
+        if col_schema.is_list:
+            value_count = col_schema.properties.get("value_count", {})
+            dims = [-1, value_count.get("max", 1)]
+        params.append(
+            paramclass(name=col_schema.name, data_type=_convert_dtype(col_schema.dtype), dims=dims)
+        )

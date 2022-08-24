@@ -1,6 +1,7 @@
 import contextlib
 import os
 import signal
+import socket
 import subprocess
 import time
 from distutils.spawn import find_executable
@@ -8,19 +9,35 @@ from distutils.spawn import find_executable
 import tritonclient
 import tritonclient.grpc as grpcclient
 
-import merlin.systems.triton as triton
+from merlin.systems import triton
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
 @contextlib.contextmanager
-def run_triton_server(modelpath, backend_config="tensorflow,version=2"):
+def run_triton_server(
+    model_repository: str,
+    *,
+    grpc_host: str = "localhost",
+    grpc_port: int = 8001,
+    backend_config: str = "tensorflow,version=2",
+):
     """This function starts up a Triton server instance and returns a client to it.
 
     Parameters
     ----------
-    modelpath : string
-        The path to the model to load.
+    model_repository : string
+        The path to the model repository directory.
+    grpc_host : string
+        The host address for the triton gRPC server to bind to.
+        Default is localhost.
+    grpc_port : int
+        The port for the triton gRPC server to listen on for requests.
+        Default is 8001.
+    backend_config : string
+        A backend-specific configuration.
+        Following the pattern <backend_name>,<setting>=<value>.
+        Where <backend_name> is the name of the backend, such as 'tensorflow'
 
     Yields
     ------
@@ -28,18 +45,30 @@ def run_triton_server(modelpath, backend_config="tensorflow,version=2"):
         The client connected to the Triton server.
 
     """
+    if grpc_port == 0 or grpc_port is None:
+        grpc_port = _get_random_free_port()
+    grpc_url = f"{grpc_host}:{grpc_port}"
+
+    try:
+        with grpcclient.InferenceServerClient(grpc_url) as client:
+            if client.is_server_ready():
+                raise RuntimeError(f"Another tritonserver is already running on {grpc_url}")
+    except tritonclient.utils.InferenceServerException:
+        pass
+
     cmdline = [
         TRITON_SERVER_PATH,
         "--model-repository",
-        modelpath,
-        "--backend-config",
-        backend_config,
+        model_repository,
+        f"--backend-config={backend_config}",
+        f"--grpc-port={grpc_port}",
+        f"--grpc-address={grpc_host}",
     ]
     env = os.environ.copy()
     env["CUDA_VISIBLE_DEVICES"] = "0"
     with subprocess.Popen(cmdline, env=env) as process:
         try:
-            with grpcclient.InferenceServerClient("localhost:8001") as client:
+            with grpcclient.InferenceServerClient(grpc_url) as client:
                 # wait until server is ready
                 for _ in range(60):
                     if process.poll() is not None:
@@ -61,6 +90,13 @@ def run_triton_server(modelpath, backend_config="tensorflow,version=2"):
         finally:
             # signal triton to shutdown
             process.send_signal(signal.SIGINT)
+
+
+def _get_random_free_port():
+    """Return a random free port."""
+    with socket.socket() as s:
+        s.bind(("", 0))
+        return s.getsockname()[1]
 
 
 def run_ensemble_on_tritonserver(

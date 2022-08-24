@@ -18,7 +18,17 @@ import json
 
 
 class OperatorRunner:
-    def __init__(self, config, repository="./", version=1, kind=""):
+    """Runner for collection of operators in one triton model."""
+
+    def __init__(
+        self,
+        config,
+        *,
+        model_repository="./",
+        model_version=1,
+        model_name=None,
+    ):
+        """Instantiate an OperatorRunner"""
         operator_names = self.fetch_json_param(config, "operator_names")
         op_configs = [self.fetch_json_param(config, op_name) for op_name in operator_names]
 
@@ -30,14 +40,21 @@ class OperatorRunner:
             op_module = importlib.import_module(module_name)
             op_class = getattr(op_module, class_name)
 
-            operator = op_class.from_config(op_config)
+            operator = op_class.from_config(
+                op_config,
+                model_repository=model_repository,
+                model_name=model_name,
+                model_version=model_version,
+            )
             self.operators.append(operator)
 
     def execute(self, tensors):
+        """Run transform on multiple operators"""
         for operator in self.operators:
             tensors = operator.transform(tensors)
         return tensors
 
     def fetch_json_param(self, model_config, param_name):
+        """Extract JSON value from model config parameters"""
         string_value = model_config["parameters"][param_name]["string_value"]
         return json.loads(string_value)

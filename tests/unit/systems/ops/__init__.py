@@ -13,17 +13,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import warnings
-
-from . import _version
-
-# suppress some warnings with cudf warning about column ordering with dlpack
-# and numba warning about deprecated environment variables
-warnings.filterwarnings("ignore", module="cudf.io.dlpack")
-warnings.filterwarnings("ignore", module="numba.cuda.envvars")
-
-# cudf warns about column ordering with dlpack methods, ignore it
-warnings.filterwarnings("ignore", module="cudf.io.dlpack")
-
-
-__version__ = _version.get_versions()["version"]

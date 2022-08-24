@@ -67,6 +67,7 @@ class PredictForest(PipelineableInferenceOperator):
         self.backend = backend
         self.input_schema = input_schema
         self._fil_model_name = None
+        super().__init__()
 
     def compute_output_schema(
         self,
@@ -112,7 +113,7 @@ class PredictForest(PipelineableInferenceOperator):
         )
 
     @classmethod
-    def from_config(cls, config: dict) -> "PredictForest":
+    def from_config(cls, config: dict, **kwargs) -> "PredictForest":
         """Instantiate the class from a dictionary representation.
 
         Expected structure:
@@ -301,7 +302,7 @@ class FIL(InferenceOperator):
             **self.parameters,
         )
 
-        with open(node_export_path / "config.pbtxt", "w") as o:
+        with open(node_export_path / "config.pbtxt", "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)
 
         return config
@@ -364,6 +365,9 @@ def get_fil_model(model) -> FILModel:
         fil_model = XGBoost(model)
     elif xgboost and isinstance(model, xgboost.XGBModel):
         fil_model = XGBoost(model.get_booster())
+    elif xgboost and hasattr(model, "booster"):
+        # support the merlin.models.xgb.XGBoost wrapper too
+        fil_model = XGBoost(model.booster)
     elif lightgbm and isinstance(model, lightgbm.Booster):
         fil_model = LightGBM(model)
     elif lightgbm and isinstance(model, lightgbm.LGBMModel):
@@ -394,6 +398,7 @@ def get_fil_model(model) -> FILModel:
             "sklearn.ensemble.RandomForestRegressor",
             "cuml.ensemble.RandomForestClassifier",
             "cuml.ensemble.RandomForestRegressor",
+            "merlin.models.xgb.XGBoost",
         }
         raise ValueError(
             f"Model type not supported. {type(model)} " f"Must be one of: {supported_model_types}"
