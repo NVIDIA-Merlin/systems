@@ -1,8 +1,4 @@
--r requirements.txt
 feast<=0.20.0
 faiss-gpu
 pytest
 pytest-cov
-git+https://github.com/NVIDIA-Merlin/core.git
-git+https://github.com/NVIDIA-Merlin/NVTabular.git
-git+https://github.com/NVIDIA-Merlin/models.git
