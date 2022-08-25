@@ -870,9 +870,11 @@ bytearray(b&#39;[{&quot;name&quot;:&quot;0_transformworkflow&quot;,&quot;version
 
 <span class="n">inputs</span> <span class="o">=</span> <span class="n">convert_df_to_triton_input</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferInput</span><span class="p">)</span>
 
+<span class="n">output_cols</span> <span class="o">=</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
+
 <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferRequestedOutput</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">output_cols</span>
 <span class="p">]</span>
 </pre></div>
 </div>
