@@ -1,5 +1,6 @@
--r requirements.txt
-cudf>=21.12
-dask-cudf>=21.12
-dask-cuda>=21.12
-cupy>=7
+feast<=0.20.0
+faiss-gpu
+pytest
+pytest-cov
+dask>=2022.3.0
+distributed>=2022.3.0
