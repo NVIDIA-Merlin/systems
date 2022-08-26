@@ -111,7 +111,10 @@ def test_feast_from_feature_view(tmpdir, suffix_int):
                     is_ragged=True,
                 ),
                 ColumnSchema(
-                    name=f"prefix_int_list_feature_{suffix_int+1}", dtype=np.int32, is_list=True
+                    name=f"prefix_int_list_feature_{suffix_int+1}",
+                    dtype=np.int32,
+                    is_list=True,
+                    is_ragged=False,
                 ),
                 ColumnSchema(
                     name=f"prefix_float_list_feature_{suffix_int}",
@@ -123,6 +126,7 @@ def test_feast_from_feature_view(tmpdir, suffix_int):
                     name=f"prefix_float_list_feature_{suffix_int+1}",
                     dtype=np.int32,
                     is_list=True,
+                    is_ragged=False,
                 ),
                 ColumnSchema(name="item_id", dtype=np.int32),
             ]
