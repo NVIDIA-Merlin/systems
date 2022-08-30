@@ -22,6 +22,8 @@ from typing import Dict
 import numpy as np
 import pytest
 from google.protobuf import text_format
+from tritonclient import grpc as grpcclient
+from tritonclient.grpc import model_config_pb2
 
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
@@ -31,9 +33,7 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 
 torch = pytest.importorskip("torch")
 triton = pytest.importorskip("merlin.systems.triton")
-grpcclient = pytest.importorskip("tritonclient.grpc")
 ptorch_op = pytest.importorskip("merlin.systems.dag.ops.pytorch")
-model_config_pb2 = pytest.importorskip("tritonclient.grpc.model_config_pb2")
 
 
 class CustomModel(torch.nn.Module):

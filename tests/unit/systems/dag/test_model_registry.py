@@ -26,7 +26,6 @@ from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 from merlin.systems.model_registry import MLFlowModelRegistry, ModelRegistry  # noqa
 
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")
-model_config = pytest.importorskip("tritonclient.grpc.model_config_pb2")
 workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
 
 

@@ -38,9 +38,6 @@ from merlin.systems.dag.ensemble import Ensemble  # noqa
 from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
 from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
 
-tritonclient = pytest.importorskip("tritonclient")
-grpcclient = pytest.importorskip("tritonclient.grpc")
-
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
