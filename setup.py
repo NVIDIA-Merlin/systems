@@ -45,29 +45,16 @@ def read_requirements(filename):
         return packages
 
 
-def parse_requirements(filename):
-    """load requirements from a pip requirements file"""
-    with open(filename, encoding="utf-8") as req_file:
-        lineiter = (line.strip() for line in req_file)
-        packages = []
-        for line in lineiter:
-            if line.startswith("-r"):
-                packages.extend(parse_requirements)
-            if not line.startswith("#"):
-                packages.append(line)
-        return packages
-
-
 requirements = {
-    "cpu": read_requirements("./requirements.txt"),
-    "gpu": read_requirements("./requirements-gpu.txt"),
+    "cpu": read_requirements("requirements.txt"),
+    "gpu": read_requirements("requirements-gpu.txt"),
 }
 dev_requirements = {
-    "dev": read_requirements("./requirements-dev.txt"),
-    "test": read_requirements("./requirements-test.txt"),
-    "test-cpu": read_requirements("./requirements-test-cpu.txt"),
-    "test-gpu": read_requirements("./requirements-test-gpu.txt"),
-    "docs": read_requirements("./requirements-docs.txt"),
+    "dev": read_requirements("requirements-dev.txt"),
+    "test": read_requirements("requirements-test.txt"),
+    "test-cpu": read_requirements("requirements-test-cpu.txt"),
+    "test-gpu": read_requirements("requirements-test-gpu.txt"),
+    "docs": read_requirements("requirements-docs.txt"),
 }
 
 with open("README.md", encoding="utf8") as readme_file:
