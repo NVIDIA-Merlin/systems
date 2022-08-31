@@ -5,6 +5,7 @@ from testbook import testbook
 
 from tests.conftest import REPO_ROOT
 
+pytest.importorskip("cudf")
 pytest.importorskip("tensorflow")
 pytest.importorskip("merlin.models")
 
