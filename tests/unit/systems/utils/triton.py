@@ -16,12 +16,10 @@
 from distutils.spawn import find_executable
 
 import pytest
+from tritonclient import grpc as grpcclient
 
 triton = pytest.importorskip("merlin.systems.triton")
 data_conversions = pytest.importorskip("merlin.systems.triton.conversions")
-
-tritonclient = pytest.importorskip("tritonclient")
-grpcclient = pytest.importorskip("tritonclient.grpc")
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 from merlin.systems.triton.utils import run_triton_server  # noqa

@@ -21,6 +21,7 @@ import pytest
 import sklearn.datasets
 import xgboost
 from google.protobuf import text_format
+from tritonclient.grpc import model_config_pb2 as model_config
 
 from merlin.core.utils import Distributed
 from merlin.dag import ColumnSelector
@@ -31,9 +32,6 @@ from merlin.systems.dag.ops.fil import PredictForest
 from merlin.systems.dag.ops.workflow import TransformWorkflow
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
-
-tritonclient = pytest.importorskip("tritonclient")
-import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 
 
 def test_load_from_config(tmpdir):

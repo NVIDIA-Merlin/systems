@@ -28,8 +28,8 @@ from merlin.schema import ColumnSchema, Schema
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
+from tritonclient.grpc import model_config_pb2 as model_config  # noqa
 
-model_config = pytest.importorskip("tritonclient.grpc.model_config_pb2")
 tf_op = pytest.importorskip("merlin.systems.dag.ops.tensorflow")
 
 tf = pytest.importorskip("tensorflow")

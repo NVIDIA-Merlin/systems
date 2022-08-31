@@ -22,13 +22,13 @@ import pytest
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
+from tritonclient.grpc import model_config_pb2 as model_config  # noqa
 
 from merlin.schema import Schema  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
 
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")
-model_config = pytest.importorskip("tritonclient.grpc.model_config_pb2")
 workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
 
 

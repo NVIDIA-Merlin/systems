@@ -37,16 +37,13 @@ tf = pytest.importorskip("tensorflow")
 triton = pytest.importorskip("merlin.systems.triton")
 export = pytest.importorskip("merlin.systems.dag.ensemble")
 
+import tritonclient.grpc.model_config_pb2 as model_config  # noqa
+
 from merlin.systems.dag.ensemble import Ensemble  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
 from tests.unit.systems.utils.tf import create_tf_model  # noqa
 from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
-
-tritonclient = pytest.importorskip("tritonclient")
-import tritonclient.grpc.model_config_pb2 as model_config  # noqa
-
-grpcclient = pytest.importorskip("tritonclient.grpc")
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 

@@ -31,8 +31,7 @@ from merlin.schema import Schema
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
-
-model_config = pytest.importorskip("tritonclient.grpc.model_config_pb2")
+from tritonclient.grpc import model_config_pb2 as model_config  # noqa
 
 
 def export_op(export_dir, triton_op) -> model_config.ModelConfig:
