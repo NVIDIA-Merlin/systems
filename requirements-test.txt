@@ -9,7 +9,7 @@
 pytest>=5
 pytest-cov>=2
 scikit-learn>=0.20
-git+https://github.com/rapidsai/asvdb.git
+asvdb@git+https://github.com/rapidsai/asvdb.git
 testbook==0.4.2
 
 # packages necessary to run tests and push PRs
