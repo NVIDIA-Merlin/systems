@@ -20,7 +20,7 @@
 # ==============================================================================
 
 
-# <img src="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" style="width: 90px; float: right;">
+# <img src="https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-an-xgboost-model-with-merlin-systems/nvidia_logo.png" style="width: 90px; float: right;">
 # 
 # # Serving an XGBoost Model with Merlin Systems
 # 
