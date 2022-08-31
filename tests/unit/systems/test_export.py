@@ -30,13 +30,11 @@ ensemble = pytest.importorskip("merlin.systems.triton.export")
 
 torch = pytest.importorskip("torch")  # noqa
 
+
 from merlin.systems.triton.export import export_pytorch_ensemble, export_tensorflow_ensemble  # noqa
 from tests.unit.systems.utils.tf import create_tf_model  # noqa
 from tests.unit.systems.utils.torch import create_pytorch_model  # noqa
 from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
-
-tritonclient = pytest.importorskip("tritonclient")
-grpcclient = pytest.importorskip("tritonclient.grpc")
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 tf_utils.configure_tensorflow()

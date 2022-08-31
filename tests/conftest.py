@@ -50,10 +50,6 @@ except ImportError:
 
 
 REPO_ROOT = Path(__file__).parent.parent
-
-grpcclient = pytest.importorskip("tritonclient.grpc")
-tritonclient = pytest.importorskip("tritonclient")
-
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
