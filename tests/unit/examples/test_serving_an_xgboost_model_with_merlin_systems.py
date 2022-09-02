@@ -9,6 +9,7 @@ pytest.importorskip("merlin.models")
 pytest.importorskip("xgboost")
 
 
+@pytest.mark.notebook
 @testbook(REPO_ROOT / "examples/Serving-An-XGboost-Model-With-Merlin-Systems.ipynb", execute=False)
 def test_example_serving_xgboost(tb):
     tb.inject(

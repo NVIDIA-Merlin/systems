@@ -18,5 +18,6 @@
 set -e
 
 # Run tests
-pytest -rsx tests/unit
+pytest -rsx tests/unit tests/notebook
+
 

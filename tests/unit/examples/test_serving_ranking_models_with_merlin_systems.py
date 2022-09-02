@@ -10,6 +10,7 @@ pytest.importorskip("tensorflow")
 pytest.importorskip("merlin.models")
 
 
+@pytest.mark.notebook
 @testbook(REPO_ROOT / "examples/Serving-Ranking-Models-With-Merlin-Systems.ipynb", execute=False)
 def test_example_04_exporting_ranking_models(tb):
     import tensorflow as tf
