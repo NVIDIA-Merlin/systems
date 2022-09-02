@@ -10,7 +10,7 @@ find the documentation at <https://nvidia-merlin.github.io/systems/main>.
 
    ```shell
    cd models
-   pip install -r requirements-dev.txt
+   pip install -r requirements/dev.txt
    ```
 
 3. Transform the documentation to HTML output:

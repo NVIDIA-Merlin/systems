@@ -1,9 +1,9 @@
--r requirements.txt
--r requirements-dev.txt
+-r base.txt
+-r dev.txt
 
 # This contains common libraries for testing.
 
-# NOTE: You should pip install requirements-test-[cpu|gpu].txt for device-specific test
+# NOTE: You should pip install requirements/test-[cpu|gpu].txt for device-specific test
 # requirements, which will include the dependencies defined in this file.
 
 pytest>=5

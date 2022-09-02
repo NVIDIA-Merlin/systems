@@ -1,5 +1,5 @@
--r requirements.txt
--r requirements-dev.txt
+-r base.txt
+-r dev.txt
 
 tritonclient[all]
 tensorflow<=2.9.0
