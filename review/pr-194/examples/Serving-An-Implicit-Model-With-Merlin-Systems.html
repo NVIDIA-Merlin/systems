@@ -154,12 +154,12 @@
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/local/lib/python3.8/dist-packages/tqdm/auto.py:22: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
   from .autonotebook import tqdm as notebook_tqdm
-2022-09-05 03:02:46.182545: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-09-05 03:02:46.182994: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-09-05 03:02:46.183134: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-09-05 09:27:50.551026: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-09-05 09:27:50.551487: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-09-05 09:27:50.551629: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
 /usr/local/lib/python3.8/dist-packages/cudf/core/frame.py:384: UserWarning: The deep parameter is ignored and is only included for pandas compatibility.
   warnings.warn(
-100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00&lt;00:00, 174.85it/s, train_auc=89.80%, skipped=29.46%]
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00&lt;00:00, 109.59it/s, train_auc=89.67%, skipped=29.85%]
 </pre></div>
 </div>
 </div>
@@ -228,7 +228,7 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
 <p>We begin by obtaining 10 examples from our train data to include in the request.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ten_examples</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">10</span><span class="p">)[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ten_examples</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">compute</span><span class="p">()[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">ten_examples</span>
 </pre></div>
 </div>
@@ -258,43 +258,43 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
   <tbody>
     <tr>
       <th>0</th>
-      <td>1</td>
+      <td>6</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>3</td>
+      <td>64</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>8</td>
+      <td>105</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>35</td>
+      <td>195</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>144</td>
+      <td>228</td>
     </tr>
     <tr>
       <th>5</th>
-      <td>161</td>
+      <td>285</td>
     </tr>
     <tr>
       <th>6</th>
-      <td>164</td>
+      <td>313</td>
     </tr>
     <tr>
       <th>7</th>
-      <td>253</td>
+      <td>333</td>
     </tr>
     <tr>
       <th>8</th>
-      <td>348</td>
+      <td>390</td>
     </tr>
     <tr>
       <th>9</th>
-      <td>362</td>
+      <td>461</td>
     </tr>
   </tbody>
 </table>
@@ -329,7 +329,7 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">local_predictions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">nvt</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">ten_examples</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="n">train_transformed</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">without</span><span class="p">(</span><span class="s1">&#39;movieId&#39;</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">local_predictions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">inf_workflow</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">nvt</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">ten_examples</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>

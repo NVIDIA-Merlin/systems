@@ -82,7 +82,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
+   "execution_count": 2,
    "id": "d0b55be5",
    "metadata": {},
    "outputs": [
@@ -92,12 +92,12 @@
      "text": [
       "/usr/local/lib/python3.8/dist-packages/tqdm/auto.py:22: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html\n",
       "  from .autonotebook import tqdm as notebook_tqdm\n",
-      "2022-09-05 03:02:46.182545: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
-      "2022-09-05 03:02:46.182994: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
-      "2022-09-05 03:02:46.183134: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
+      "2022-09-05 09:27:50.551026: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
+      "2022-09-05 09:27:50.551487: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
+      "2022-09-05 09:27:50.551629: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero\n",
       "/usr/local/lib/python3.8/dist-packages/cudf/core/frame.py:384: UserWarning: The deep parameter is ignored and is only included for pandas compatibility.\n",
       "  warnings.warn(\n",
-      "100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 174.85it/s, train_auc=89.80%, skipped=29.46%]\n"
+      "100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00<00:00, 109.59it/s, train_auc=89.67%, skipped=29.85%]\n"
      ]
     }
    ],
@@ -150,7 +150,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
+   "execution_count": 3,
    "id": "fa8dc34a",
    "metadata": {},
    "outputs": [],
@@ -172,7 +172,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 5,
+   "execution_count": 4,
    "id": "de9e2237",
    "metadata": {},
    "outputs": [],
@@ -195,7 +195,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": 5,
    "id": "e23a7fc3",
    "metadata": {},
    "outputs": [],
@@ -254,7 +254,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
+   "execution_count": 6,
    "id": "2d61751b",
    "metadata": {},
    "outputs": [
@@ -285,43 +285,43 @@
        "  <tbody>\n",
        "    <tr>\n",
        "      <th>0</th>\n",
-       "      <td>1</td>\n",
+       "      <td>6</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>1</th>\n",
-       "      <td>3</td>\n",
+       "      <td>64</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>2</th>\n",
-       "      <td>8</td>\n",
+       "      <td>105</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>3</th>\n",
-       "      <td>35</td>\n",
+       "      <td>195</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>4</th>\n",
-       "      <td>144</td>\n",
+       "      <td>228</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>5</th>\n",
-       "      <td>161</td>\n",
+       "      <td>285</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>6</th>\n",
-       "      <td>164</td>\n",
+       "      <td>313</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>7</th>\n",
-       "      <td>253</td>\n",
+       "      <td>333</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>8</th>\n",
-       "      <td>348</td>\n",
+       "      <td>390</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>9</th>\n",
-       "      <td>362</td>\n",
+       "      <td>461</td>\n",
        "    </tr>\n",
        "  </tbody>\n",
        "</table>\n",
@@ -329,25 +329,25 @@
       ],
       "text/plain": [
        "   user_id\n",
-       "0        1\n",
-       "1        3\n",
-       "2        8\n",
-       "3       35\n",
-       "4      144\n",
-       "5      161\n",
-       "6      164\n",
-       "7      253\n",
-       "8      348\n",
-       "9      362"
+       "0        6\n",
+       "1       64\n",
+       "2      105\n",
+       "3      195\n",
+       "4      228\n",
+       "5      285\n",
+       "6      313\n",
+       "7      333\n",
+       "8      390\n",
+       "9      461"
       ]
      },
-     "execution_count": 7,
+     "execution_count": 6,
      "metadata": {},
      "output_type": "execute_result"
     }
    ],
    "source": [
-    "ten_examples = train.compute().sample(10)['user_id'].sort_values().to_frame().reset_index(drop=True)\n",
+    "ten_examples = train.compute()['user_id'].sample(10).sort_values().to_frame().reset_index(drop=True)\n",
     "ten_examples"
    ]
   },
@@ -361,7 +361,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
+   "execution_count": 7,
    "id": "2fefd5b8",
    "metadata": {},
    "outputs": [],
@@ -390,7 +390,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
+   "execution_count": 8,
    "id": "6ddd35cc",
    "metadata": {},
    "outputs": [],
@@ -400,17 +400,17 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 10,
+   "execution_count": 9,
    "id": "6f28fdfe",
    "metadata": {},
    "outputs": [],
    "source": [
-    "local_predictions = model.predict(nvt.Dataset(ten_examples, schema=train_transformed.schema.without('movieId')))[0]"
+    "local_predictions = model.predict(inf_workflow.transform(nvt.Dataset(ten_examples)))[0]"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 11,
+   "execution_count": 10,
    "id": "e946de27",
    "metadata": {},
    "outputs": [],
