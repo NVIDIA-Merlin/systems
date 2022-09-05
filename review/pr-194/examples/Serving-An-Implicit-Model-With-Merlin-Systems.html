@@ -89,7 +89,7 @@
 </div>
 </div>
 </div>
-<img alt="https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-an-xgboost-model-with-merlin-systems/nvidia_logo.png" src="https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-an-xgboost-model-with-merlin-systems/nvidia_logo.png" />
+<img alt="https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-an-implicit-model-with-merlin-systems/nvidia_logo.png" src="https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-an-implicit-model-with-merlin-systems/nvidia_logo.png" />
 <div class="tex2jax_ignore mathjax_ignore section" id="serving-an-implicit-model-with-merlin-systems">
 <h1>Serving an Implicit Model with Merlin Systems<a class="headerlink" href="#serving-an-implicit-model-with-merlin-systems" title="Permalink to this headline"></a></h1>
 <p>This notebook is created using the latest stable <a class="reference external" href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow">merlin-tensorflow</a> container. This Jupyter notebook example demonstrates how to deploy an <code class="docutils literal notranslate"><span class="pre">Implicit</span></code> model to Triton Inference Server (TIS) and generate prediction results for a given query.</p>
@@ -109,7 +109,7 @@
 </div>
 <div class="section" id="dataset">
 <h3>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline"></a></h3>
-<p>We use the <a class="reference external" href="https://grouplens.org/datasets/movielens/100k/">MovieLens 100k Dataset</a>. It consists of ratings a user has given a movie along with some metadata for the user and the movie. We train an XGBoost model to predict the rating based on user and item features and proceed to deploy it to the Triton Inference Server.</p>
+<p>We use the <a class="reference external" href="https://grouplens.org/datasets/movielens/100k/">MovieLens 100k Dataset</a>. It consists of ratings a user has given a movie along with some metadata for the user and the movie. We train an Implicit model to predict the rating based on user and item features and proceed to deploy it to the Triton Inference Server.</p>
 <p>It is important to note that the steps taken in this notebook are generalized and can be applied to any set of workflows and models.</p>
 </div>
 <div class="section" id="tools">
@@ -122,8 +122,8 @@
 </ul>
 </div>
 </div>
-<div class="section" id="prerequisite-preparing-the-data-and-training-xgboost">
-<h2>Prerequisite: Preparing the data and Training XGBoost<a class="headerlink" href="#prerequisite-preparing-the-data-and-training-xgboost" title="Permalink to this headline"></a></h2>
+<div class="section" id="prerequisite-preparing-the-data-and-training-implicit">
+<h2>Prerequisite: Preparing the data and Training Implicit<a class="headerlink" href="#prerequisite-preparing-the-data-and-training-implicit" title="Permalink to this headline"></a></h2>
 <p>In this tutorial our objective is to demonstrate how to serve an <code class="docutils literal notranslate"><span class="pre">Implicit</span></code> model. In order for us to be able to do so, we begin by downloading data and training a model. We breeze through these activities below.</p>
 <p>If you would like to learn more about training an <code class="docutils literal notranslate"><span class="pre">Implicit</span></code> model using the Merlin Models library, please consult this <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/07-Train-traditional-ML-models-using-the-Merlin-Models-API.ipynb">tutorial</a>.</p>
 <div class="cell docutils container">

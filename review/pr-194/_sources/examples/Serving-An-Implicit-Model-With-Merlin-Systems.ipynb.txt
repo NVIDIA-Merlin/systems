@@ -28,7 +28,7 @@
    "id": "77acbcad",
    "metadata": {},
    "source": [
-    "<img src=\"https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-an-xgboost-model-with-merlin-systems/nvidia_logo.png\" style=\"width: 90px; float: right;\">\n",
+    "<img src=\"https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-an-implicit-model-with-merlin-systems/nvidia_logo.png\" style=\"width: 90px; float: right;\">\n",
     "\n",
     "# Serving an Implicit Model with Merlin Systems\n",
     "\n",
@@ -50,7 +50,7 @@
     "\n",
     "### Dataset\n",
     "\n",
-    "We use the [MovieLens 100k Dataset](https://grouplens.org/datasets/movielens/100k/). It consists of ratings a user has given a movie along with some metadata for the user and the movie. We train an XGBoost model to predict the rating based on user and item features and proceed to deploy it to the Triton Inference Server.\n",
+    "We use the [MovieLens 100k Dataset](https://grouplens.org/datasets/movielens/100k/). It consists of ratings a user has given a movie along with some metadata for the user and the movie. We train an Implicit model to predict the rating based on user and item features and proceed to deploy it to the Triton Inference Server.\n",
     "\n",
     "It is important to note that the steps taken in this notebook are generalized and can be applied to any set of workflows and models. \n",
     "\n",
@@ -67,7 +67,7 @@
    "id": "6efad6b8",
    "metadata": {},
    "source": [
-    "## Prerequisite: Preparing the data and Training XGBoost"
+    "## Prerequisite: Preparing the data and Training Implicit"
    ]
   },
   {
