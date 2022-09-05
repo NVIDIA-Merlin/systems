@@ -146,7 +146,7 @@
 <span class="n">train_workflow</span> <span class="o">=</span> <span class="n">nvt</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">user_id</span> <span class="o">+</span> <span class="n">movieId</span><span class="p">)</span>
 <span class="n">train_transformed</span> <span class="o">=</span> <span class="n">train_workflow</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
 
-<span class="n">model</span> <span class="o">=</span> <span class="n">BayesianPersonalizedRanking</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">BayesianPersonalizedRanking</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_transformed</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -154,12 +154,12 @@
 <div class="cell_output docutils container">
 <div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/usr/local/lib/python3.8/dist-packages/tqdm/auto.py:22: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
   from .autonotebook import tqdm as notebook_tqdm
-2022-09-05 09:27:50.551026: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-09-05 09:27:50.551487: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
-2022-09-05 09:27:50.551629: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-09-05 09:32:07.681291: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-09-05 09:32:07.681740: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2022-09-05 09:32:07.681877: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:991] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
 /usr/local/lib/python3.8/dist-packages/cudf/core/frame.py:384: UserWarning: The deep parameter is ignored and is only included for pandas compatibility.
   warnings.warn(
-100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00&lt;00:00, 109.59it/s, train_auc=89.67%, skipped=29.85%]
+100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:00&lt;00:00, 777.52it/s, train_auc=85.42%, skipped=29.68%]
 </pre></div>
 </div>
 </div>
@@ -262,39 +262,39 @@ I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_se
     </tr>
     <tr>
       <th>1</th>
-      <td>64</td>
+      <td>15</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>105</td>
+      <td>70</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>195</td>
+      <td>86</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>228</td>
+      <td>96</td>
     </tr>
     <tr>
       <th>5</th>
-      <td>285</td>
+      <td>109</td>
     </tr>
     <tr>
       <th>6</th>
-      <td>313</td>
+      <td>143</td>
     </tr>
     <tr>
       <th>7</th>
-      <td>333</td>
+      <td>183</td>
     </tr>
     <tr>
       <th>8</th>
-      <td>390</td>
+      <td>609</td>
     </tr>
     <tr>
       <th>9</th>
-      <td>461</td>
+      <td>858</td>
     </tr>
   </tbody>
 </table>
