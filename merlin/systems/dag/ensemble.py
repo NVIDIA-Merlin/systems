@@ -52,6 +52,14 @@ class Ensemble:
         self.name = name
         self.label_columns = label_columns or []
 
+    @property
+    def input_schema(self):
+        return self.graph.input_schema
+
+    @property
+    def output_schema(self):
+        return self.graph.output_schema
+
     def export(self, export_path, version=1):
         """
         Write out an ensemble model configuration directory. The exported
@@ -128,7 +136,8 @@ class Ensemble:
         os.makedirs(ensemble_path, exist_ok=True)
         os.makedirs(os.path.join(ensemble_path, str(version)), exist_ok=True)
 
-        with open(os.path.join(ensemble_path, "config.pbtxt"), "w") as o:
+        config_path = os.path.join(ensemble_path, "config.pbtxt")
+        with open(config_path, "w", encoding="utf-8") as o:
             text_format.PrintMessage(ensemble_config, o)
 
         return (ensemble_config, node_configs)
