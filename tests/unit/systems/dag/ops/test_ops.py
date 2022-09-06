@@ -50,7 +50,7 @@ def test_softmax_sampling(tmpdir):
     ens_config, node_configs = ensemble.export(tmpdir)
 
     response = _run_ensemble_on_tritonserver(
-        tmpdir, ensemble.graph.output_schema.column_names, request, "ensemble_model"
+        tmpdir, ensemble.output_schema.column_names, request, "ensemble_model"
     )
     assert response is not None
     assert len(response.as_numpy("ordered_ids")) == 10
@@ -82,7 +82,7 @@ def test_filter_candidates(tmpdir):
     ens_config, node_configs = ensemble.export(tmpdir)
 
     response = _run_ensemble_on_tritonserver(
-        tmpdir, ensemble.graph.output_schema.column_names, request, "ensemble_model"
+        tmpdir, ensemble.output_schema.column_names, request, "ensemble_model"
     )
     assert response is not None
     assert len(response.as_numpy("filtered_ids")) == 80

@@ -102,7 +102,7 @@ def test_workflow_tf_e2e_config_verification(tmpdir, dataset, engine):
 
     df = make_df({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "id": [7, 8, 9]})
 
-    output_columns = triton_ens.graph.output_schema.column_names
+    output_columns = triton_ens.output_schema.column_names
     response = _run_ensemble_on_tritonserver(str(tmpdir), output_columns, df, triton_ens.name)
     assert len(response.as_numpy("output")) == df.shape[0]
 

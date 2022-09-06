@@ -38,13 +38,15 @@ def test_inference_schema_propagation():
     workflow = Workflow(workflow_ops)
     workflow.fit_schema(request_schema)
 
-    assert workflow.graph.output_schema == expected_schema
+    assert workflow.input_schema == request_schema
+    assert workflow.output_schema == expected_schema
 
     # Triton
     triton_ops = input_columns >> workflow_op.TransformWorkflow(workflow)
     ensemble_out = ensemble.Ensemble(triton_ops, request_schema)
 
-    assert ensemble_out.graph.output_schema == expected_schema
+    assert ensemble_out.input_schema == request_schema
+    assert ensemble_out.output_schema == expected_schema
 
 
 def test_graph_traverse_algo():
