@@ -1,3 +1,4 @@
+from distutils.spawn import find_executable  # pylint: disable=deprecated-module
 import pytest
 from testbook import testbook
 
@@ -8,7 +9,10 @@ pytest.importorskip("tensorflow")
 pytest.importorskip("merlin.models")
 pytest.importorskip("xgboost")
 
+TRITON_SERVER_PATH = find_executable("tritonserver")
 
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.notebook
 @testbook(REPO_ROOT / "examples/Serving-An-XGboost-Model-With-Merlin-Systems.ipynb", execute=False)
 def test_example_serving_xgboost(tb):
