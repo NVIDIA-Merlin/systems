@@ -125,6 +125,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">label_columns</span> <span class="o">=</span> <span class="n">label_columns</span> <span class="ow">or</span> <span class="p">[]</span></div>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">input_schema</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span>
+
 <div class="viewcode-block" id="Ensemble.export"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write out an ensemble model configuration directory. The exported</span>
@@ -201,7 +209,8 @@
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">)),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">,</span> <span class="s2">&quot;config.pbtxt&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span>
+        <span class="n">config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">,</span> <span class="s2">&quot;config.pbtxt&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span>
             <span class="n">text_format</span><span class="o">.</span><span class="n">PrintMessage</span><span class="p">(</span><span class="n">ensemble_config</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="p">(</span><span class="n">ensemble_config</span><span class="p">,</span> <span class="n">node_configs</span><span class="p">)</span></div></div>
