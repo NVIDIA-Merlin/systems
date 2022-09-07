@@ -50,9 +50,8 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # Translate T4R schema to Merlin schema
     # ===========================================
 
-    # TODO: This schema is some weird list thing, but it should be a Merlin schema.
-    #       For now, let's convert it across in this test, but ultimately we should
-    #       rework T4R to use Merlin Schemas.
+    # TODO: This should be a Merlin schema. For now, let's convert it across
+    # in this test, but ultimately we should rework T4R to use Merlin Schemas.
 
     t4r_yoochoose_schema = t4r.data.tabular_sequence_testing_data.schema
 
@@ -62,12 +61,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
 
         # The feature types in the T4R schemas are a bit hard to work with:
         # https://github.com/NVIDIA-Merlin/Transformers4Rec/blob/538fc54bb8f2e3dc79224e497bebee15b00e4ab7/merlin_standard_lib/proto/schema_bp.py#L43-L53
-
-        # Getting tritonclient.utils.InferenceServerException: [StatusCode.INVALID_ARGUMENT]
-        # inference input data-type is 'FP32', model expects 'INT32' for 'ensemble_model'
-        # which may (or may not) be related to the following line
         dtype = {0: np.float32, 2: np.int64, 3: np.float32}[column.type]
-        # dtype = torch_yoochoose_like[name].numpy().dtype
         tags = column.tags
         value_count = {"min": column.value_count.min, "max": column.value_count.max}
         is_list = bool(value_count)
@@ -144,33 +138,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
             df_cols[name] = list(df_cols[name])
 
     df = make_df(df_cols)[merlin_yoochoose_schema.column_names].iloc[:3]
-
-    # # Check that the translated schema types match the actual types of the df values
-    # non_matching_pairs = {}
-    # for column in df.columns:
-    #     df_dtype = df[column].dtype
-    #     schema_dtype = merlin_yoochoose_schema[column].dtype
-    #     if df_dtype != schema_dtype:
-    #         non_matching_pairs[column] = (df_dtype, schema_dtype)
-
-    # assert len(non_matching_pairs) == 0
-
-    # response = _run_ensemble_on_tritonserver(str(tmpdir), ["output"], df, ensemble.name)
-
     inputs = convert_df_to_triton_input(merlin_yoochoose_schema, df)
-
-    # # Check that the translated schema types match the actual types of the df values
-    # non_matching_pairs = {}
-    # for tpl in tuples:
-    #     name, values = tpl
-    #     tpl_dtype = values.dtype
-    #     schema_dtype = merlin_yoochoose_schema[name].dtype
-    #     if df_dtype != schema_dtype:
-    #         non_matching_pairs[name] = (df_dtype, schema_dtype)
-
-    # assert len(non_matching_pairs) == 0
-
-    # breakpoint()
 
     # ===========================================
     # Send request to Triton and check response
