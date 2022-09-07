@@ -97,7 +97,7 @@
 </div>
 </div>
 </div>
-<img alt="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" src="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" />
+<img alt="https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-ranking-models-with-merlin-systems/nvidia_logo.png" src="https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-ranking-models-with-merlin-systems/nvidia_logo.png" />
 <div class="tex2jax_ignore mathjax_ignore section" id="serving-ranking-models-with-merlin-systems">
 <h1>Serving Ranking Models With Merlin Systems<a class="headerlink" href="#serving-ranking-models-with-merlin-systems" title="Permalink to this headline"></a></h1>
 <p>This notebook is created using the latest stable <a class="reference external" href="https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow/tags">merlin-tensorflow</a> container. This Jupyter notebook example demonstrates how to deploy a ranking model to Triton Inference Server (TIS) and generate prediction results for a given query. As a prerequisite, the ranking model must be trained and saved with Merlin Models. Please read the <a class="reference external" href="https://github.com/NVIDIA-Merlin/systems/blob/main/examples/README.md">README</a> for the instructions.</p>
@@ -870,9 +870,11 @@ bytearray(b&#39;[{&quot;name&quot;:&quot;0_transformworkflow&quot;,&quot;version
 
 <span class="n">inputs</span> <span class="o">=</span> <span class="n">convert_df_to_triton_input</span><span class="p">(</span><span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferInput</span><span class="p">)</span>
 
+<span class="n">output_cols</span> <span class="o">=</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
+
 <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span>
     <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferRequestedOutput</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">output_cols</span>
 <span class="p">]</span>
 </pre></div>
 </div>
