@@ -328,7 +328,7 @@ def _add_model_param(params, paramclass, col_schema, dims=None):
 
 
 def _compute_dims(col_schema):
-    dims = [-1, 1]
+    dims = [-1]
 
     if col_schema.is_list:
         value_count = col_schema.properties.get("value_count", None)

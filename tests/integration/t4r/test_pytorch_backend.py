@@ -63,9 +63,9 @@ def test_serve_t4r_with_torchscript(tmpdir):
         # https://github.com/NVIDIA-Merlin/Transformers4Rec/blob/538fc54bb8f2e3dc79224e497bebee15b00e4ab7/merlin_standard_lib/proto/schema_bp.py#L43-L53
         dtype = {0: np.float32, 2: np.int64, 3: np.float32}[column.type]
         tags = column.tags
-        value_count = {"min": column.value_count.min, "max": column.value_count.max}
-        is_list = bool(value_count)
-        is_ragged = value_count.get("min", 0) != value_count.get("max", 0)
+        is_list = column.value_count.max > 0
+        value_count = {"min": 20, "max": 20} if is_list else {"min": 1, "max": 1}
+        is_ragged = is_list and value_count.get("min", 0) != value_count.get("max", 0)
         int_domain = {"min": column.int_domain.min, "max": column.int_domain.max}
         properties = {"value_count": value_count, "int_domain": int_domain}
         col_schema = ColumnSchema(
@@ -137,8 +137,9 @@ def test_serve_t4r_with_torchscript(tmpdir):
         if len(tensor.shape) > 1:
             df_cols[name] = list(df_cols[name])
 
-    df = make_df(df_cols)[merlin_yoochoose_schema.column_names].iloc[:3]
-    inputs = convert_df_to_triton_input(merlin_yoochoose_schema, df)
+    df = make_df(df_cols)[merlin_yoochoose_schema.column_names]
+
+    inputs = convert_df_to_triton_input(merlin_yoochoose_schema, df.iloc[:3])
 
     # ===========================================
     # Send request to Triton and check response
@@ -158,21 +159,31 @@ def convert_df_to_tuples(schema, batch, dtype="int32"):
     tuples = []
     for i, (col_name, col) in enumerate(columns):
 
-        if schema[col_name].is_list and schema[col_name].is_ragged:
+        if schema[col_name].is_list:
             if isinstance(col, pd.Series):
                 raise ValueError("this function doesn't support CPU list values yet")
-            tuples.append(
-                (
-                    col_name + "__values",
-                    col.list.leaves.values_host.astype(schema[col_name].dtype),
+
+            if schema[col_name].is_ragged:
+                tuples.append(
+                    (
+                        col_name + "__values",
+                        col.list.leaves.values_host.astype(schema[col_name].dtype),
+                    )
                 )
-            )
-            tuples.append(
-                (
-                    col_name + "__nnzs",
-                    col._column.offsets.values_host.astype(dtype),
+                tuples.append(
+                    (
+                        col_name + "__nnzs",
+                        col._column.offsets.values_host.astype(dtype),
+                    )
                 )
-            )
+            else:
+                tuples.append(
+                    (
+                        col_name,
+                        col.list.leaves.values_host.reshape(-1, 20).astype(schema[col_name].dtype),
+                    )
+                )
+
         else:
             values = col.values if isinstance(col, pd.Series) else col.values_host
             tuples.append((col_name, values.astype(schema[col_name].dtype)))
@@ -186,7 +197,6 @@ def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput,
 
 
 def _convert_column_to_triton_input(col, name, input_class=grpcclient.InferInput):
-    col = col.reshape(len(col), 1)
     dtype = np_to_triton_dtype(col.dtype)
     input_tensor = input_class(name, col.shape, dtype)
     input_tensor.set_data_from_numpy(col)
