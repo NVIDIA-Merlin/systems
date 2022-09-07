@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -67,7 +66,8 @@ def test_serve_t4r_with_torchscript(tmpdir):
         # Getting tritonclient.utils.InferenceServerException: [StatusCode.INVALID_ARGUMENT]
         # inference input data-type is 'FP32', model expects 'INT32' for 'ensemble_model'
         # which may (or may not) be related to the following line
-        dtype = {0: np.int32, 2: np.int32, 3: np.float32}[column.type]
+        dtype = {0: np.float32, 2: np.int64, 3: np.float32}[column.type]
+        # dtype = torch_yoochoose_like[name].numpy().dtype
         tags = column.tags
         value_count = {"min": column.value_count.min, "max": column.value_count.max}
         is_list = bool(value_count)
@@ -83,6 +83,15 @@ def test_serve_t4r_with_torchscript(tmpdir):
             is_ragged=is_ragged,
         )
         merlin_yoochoose_schema[name] = col_schema
+
+    # Check that the translated schema types match the actual types of the values
+    non_matching_pairs = {}
+    for key, value in torch_yoochoose_like.items():
+        pair = (value.numpy().dtype, merlin_yoochoose_schema[key].dtype)
+        if pair[0] != pair[1]:
+            non_matching_pairs[key] = pair
+
+    assert len(non_matching_pairs) == 0
 
     # ===========================================
     # Build, train, test, and JIT the model
@@ -136,9 +145,32 @@ def test_serve_t4r_with_torchscript(tmpdir):
 
     df = make_df(df_cols)[merlin_yoochoose_schema.column_names].iloc[:3]
 
+    # # Check that the translated schema types match the actual types of the df values
+    # non_matching_pairs = {}
+    # for column in df.columns:
+    #     df_dtype = df[column].dtype
+    #     schema_dtype = merlin_yoochoose_schema[column].dtype
+    #     if df_dtype != schema_dtype:
+    #         non_matching_pairs[column] = (df_dtype, schema_dtype)
+
+    # assert len(non_matching_pairs) == 0
+
     # response = _run_ensemble_on_tritonserver(str(tmpdir), ["output"], df, ensemble.name)
 
     inputs = convert_df_to_triton_input(merlin_yoochoose_schema, df)
+
+    # # Check that the translated schema types match the actual types of the df values
+    # non_matching_pairs = {}
+    # for tpl in tuples:
+    #     name, values = tpl
+    #     tpl_dtype = values.dtype
+    #     schema_dtype = merlin_yoochoose_schema[name].dtype
+    #     if df_dtype != schema_dtype:
+    #         non_matching_pairs[name] = (df_dtype, schema_dtype)
+
+    # assert len(non_matching_pairs) == 0
+
+    # breakpoint()
 
     # ===========================================
     # Send request to Triton and check response
@@ -153,28 +185,35 @@ def test_serve_t4r_with_torchscript(tmpdir):
     assert response
 
 
-def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput, dtype="int32"):
+def convert_df_to_tuples(schema, batch, dtype="int32"):
     columns = [(col_name, batch[col_name]) for col_name in schema.column_names]
-    inputs = []
+    tuples = []
     for i, (col_name, col) in enumerate(columns):
+
         if schema[col_name].is_list and schema[col_name].is_ragged:
             if isinstance(col, pd.Series):
                 raise ValueError("this function doesn't support CPU list values yet")
-            inputs.append(
-                _convert_column_to_triton_input(
-                    col._column.offsets.values_host.astype(schema[col_name].dtype),
-                    col_name + "__nnzs",
-                    input_class,
+            tuples.append(
+                (
+                    col_name + "__values",
+                    col.list.leaves.values_host.astype(schema[col_name].dtype),
                 )
             )
-            inputs.append(
-                _convert_column_to_triton_input(
-                    col.list.leaves.values_host.astype("int32"), col_name + "__values", input_class
+            tuples.append(
+                (
+                    col_name + "__nnzs",
+                    col._column.offsets.values_host.astype(dtype),
                 )
             )
         else:
             values = col.values if isinstance(col, pd.Series) else col.values_host
-            inputs.append(_convert_column_to_triton_input(values, col_name, input_class))
+            tuples.append((col_name, values.astype(schema[col_name].dtype)))
+    return tuples
+
+
+def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput, dtype="int32"):
+    tuples = convert_df_to_tuples(schema, batch, dtype)
+    inputs = [_convert_column_to_triton_input(tuple[1], tuple[0], input_class) for tuple in tuples]
     return inputs
 
 
