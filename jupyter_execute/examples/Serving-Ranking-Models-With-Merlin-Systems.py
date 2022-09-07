@@ -20,7 +20,7 @@
 # ==============================================================================
 
 
-# <img src="http://developer.download.nvidia.com/compute/machine-learning/frameworks/nvidia_logo.png" style="width: 90px; float: right;">
+# <img src="https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-ranking-models-with-merlin-systems/nvidia_logo.png" style="width: 90px; float: right;">
 # 
 # # Serving Ranking Models With Merlin Systems
 # 
@@ -292,9 +292,11 @@ import tritonclient.grpc as grpcclient
 
 inputs = convert_df_to_triton_input(workflow.input_schema.column_names, batch, grpcclient.InferInput)
 
+output_cols = ensemble.graph.output_schema.column_names
+
 outputs = [
     grpcclient.InferRequestedOutput(col)
-    for col in ensemble.graph.output_schema.column_names
+    for col in output_cols
 ]
 
 
