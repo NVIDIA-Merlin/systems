@@ -401,7 +401,7 @@
 
 
 <span class="k">def</span> <span class="nf">_compute_dims</span><span class="p">(</span><span class="n">col_schema</span><span class="p">):</span>
-    <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">is_list</span><span class="p">:</span>
         <span class="n">value_count</span> <span class="o">=</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value_count&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
