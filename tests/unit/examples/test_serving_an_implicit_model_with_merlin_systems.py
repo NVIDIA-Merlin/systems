@@ -4,6 +4,7 @@ from testbook import testbook
 from merlin.systems.triton.utils import run_triton_server
 from tests.conftest import REPO_ROOT
 
+pytest.importorskip("implicit")
 pytest.importorskip("merlin.models")
 
 
