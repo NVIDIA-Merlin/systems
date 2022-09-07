@@ -1,4 +1,5 @@
 from distutils.spawn import find_executable  # pylint: disable=deprecated-module
+
 import pytest
 from testbook import testbook
 
