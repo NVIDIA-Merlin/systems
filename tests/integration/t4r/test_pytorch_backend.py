@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-pytorch = pytest.importorskip("torch")
+torch = pytest.importorskip("torch")
 t4r = pytest.importorskip("transformers4rec")
 tr = pytest.importorskip("transformers4rec.torch")
 
@@ -36,6 +36,16 @@ from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
 from merlin.systems.triton.utils import run_triton_server  # noqa
 
 # from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver
+
+
+class ServingAdapter(torch.nn.Module):
+    def __init__(self, model):
+        super(ServingAdapter, self).__init__()
+
+        self.model = model
+
+    def forward(self, batch):
+        return self.model(batch)["predictions"]
 
 
 def test_serve_t4r_with_torchscript(tmpdir):
@@ -108,18 +118,20 @@ def test_serve_t4r_with_torchscript(tmpdir):
 
     model.eval()
 
-    traced_model = pytorch.jit.trace(model, torch_yoochoose_like, strict=False)
-    assert isinstance(traced_model, pytorch.jit.TopLevelTracedModule)
-    assert pytorch.allclose(
+    adapted_model = ServingAdapter(model)
+
+    traced_model = torch.jit.trace(adapted_model, torch_yoochoose_like, strict=True)
+    assert isinstance(traced_model, torch.jit.TopLevelTracedModule)
+    assert torch.allclose(
         model(torch_yoochoose_like)["predictions"],
-        traced_model(torch_yoochoose_like)["predictions"],
+        traced_model(torch_yoochoose_like),
     )
 
     # ===========================================
     # Build a simple Ensemble graph
     # ===========================================
 
-    output_schema = Schema([ColumnSchema("output")])
+    output_schema = Schema([ColumnSchema("output", dtype=np.float32)])
 
     torch_op = merlin_yoochoose_schema.column_names >> PredictPyTorch(
         traced_model, merlin_yoochoose_schema, output_schema
