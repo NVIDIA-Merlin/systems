@@ -43,7 +43,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # Generate training data
     # ===========================================
     torch_yoochoose_like = tr.data.tabular_sequence_testing_data.torch_synthetic_data(
-        num_rows=100, min_session_length=5, max_session_length=20
+        num_rows=100, min_session_length=5, max_session_length=20, device="cuda"
     )
 
     # ===========================================
@@ -81,7 +81,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # Check that the translated schema types match the actual types of the values
     non_matching_pairs = {}
     for key, value in torch_yoochoose_like.items():
-        pair = (value.numpy().dtype, merlin_yoochoose_schema[key].dtype)
+        pair = (value.cpu().numpy().dtype, merlin_yoochoose_schema[key].dtype)
         if pair[0] != pair[1]:
             non_matching_pairs[key] = pair
 
@@ -102,6 +102,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
         d_model=64, n_head=8, n_layer=2, total_seq_length=20
     )
     model = transformer_config.to_torch_model(input_module, prediction_task)
+    model = model.cuda()
 
     _ = model(torch_yoochoose_like, training=False)
 
@@ -133,7 +134,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
 
     df_cols = {}
     for name, tensor in torch_yoochoose_like.items():
-        df_cols[name] = tensor.numpy().astype(merlin_yoochoose_schema[name].dtype)
+        df_cols[name] = tensor.cpu().numpy().astype(merlin_yoochoose_schema[name].dtype)
         if len(tensor.shape) > 1:
             df_cols[name] = list(df_cols[name])
 
