@@ -7,10 +7,19 @@ from tests.conftest import REPO_ROOT
 pytest.importorskip("implicit")
 pytest.importorskip("merlin.models")
 
+try:
+    # pylint: disable=unused-import
+    import cudf  # noqa
+
+    _TRAIN_ON_GPU = [True, False]
+except ImportError:
+    _TRAIN_ON_GPU = False
+
 
 @pytest.mark.notebook
+@pytest.mark.parametrize("gpu", _TRAIN_ON_GPU)
 @testbook(REPO_ROOT / "examples/Serving-An-Implicit-Model-With-Merlin-Systems.ipynb", execute=False)
-def test_example_serving_implicit(tb):
+def test_example_serving_implicit(tb, gpu):
     tb.inject(
         """
         from unittest.mock import patch
@@ -25,12 +34,17 @@ def test_example_serving_implicit(tb):
             return_value=[mock_train, mock_valid]
         )
         p1.start()
-        """
+        """,
+        pop=True,
     )
     NUM_OF_CELLS = len(tb.cells)
-    tb.execute_cell(list(range(0, 14)))
-    # import pdb
-    # pdb.set_trace()
+    if not gpu:
+        tb.cells[
+            6
+        ].source = (
+            "model = BayesianPersonalizedRanking(use_gpu=False)\nmodel.fit(train_transformed)"
+        )
+    tb.execute_cell(list(range(0, 16)))
 
     with run_triton_server("ensemble", grpc_port=8001):
-        tb.execute_cell(list(range(14, NUM_OF_CELLS - 3)))
+        tb.execute_cell(list(range(16, NUM_OF_CELLS - 2)))
