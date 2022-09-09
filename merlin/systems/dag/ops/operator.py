@@ -161,6 +161,22 @@ class InferenceOperator(BaseOperator):
         """
         raise NotImplementedError(f"{cls.__name__} operators cannot be instantiated with a path.")
 
+    def compute_dims(self, col_schema):
+        dims = self.scalar_shape
+
+        if col_schema.is_list:
+            value_count = col_schema.properties.get("value_count", None)
+            if value_count and value_count["max"] > 0 and value_count["min"] == value_count["max"]:
+                dims = [-1, value_count["max"]]
+            else:
+                dims = [-1, -1]
+
+        return dims
+
+    @property
+    def scalar_shape(self):
+        return [-1, 1]
+
 
 class PipelineableInferenceOperator(InferenceOperator):
     """
@@ -306,8 +322,7 @@ def _schema_to_dict(schema: Schema) -> dict:
     return schema_dict
 
 
-def _add_model_param(params, paramclass, col_schema, dims=None):
-    dims = dims if dims is not None else _compute_dims(col_schema)
+def add_model_param(params, paramclass, col_schema, dims=None):
     if col_schema.is_list and col_schema.is_ragged:
         params.append(
             paramclass(
@@ -325,16 +340,3 @@ def _add_model_param(params, paramclass, col_schema, dims=None):
         params.append(
             paramclass(name=col_schema.name, data_type=_convert_dtype(col_schema.dtype), dims=dims)
         )
-
-
-def _compute_dims(col_schema):
-    dims = [-1]
-
-    if col_schema.is_list:
-        value_count = col_schema.properties.get("value_count", None)
-        if value_count and value_count["max"] > 0 and value_count["min"] == value_count["max"]:
-            dims = [-1, value_count["max"]]
-        else:
-            dims = [-1, -1]
-
-    return dims

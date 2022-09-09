@@ -26,7 +26,7 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
-from merlin.systems.dag.ops.operator import InferenceOperator, _add_model_param  # noqa
+from merlin.systems.dag.ops.operator import InferenceOperator, add_model_param  # noqa
 
 
 class PredictPyTorch(InferenceOperator):
@@ -66,6 +66,17 @@ class PredictPyTorch(InferenceOperator):
         # just make them parameters.
         self.input_schema = input_schema
         self.output_schema = output_schema
+
+        # This is a hack to let us store the shapes for the ensemble to use
+        for col_name, col_schema in self.input_schema.column_schemas.items():
+            self.input_schema[col_name] = col_schema.with_properties(
+                {"shape": self.compute_dims(col_schema)}
+            )
+
+        for col_name, col_schema in self.output_schema.column_schemas.items():
+            self.output_schema[col_name] = col_schema.with_properties(
+                {"shape": self.compute_dims(col_schema)}
+            )
 
         super().__init__()
 
@@ -141,11 +152,25 @@ class PredictPyTorch(InferenceOperator):
         config.parameters["INFERENCE_MODE"].string_value = "true"
 
         for _, col_schema in self.input_schema.column_schemas.items():
-            _add_model_param(config.input, model_config.ModelInput, col_schema)
+            add_model_param(
+                config.input,
+                model_config.ModelInput,
+                col_schema,
+                col_schema.properties["shape"],
+            )
 
         for _, col_schema in self.output_schema.column_schemas.items():
-            _add_model_param(config.output, model_config.ModelOutput, col_schema)
+            add_model_param(
+                config.output,
+                model_config.ModelOutput,
+                col_schema,
+                col_schema.properties["shape"],
+            )
 
         with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)
         return config
+
+    @property
+    def scalar_shape(self):
+        return [-1]

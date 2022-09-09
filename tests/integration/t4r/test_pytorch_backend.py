@@ -35,6 +35,7 @@ from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
 from merlin.systems.triton.utils import run_triton_server  # noqa
 
+# TODO: Use this again once `convert_df_to_triton_input` has been reworked
 # from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver
 
 
@@ -49,11 +50,17 @@ class ServingAdapter(torch.nn.Module):
 
 
 def test_serve_t4r_with_torchscript(tmpdir):
+    min_session_len = 5
+    max_session_len = 20
+
     # ===========================================
     # Generate training data
     # ===========================================
     torch_yoochoose_like = tr.data.tabular_sequence_testing_data.torch_synthetic_data(
-        num_rows=100, min_session_length=5, max_session_length=20, device="cuda"
+        num_rows=100,
+        min_session_length=min_session_len,
+        max_session_length=max_session_len,
+        device="cuda",
     )
 
     # ===========================================
@@ -74,7 +81,9 @@ def test_serve_t4r_with_torchscript(tmpdir):
         dtype = {0: np.float32, 2: np.int64, 3: np.float32}[column.type]
         tags = column.tags
         is_list = column.value_count.max > 0
-        value_count = {"min": 20, "max": 20} if is_list else {"min": 1, "max": 1}
+        value_count = (
+            {"min": max_session_len, "max": max_session_len} if is_list else {"min": 1, "max": 1}
+        )
         is_ragged = is_list and value_count.get("min", 0) != value_count.get("max", 0)
         int_domain = {"min": column.int_domain.min, "max": column.int_domain.max}
         properties = {"value_count": value_count, "int_domain": int_domain}
@@ -89,13 +98,13 @@ def test_serve_t4r_with_torchscript(tmpdir):
         merlin_yoochoose_schema[name] = col_schema
 
     # Check that the translated schema types match the actual types of the values
-    non_matching_pairs = {}
+    non_matching_dtypes = {}
     for key, value in torch_yoochoose_like.items():
-        pair = (value.cpu().numpy().dtype, merlin_yoochoose_schema[key].dtype)
-        if pair[0] != pair[1]:
-            non_matching_pairs[key] = pair
+        dtypes = (value.cpu().numpy().dtype, merlin_yoochoose_schema[key].dtype)
+        if dtypes[0] != dtypes[1]:
+            non_matching_dtypes[key] = dtypes
 
-    assert len(non_matching_pairs) == 0
+    assert len(non_matching_dtypes) == 0
 
     # ===========================================
     # Build, train, test, and JIT the model
