@@ -1047,7 +1047,7 @@
     "import tritonclient.grpc as grpcclient\n",
     "# create inputs and outputs\n",
     "\n",
-    "inputs = convert_df_to_triton_input(workflow.input_schema.column_names, batch, grpcclient.InferInput)\n",
+    "inputs = convert_df_to_triton_input(workflow.input_schema, batch, grpcclient.InferInput)\n",
     "\n",
     "output_cols = ensemble.graph.output_schema.column_names\n",
     "\n",
