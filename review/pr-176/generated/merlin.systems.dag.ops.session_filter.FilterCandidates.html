@@ -120,37 +120,34 @@ based on the supplied criteria.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_column_schema</span></code>(col_name, input_schema)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_dims</span></code>(col_schema)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.compute_input_schema" title="merlin.systems.dag.ops.session_filter.FilterCandidates.compute_input_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_input_schema</span></code></a>(root_schema, …)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.compute_input_schema" title="merlin.systems.dag.ops.session_filter.FilterCandidates.compute_input_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_input_schema</span></code></a>(root_schema, …)</p></td>
 <td><p>Compute the input schema of this node given the root, parents, and dependencies schemas of all ancestor nodes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.compute_output_schema" title="merlin.systems.dag.ops.session_filter.FilterCandidates.compute_output_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_schema</span></code></a>(input_schema, col_selector)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.compute_output_schema" title="merlin.systems.dag.ops.session_filter.FilterCandidates.compute_output_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_schema</span></code></a>(input_schema, col_selector)</p></td>
 <td><p>Compute the input schema of this node given the root, parents and dependencies schemas of all ancestor nodes.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_selector</span></code>(input_schema, selector, …)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_selector</span></code>(input_schema, selector, …)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
 <td><p>_summary_</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.export" title="merlin.systems.dag.ops.session_filter.FilterCandidates.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(path, input_schema, output_schema[, …])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.export" title="merlin.systems.dag.ops.session_filter.FilterCandidates.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(path, input_schema, output_schema[, …])</p></td>
 <td><p>Export the class object as a config and all related files to the user defined path.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.from_config" title="merlin.systems.dag.ops.session_filter.FilterCandidates.from_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code></a>(config, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.from_config" title="merlin.systems.dag.ops.session_filter.FilterCandidates.from_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code></a>(config, **kwargs)</p></td>
 <td><p>Instantiate a class object given a config.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
 <td><p>Loads the InferenceOperator from the provided ModelRegistry.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code>(path, **kwargs)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code>(path, **kwargs)</p></td>
 <td><p>Loads the InferenceOperator from the path where it was exported after training.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
 <td><p>Given a set of columns names returns the names of the transformed columns this operator will produce :param columns: The columns to apply this operator to :type columns: list of str, or list of list of str</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.transform" title="merlin.systems.dag.ops.session_filter.FilterCandidates.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(df)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.transform" title="merlin.systems.dag.ops.session_filter.FilterCandidates.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(df)</p></td>
 <td><p>Transform input dataframe to output dataframe using function logic.</p></td>
 </tr>
 </tbody>

@@ -16,7 +16,6 @@
       ~TransformWorkflow.__init__
       ~TransformWorkflow.column_mapping
       ~TransformWorkflow.compute_column_schema
-      ~TransformWorkflow.compute_dims
       ~TransformWorkflow.compute_input_schema
       ~TransformWorkflow.compute_output_schema
       ~TransformWorkflow.compute_selector
