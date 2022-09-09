@@ -24,6 +24,7 @@ import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
 from merlin.dag import Graph  # noqa
+from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.dag.ops.operator import add_model_param  # noqa
 
 
@@ -77,7 +78,7 @@ class Ensemble:
                 ensemble_config.input,
                 model_config.ModelInput,
                 col_schema,
-                col_schema.properties.get("shape", None) or self.compute_dims(col_schema),
+                col_schema.properties.get("shape", None) or compute_dims(col_schema),
             )
 
         for _, col_schema in self.graph.output_schema.column_schemas.items():
@@ -85,7 +86,7 @@ class Ensemble:
                 ensemble_config.output,
                 model_config.ModelOutput,
                 col_schema,
-                col_schema.properties.get("shape", None) or self.compute_dims(col_schema),
+                col_schema.properties.get("shape", None) or compute_dims(col_schema),
             )
 
         # Build node id lookup table
@@ -160,18 +161,6 @@ class Ensemble:
             text_format.PrintMessage(ensemble_config, o)
 
         return (ensemble_config, node_configs)
-
-    def compute_dims(self, col_schema):
-        dims = [-1, 1]
-
-        if col_schema.is_list:
-            value_count = col_schema.properties.get("value_count", None)
-            if value_count and value_count["max"] > 0 and value_count["min"] == value_count["max"]:
-                dims = [-1, value_count["max"]]
-            else:
-                dims = [-1, -1]
-
-        return dims
 
 
 def _find_column_source(upstream_nodes, column_name):

@@ -26,6 +26,7 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
+from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator, add_model_param  # noqa
 
 
@@ -70,12 +71,12 @@ class PredictPyTorch(InferenceOperator):
         # This is a hack to let us store the shapes for the ensemble to use
         for col_name, col_schema in self.input_schema.column_schemas.items():
             self.input_schema[col_name] = col_schema.with_properties(
-                {"shape": self.compute_dims(col_schema)}
+                {"shape": compute_dims(col_schema, self.scalar_shape)}
             )
 
         for col_name, col_schema in self.output_schema.column_schemas.items():
             self.output_schema[col_name] = col_schema.with_properties(
-                {"shape": self.compute_dims(col_schema)}
+                {"shape": compute_dims(col_schema, self.scalar_shape)}
             )
 
         super().__init__()
@@ -173,4 +174,4 @@ class PredictPyTorch(InferenceOperator):
 
     @property
     def scalar_shape(self):
-        return [-1]
+        return []

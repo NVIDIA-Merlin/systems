@@ -161,21 +161,9 @@ class InferenceOperator(BaseOperator):
         """
         raise NotImplementedError(f"{cls.__name__} operators cannot be instantiated with a path.")
 
-    def compute_dims(self, col_schema):
-        dims = self.scalar_shape
-
-        if col_schema.is_list:
-            value_count = col_schema.properties.get("value_count", None)
-            if value_count and value_count["max"] > 0 and value_count["min"] == value_count["max"]:
-                dims = [-1, value_count["max"]]
-            else:
-                dims = [-1, -1]
-
-        return dims
-
     @property
     def scalar_shape(self):
-        return [-1, 1]
+        return [1]
 
 
 class PipelineableInferenceOperator(InferenceOperator):
