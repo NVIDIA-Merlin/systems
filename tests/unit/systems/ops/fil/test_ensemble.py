@@ -36,7 +36,7 @@ export = pytest.importorskip("merlin.systems.dag.ensemble")
 
 from merlin.systems.dag.ensemble import Ensemble  # noqa
 from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
-from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
+from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
@@ -74,7 +74,7 @@ def test_workflow_with_forest_inference(tmpdir):
     request_df = df[:5]
     triton_ens.export(tmpdir)
 
-    response = _run_ensemble_on_tritonserver(
+    response = run_ensemble_on_tritonserver(
         str(tmpdir), input_schema, request_df, ["output__0"], triton_ens.name
     )
-    assert response.as_numpy("output__0").shape == (5,)
+    assert response["output__0"].shape == (5,)

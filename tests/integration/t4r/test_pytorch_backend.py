@@ -30,7 +30,7 @@ from merlin.core.dispatch import make_df  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
-from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
+from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 
 class ServingAdapter(torch.nn.Module):
@@ -159,7 +159,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # Send request to Triton and check response
     # ===========================================
 
-    response = _run_ensemble_on_tritonserver(
+    response = run_ensemble_on_tritonserver(
         tmpdir, merlin_yoochoose_schema, df, output_schema.column_names, "ensemble_model"
     )
 
