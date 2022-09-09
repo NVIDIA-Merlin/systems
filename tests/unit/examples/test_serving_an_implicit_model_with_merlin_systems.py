@@ -13,7 +13,7 @@ try:
 
     _TRAIN_ON_GPU = [True, False]
 except ImportError:
-    _TRAIN_ON_GPU = False
+    _TRAIN_ON_GPU = [False]
 
 
 @pytest.mark.notebook
