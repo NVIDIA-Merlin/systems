@@ -42,7 +42,7 @@ def test_softmax_sampling(tmpdir):
         "output_1": np.random.random(100).astype(np.float32),
     }
 
-    request = make_df(combined_features)
+    request_df = make_df(combined_features)
 
     ordering = ["movie_ids"] >> SoftmaxSampling(relevance_col="output_1", topk=10, temperature=20.0)
 
@@ -50,7 +50,7 @@ def test_softmax_sampling(tmpdir):
     ens_config, node_configs = ensemble.export(tmpdir)
 
     response = _run_ensemble_on_tritonserver(
-        tmpdir, ensemble.output_schema.column_names, request, "ensemble_model"
+        tmpdir, request_schema, request_df, ensemble.output_schema.column_names, "ensemble_model"
     )
     assert response is not None
     assert len(response.as_numpy("ordered_ids")) == 10
@@ -74,7 +74,7 @@ def test_filter_candidates(tmpdir):
         "movie_ids": movie_ids_1,
     }
 
-    request = make_df(combined_features)
+    request_df = make_df(combined_features)
 
     filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
 
@@ -82,7 +82,7 @@ def test_filter_candidates(tmpdir):
     ens_config, node_configs = ensemble.export(tmpdir)
 
     response = _run_ensemble_on_tritonserver(
-        tmpdir, ensemble.output_schema.column_names, request, "ensemble_model"
+        tmpdir, request_schema, request_df, ensemble.output_schema.column_names, "ensemble_model"
     )
     assert response is not None
     assert len(response.as_numpy("filtered_ids")) == 80
