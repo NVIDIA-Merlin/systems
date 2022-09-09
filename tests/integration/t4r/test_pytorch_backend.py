@@ -30,11 +30,7 @@ from merlin.core.dispatch import make_df  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
-from merlin.systems.triton import convert_df_to_triton_input  # noqa
-from merlin.systems.triton.utils import run_triton_server  # noqa
-
-# TODO: Use this again once `convert_df_to_triton_input` has been reworked
-# from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver
+from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
 
 
 class ServingAdapter(torch.nn.Module):
@@ -159,16 +155,12 @@ def test_serve_t4r_with_torchscript(tmpdir):
 
     df = make_df(df_cols)[merlin_yoochoose_schema.column_names]
 
-    inputs = convert_df_to_triton_input(merlin_yoochoose_schema, df.iloc[:3])
-
     # ===========================================
     # Send request to Triton and check response
     # ===========================================
 
-    outputs = [grpcclient.InferRequestedOutput(col) for col in output_schema.column_names]
-
-    response = None
-    with run_triton_server(tmpdir) as client:
-        response = client.infer("ensemble_model", inputs, outputs=outputs)
+    response = _run_ensemble_on_tritonserver(
+        tmpdir, merlin_yoochoose_schema, df, output_schema.column_names, "ensemble_model"
+    )
 
     assert response
