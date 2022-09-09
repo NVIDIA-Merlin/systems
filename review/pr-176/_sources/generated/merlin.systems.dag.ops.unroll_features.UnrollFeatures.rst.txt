@@ -16,6 +16,7 @@
       ~UnrollFeatures.__init__
       ~UnrollFeatures.column_mapping
       ~UnrollFeatures.compute_column_schema
+      ~UnrollFeatures.compute_dims
       ~UnrollFeatures.compute_input_schema
       ~UnrollFeatures.compute_output_schema
       ~UnrollFeatures.compute_selector
@@ -42,6 +43,7 @@
       ~UnrollFeatures.output_dtype
       ~UnrollFeatures.output_properties
       ~UnrollFeatures.output_tags
+      ~UnrollFeatures.scalar_shape
       ~UnrollFeatures.supports
    
    

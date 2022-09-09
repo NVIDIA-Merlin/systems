@@ -16,6 +16,7 @@
       ~SoftmaxSampling.__init__
       ~SoftmaxSampling.column_mapping
       ~SoftmaxSampling.compute_column_schema
+      ~SoftmaxSampling.compute_dims
       ~SoftmaxSampling.compute_input_schema
       ~SoftmaxSampling.compute_output_schema
       ~SoftmaxSampling.compute_selector
@@ -42,6 +43,7 @@
       ~SoftmaxSampling.output_dtype
       ~SoftmaxSampling.output_properties
       ~SoftmaxSampling.output_tags
+      ~SoftmaxSampling.scalar_shape
       ~SoftmaxSampling.supports
    
    

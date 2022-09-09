@@ -16,6 +16,7 @@
       ~PredictTensorflow.__init__
       ~PredictTensorflow.column_mapping
       ~PredictTensorflow.compute_column_schema
+      ~PredictTensorflow.compute_dims
       ~PredictTensorflow.compute_input_schema
       ~PredictTensorflow.compute_output_schema
       ~PredictTensorflow.compute_selector
@@ -40,6 +41,7 @@
       ~PredictTensorflow.output_dtype
       ~PredictTensorflow.output_properties
       ~PredictTensorflow.output_tags
+      ~PredictTensorflow.scalar_shape
       ~PredictTensorflow.supports
    
    

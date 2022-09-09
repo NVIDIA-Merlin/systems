@@ -114,28 +114,31 @@ to run, on the tensorflow backend.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_column_schema</span></code>(col_name, input_schema)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_input_schema" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_input_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_input_schema</span></code></a>(root_schema, …)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_dims</span></code>(col_schema)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_input_schema" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_input_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_input_schema</span></code></a>(root_schema, …)</p></td>
 <td><p>Use the input schema supplied during object creation.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_schema</span></code></a>(input_schema, col_selector)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_schema</span></code></a>(input_schema, col_selector)</p></td>
 <td><p>Use the output schema supplied during object creation.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_selector</span></code>(input_schema, selector, …)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_selector</span></code>(input_schema, selector, …)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
 <td><p>_summary_</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.export" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(path, input_schema, output_schema[, …])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.export" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(path, input_schema, output_schema[, …])</p></td>
 <td><p>Create a directory inside supplied path based on our export name</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
 <td><p>Loads the InferenceOperator from the provided ModelRegistry.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code></a>(path, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code></a>(path, **kwargs)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
 <td><p>Given a set of columns names returns the names of the transformed columns this operator will produce :param columns: The columns to apply this operator to :type columns: list of str, or list of list of str</p></td>
 </tr>
 </tbody>
@@ -168,7 +171,10 @@ to run, on the tensorflow backend.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tags</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_shape</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports</span></code></p></td>
 <td><p>Returns what kind of data representation this operator supports</p></td>
 </tr>
 </tbody>

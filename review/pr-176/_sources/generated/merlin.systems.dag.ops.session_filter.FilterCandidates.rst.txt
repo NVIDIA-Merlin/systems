@@ -16,6 +16,7 @@
       ~FilterCandidates.__init__
       ~FilterCandidates.column_mapping
       ~FilterCandidates.compute_column_schema
+      ~FilterCandidates.compute_dims
       ~FilterCandidates.compute_input_schema
       ~FilterCandidates.compute_output_schema
       ~FilterCandidates.compute_selector
@@ -42,6 +43,7 @@
       ~FilterCandidates.output_dtype
       ~FilterCandidates.output_properties
       ~FilterCandidates.output_tags
+      ~FilterCandidates.scalar_shape
       ~FilterCandidates.supports
    
    
