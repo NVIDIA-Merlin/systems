@@ -54,13 +54,16 @@ def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput,
     List[input_class]
         A list of Triton inputs of the requested input class
     """
-    tuples = _convert_df_to_tuples(schema, batch, dtype)
-    inputs = [_convert_column_to_triton_input(tuple[1], tuple[0], input_class) for tuple in tuples]
+    df_dict = _convert_df_to_dict(schema, batch, dtype)
+    inputs = [
+        _convert_column_to_triton_input(col_name, col_values, input_class)
+        for col_name, col_values in df_dict.items()
+    ]
     return inputs
 
 
-def _convert_df_to_tuples(schema, batch, dtype="int32"):
-    tuples = []
+def _convert_df_to_dict(schema, batch, dtype="int32"):
+    df_dict = {}
     for col_name, col_schema in schema.column_schemas.items():
         col = batch[col_name]
         shape = col_schema.properties.get("shape", None) or [-1, 1]
@@ -70,34 +73,26 @@ def _convert_df_to_tuples(schema, batch, dtype="int32"):
                 raise ValueError("this function doesn't support CPU list values yet")
 
             if col_schema.is_ragged:
-                tuples.append(
-                    (
-                        col_name + "__values",
-                        col.list.leaves.values_host.astype(col_schema.dtype),
-                    )
+                df_dict[col_name + "__values"] = col.list.leaves.values_host.astype(
+                    col_schema.dtype
                 )
-                tuples.append(
-                    (
-                        col_name + "__nnzs",
-                        col._column.offsets.values_host.astype(dtype),
-                    )
-                )
+                df_dict[col_name + "__nnzs"] = col._column.offsets.values_host.astype(dtype)
             else:
                 values = col.list.leaves.values_host
                 values = values.reshape(*shape).astype(col_schema.dtype)
-                tuples.append((col_name, values))
+                df_dict[col_name] = values
 
         else:
             values = col.values if isinstance(col, pd.Series) else col.values_host
             values = values.reshape(*shape).astype(col_schema.dtype)
-            tuples.append((col_name, values))
-    return tuples
+            df_dict[col_name] = values
+    return df_dict
 
 
-def _convert_column_to_triton_input(col, name, input_class=grpcclient.InferInput):
-    dtype = np_to_triton_dtype(col.dtype)
-    input_tensor = input_class(name, col.shape, dtype)
-    input_tensor.set_data_from_numpy(col)
+def _convert_column_to_triton_input(col_name, col_values, input_class=grpcclient.InferInput):
+    dtype = np_to_triton_dtype(col_values.dtype)
+    input_tensor = input_class(col_name, col_values.shape, dtype)
+    input_tensor.set_data_from_numpy(col_values)
     return input_tensor
 
 
