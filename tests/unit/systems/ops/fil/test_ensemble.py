@@ -75,6 +75,6 @@ def test_workflow_with_forest_inference(tmpdir):
     triton_ens.export(tmpdir)
 
     response = _run_ensemble_on_tritonserver(
-        str(tmpdir), ["output__0"], request_df, triton_ens.name
+        str(tmpdir), input_schema, request_df, ["output__0"], triton_ens.name
     )
     assert response.as_numpy("output__0").shape == (5,)

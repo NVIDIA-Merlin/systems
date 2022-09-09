@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import numpy as np
-import pandas as pd
 import pytest
 
 torch = pytest.importorskip("torch")
@@ -27,12 +26,11 @@ data_conversions = pytest.importorskip("merlin.systems.triton.conversions")
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
-from tritonclient.utils import np_to_triton_dtype  # noqa
-
 from merlin.core.dispatch import make_df  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
+from merlin.systems.triton import convert_df_to_triton_input  # noqa
 from merlin.systems.triton.utils import run_triton_server  # noqa
 
 # TODO: Use this again once `convert_df_to_triton_input` has been reworked
@@ -174,52 +172,3 @@ def test_serve_t4r_with_torchscript(tmpdir):
         response = client.infer("ensemble_model", inputs, outputs=outputs)
 
     assert response
-
-
-def convert_df_to_tuples(schema, batch, dtype="int32"):
-    columns = [(col_name, batch[col_name]) for col_name in schema.column_names]
-    tuples = []
-    for i, (col_name, col) in enumerate(columns):
-
-        if schema[col_name].is_list:
-            if isinstance(col, pd.Series):
-                raise ValueError("this function doesn't support CPU list values yet")
-
-            if schema[col_name].is_ragged:
-                tuples.append(
-                    (
-                        col_name + "__values",
-                        col.list.leaves.values_host.astype(schema[col_name].dtype),
-                    )
-                )
-                tuples.append(
-                    (
-                        col_name + "__nnzs",
-                        col._column.offsets.values_host.astype(dtype),
-                    )
-                )
-            else:
-                tuples.append(
-                    (
-                        col_name,
-                        col.list.leaves.values_host.reshape(-1, 20).astype(schema[col_name].dtype),
-                    )
-                )
-
-        else:
-            values = col.values if isinstance(col, pd.Series) else col.values_host
-            tuples.append((col_name, values.astype(schema[col_name].dtype)))
-    return tuples
-
-
-def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput, dtype="int32"):
-    tuples = convert_df_to_tuples(schema, batch, dtype)
-    inputs = [_convert_column_to_triton_input(tuple[1], tuple[0], input_class) for tuple in tuples]
-    return inputs
-
-
-def _convert_column_to_triton_input(col, name, input_class=grpcclient.InferInput):
-    dtype = np_to_triton_dtype(col.dtype)
-    input_tensor = input_class(name, col.shape, dtype)
-    input_tensor.set_data_from_numpy(col)
-    return input_tensor

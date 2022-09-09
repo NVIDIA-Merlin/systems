@@ -27,11 +27,12 @@ from merlin.systems.triton.utils import run_triton_server  # noqa
 
 def _run_ensemble_on_tritonserver(
     tmpdir,
-    output_columns,
+    schema,
     df,
+    output_columns,
     model_name,
 ):
-    inputs = triton.convert_df_to_triton_input(df.columns, df)
+    inputs = triton.convert_df_to_triton_input(schema, df)
     outputs = [grpcclient.InferRequestedOutput(col) for col in output_columns]
     response = None
     with run_triton_server(tmpdir) as client:
