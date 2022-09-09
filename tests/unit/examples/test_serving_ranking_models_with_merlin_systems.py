@@ -105,5 +105,7 @@ def test_example_04_exporting_ranking_models(tb):
     configure_tensorflow()
     from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
-    response = run_ensemble_on_tritonserver("/tmp/data/ensemble/", outputs, batch, "ensemble_model")
+    response = run_ensemble_on_tritonserver(
+        "/tmp/data/ensemble/", schema.without(["click"]), batch, outputs, "ensemble_model"
+    )
     assert len(response["click/binary_classification_task"]) == 3
