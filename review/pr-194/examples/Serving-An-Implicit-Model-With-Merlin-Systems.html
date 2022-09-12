@@ -145,8 +145,14 @@
 
 <span class="n">train_workflow</span> <span class="o">=</span> <span class="n">nvt</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">user_id</span> <span class="o">+</span> <span class="n">movieId</span><span class="p">)</span>
 <span class="n">train_transformed</span> <span class="o">=</span> <span class="n">train_workflow</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
-
-<span class="n">model</span> <span class="o">=</span> <span class="n">BayesianPersonalizedRanking</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Having preprocessed our data, let’s train our model.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">BayesianPersonalizedRanking</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_transformed</span><span class="p">)</span>
 </pre></div>
 </div>

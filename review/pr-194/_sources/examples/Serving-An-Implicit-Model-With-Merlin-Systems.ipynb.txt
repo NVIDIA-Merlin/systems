@@ -82,6 +82,40 @@
   },
   {
    "cell_type": "code",
+   "execution_count": null,
+   "id": "edea28d0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import nvtabular as nvt\n",
+    "import numpy as np\n",
+    "from merlin.schema.tags import Tags\n",
+    "from merlin.models.implicit import BayesianPersonalizedRanking\n",
+    "\n",
+    "from merlin.datasets.entertainment import get_movielens\n",
+    "\n",
+    "train, _ = get_movielens(variant='ml-100k')\n",
+    "\n",
+    "# the implicit model expects a `user_id` column hence the need to rename it\n",
+    "train = nvt.Dataset(train.compute().rename(columns = {'userId': 'user_id'}))\n",
+    "\n",
+    "user_id  = ['user_id'] >> nvt.ops.Categorify() >> nvt.ops.TagAsUserID()\n",
+    "movieId  = ['movieId'] >> nvt.ops.Categorify() >> nvt.ops.TagAsItemID()\n",
+    "\n",
+    "train_workflow = nvt.Workflow(user_id + movieId)\n",
+    "train_transformed = train_workflow.fit_transform(train)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ff168b4a",
+   "metadata": {},
+   "source": [
+    "Having preprocessed our data, let's train our model."
+   ]
+  },
+  {
+   "cell_type": "code",
    "execution_count": 2,
    "id": "d0b55be5",
    "metadata": {},
@@ -102,24 +136,6 @@
     }
    ],
    "source": [
-    "import nvtabular as nvt\n",
-    "import numpy as np\n",
-    "from merlin.schema.tags import Tags\n",
-    "from merlin.models.implicit import BayesianPersonalizedRanking\n",
-    "\n",
-    "from merlin.datasets.entertainment import get_movielens\n",
-    "\n",
-    "train, _ = get_movielens(variant='ml-100k')\n",
-    "\n",
-    "# the implicit model expects a `user_id` column hence the need to rename it\n",
-    "train = nvt.Dataset(train.compute().rename(columns = {'userId': 'user_id'}))\n",
-    "\n",
-    "user_id  = ['user_id'] >> nvt.ops.Categorify() >> nvt.ops.TagAsUserID()\n",
-    "movieId  = ['movieId'] >> nvt.ops.Categorify() >> nvt.ops.TagAsItemID()\n",
-    "\n",
-    "train_workflow = nvt.Workflow(user_id + movieId)\n",
-    "train_transformed = train_workflow.fit_transform(train)\n",
-    "\n",
     "model = BayesianPersonalizedRanking(use_gpu=True)\n",
     "model.fit(train_transformed)"
    ]
