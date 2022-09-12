@@ -23,7 +23,7 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.dag.ops.softmax_sampling import SoftmaxSampling
-from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
+from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
@@ -42,18 +42,18 @@ def test_softmax_sampling(tmpdir):
         "output_1": np.random.random(100).astype(np.float32),
     }
 
-    request = make_df(combined_features)
+    request_df = make_df(combined_features)
 
     ordering = ["movie_ids"] >> SoftmaxSampling(relevance_col="output_1", topk=10, temperature=20.0)
 
     ensemble = Ensemble(ordering, request_schema)
     ens_config, node_configs = ensemble.export(tmpdir)
 
-    response = _run_ensemble_on_tritonserver(
-        tmpdir, ensemble.output_schema.column_names, request, "ensemble_model"
+    response = run_ensemble_on_tritonserver(
+        tmpdir, request_schema, request_df, ensemble.output_schema.column_names, "ensemble_model"
     )
     assert response is not None
-    assert len(response.as_numpy("ordered_ids")) == 10
+    assert len(response["ordered_ids"]) == 10
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
@@ -74,15 +74,15 @@ def test_filter_candidates(tmpdir):
         "movie_ids": movie_ids_1,
     }
 
-    request = make_df(combined_features)
+    request_df = make_df(combined_features)
 
     filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
 
     ensemble = Ensemble(filtering, request_schema)
     ens_config, node_configs = ensemble.export(tmpdir)
 
-    response = _run_ensemble_on_tritonserver(
-        tmpdir, ensemble.output_schema.column_names, request, "ensemble_model"
+    response = run_ensemble_on_tritonserver(
+        tmpdir, request_schema, request_df, ensemble.output_schema.column_names, "ensemble_model"
     )
     assert response is not None
-    assert len(response.as_numpy("filtered_ids")) == 80
+    assert len(response["filtered_ids"]) == 80

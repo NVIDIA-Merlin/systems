@@ -13,3 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+
+def compute_dims(col_schema, scalar_shape=None):
+    """
+    Compute Triton dimensions for a column from its schema
+
+    Parameters
+    ----------
+    col_schema : ColumnSchema
+        Schema of the column to compute dimensions for
+    scalar_shape : List[int], optional
+        The shape of a single scalar element, by default None
+
+    Returns
+    -------
+    List[int]
+        Triton dimensions for the column
+    """
+    batch_dim = [-1]
+    column_dims = scalar_shape if scalar_shape is not None else [1]
+
+    if col_schema.is_list:
+        value_count = col_schema.properties.get("value_count", None)
+        if value_count and value_count["max"] > 0 and value_count["min"] == value_count["max"]:
+            column_dims = [value_count["max"]]
+        else:
+            column_dims = [-1]
+
+    return batch_dim + column_dims

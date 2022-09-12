@@ -26,8 +26,8 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
-from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
-from merlin.systems.triton.export import _convert_dtype  # noqa
+from merlin.systems.dag.ops import compute_dims  # noqa
+from merlin.systems.dag.ops.operator import InferenceOperator, add_model_param  # noqa
 
 
 class PredictPyTorch(InferenceOperator):
@@ -67,6 +67,17 @@ class PredictPyTorch(InferenceOperator):
         # just make them parameters.
         self.input_schema = input_schema
         self.output_schema = output_schema
+
+        # This is a hack to let us store the shapes for the ensemble to use
+        for col_name, col_schema in self.input_schema.column_schemas.items():
+            self.input_schema[col_name] = col_schema.with_properties(
+                {"shape": compute_dims(col_schema, self.scalar_shape)}
+            )
+
+        for col_name, col_schema in self.output_schema.column_schemas.items():
+            self.output_schema[col_name] = col_schema.with_properties(
+                {"shape": compute_dims(col_schema, self.scalar_shape)}
+            )
 
         super().__init__()
 
@@ -141,51 +152,26 @@ class PredictPyTorch(InferenceOperator):
         config.platform = "pytorch_libtorch"
         config.parameters["INFERENCE_MODE"].string_value = "true"
 
-        for col_name, col_schema in self.input_schema.column_schemas.items():
-            dims = [-1, 1]
-
-            if col_schema.is_list and not col_schema.is_ragged:
-                value_count = col_schema.properties.get("value_count", None)
-                if value_count and value_count["min"] == value_count["max"]:
-                    dims = [-1, value_count["max"]]
-
-            config.input.append(
-                model_config.ModelInput(
-                    name=col_name, data_type=_convert_dtype(col_schema.dtype), dims=dims
-                )
+        for _, col_schema in self.input_schema.column_schemas.items():
+            add_model_param(
+                config.input,
+                model_config.ModelInput,
+                col_schema,
+                col_schema.properties["shape"],
             )
 
-        for col_name, col_schema in self.output_schema.column_schemas.items():
-            # this assumes the list columns are 1D tensors both for cats and conts
-            config.output.append(
-                model_config.ModelOutput(
-                    name=col_name,
-                    data_type=_convert_dtype(col_schema.dtype),
-                    dims=[-1, 1],
-                )
+        for _, col_schema in self.output_schema.column_schemas.items():
+            add_model_param(
+                config.output,
+                model_config.ModelOutput,
+                col_schema,
+                col_schema.properties["shape"],
             )
 
         with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)
         return config
 
-
-def _add_model_param(col_schema, paramclass, params, dims=None):
-    dims = dims if dims is not None else [-1, 1]
-    if col_schema.is_list and col_schema.is_ragged:
-        params.append(
-            paramclass(
-                name=col_schema.name + "__values",
-                data_type=_convert_dtype(col_schema.dtype),
-                dims=dims,
-            )
-        )
-        params.append(
-            paramclass(
-                name=col_schema.name + "__nnzs", data_type=model_config.TYPE_INT64, dims=dims
-            )
-        )
-    else:
-        params.append(
-            paramclass(name=col_schema.name, data_type=_convert_dtype(col_schema.dtype), dims=dims)
-        )
+    @property
+    def scalar_shape(self):
+        return []

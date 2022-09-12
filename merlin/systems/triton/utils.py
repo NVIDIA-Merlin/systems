@@ -107,8 +107,9 @@ def _get_random_free_port():
 
 def run_ensemble_on_tritonserver(
     tmpdir,
-    output_columns,
+    schema,
     df,
+    output_columns,
     model_name,
 ):
     """Starts up a Triton server instance, loads up the ensemble model,
@@ -119,10 +120,12 @@ def run_ensemble_on_tritonserver(
     ----------
     tmpdir : string
         Directory from which to load ensemble model.
-    output_columns : [string]
-        List of columns that will be predicted.
+    schema : Schema
+        Schema of the inputs in the dataframe
     df : dataframe-like
         A dataframe type object that contains rows of inputs to predict on.
+    output_columns : [string]
+        List of columns that will be predicted.
     model_name : string
         The name of the ensemble model to use.
 
@@ -133,12 +136,15 @@ def run_ensemble_on_tritonserver(
     """
     response = None
     with run_triton_server(tmpdir) as client:
-        response = send_triton_request(df, output_columns, client=client, triton_model=model_name)
+        response = send_triton_request(
+            schema, df, output_columns, client=client, triton_model=model_name
+        )
 
     return response
 
 
 def send_triton_request(
+    schema,
     df,
     outputs_list,
     client=None,
@@ -151,6 +157,8 @@ def send_triton_request(
 
     Parameters
     ----------
+    schema : Schema
+        The schema of the inputs in the dataframe
     df : dataframe
         The dataframe with the inputs to predict on.
     outputs_list : [string]
@@ -177,7 +185,7 @@ def send_triton_request(
     if not client.is_server_live():
         raise ValueError("Client could not establish commuincation with Triton Inference Server.")
 
-    inputs = triton.convert_df_to_triton_input(df.columns, df, grpcclient.InferInput)
+    inputs = triton.convert_df_to_triton_input(schema, df, grpcclient.InferInput)
 
     outputs = [grpcclient.InferRequestedOutput(col) for col in outputs_list]
     with client:

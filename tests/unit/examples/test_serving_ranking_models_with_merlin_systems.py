@@ -13,13 +13,14 @@ pytest.importorskip("merlin.models")
 @pytest.mark.notebook
 @testbook(REPO_ROOT / "examples/Serving-Ranking-Models-With-Merlin-Systems.ipynb", execute=False)
 def test_example_04_exporting_ranking_models(tb):
+    import numpy as np
     import tensorflow as tf
 
     import merlin.models.tf as mm
     import nvtabular as nvt
     from merlin.datasets.synthetic import generate_data
     from merlin.io.dataset import Dataset
-    from merlin.schema.tags import Tags
+    from merlin.schema import Schema, Tags
 
     DATA_FOLDER = "/tmp/data/"
     NUM_ROWS = 1000000
@@ -105,5 +106,12 @@ def test_example_04_exporting_ranking_models(tb):
     configure_tensorflow()
     from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
-    response = run_ensemble_on_tritonserver("/tmp/data/ensemble/", outputs, batch, "ensemble_model")
+    # The schema contains int64s, while the actual data contains int32s. Not sure why.
+    schema = Schema(
+        [col_schema.with_dtype(np.int32) for col_schema in schema.column_schemas.values()]
+    )
+
+    response = run_ensemble_on_tritonserver(
+        "/tmp/data/ensemble/", schema.without(["click"]), batch, outputs, "ensemble_model"
+    )
     assert len(response["click/binary_classification_task"]) == 3

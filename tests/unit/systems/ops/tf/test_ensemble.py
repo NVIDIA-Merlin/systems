@@ -24,7 +24,7 @@ from google.protobuf import text_format  # noqa
 
 from merlin.core.dispatch import make_df  # noqa
 from merlin.dag import ColumnSelector  # noqa
-from merlin.schema import Tags  # noqa
+from merlin.schema import Schema, Tags  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
 
@@ -42,8 +42,8 @@ import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from merlin.systems.dag.ensemble import Ensemble  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
+from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 from tests.unit.systems.utils.tf import create_tf_model  # noqa
-from tests.unit.systems.utils.triton import _run_ensemble_on_tritonserver  # noqa
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
@@ -102,9 +102,13 @@ def test_workflow_tf_e2e_config_verification(tmpdir, dataset, engine):
 
     df = make_df({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "id": [7, 8, 9]})
 
+    request_schema = Schema([schema["x"], schema["y"], schema["id"]])
+
     output_columns = triton_ens.output_schema.column_names
-    response = _run_ensemble_on_tritonserver(str(tmpdir), output_columns, df, triton_ens.name)
-    assert len(response.as_numpy("output")) == df.shape[0]
+    response = run_ensemble_on_tritonserver(
+        str(tmpdir), request_schema, df, output_columns, triton_ens.name
+    )
+    assert len(response["output"]) == df.shape[0]
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
@@ -155,6 +159,9 @@ def test_workflow_tf_e2e_multi_op_run(tmpdir, dataset, engine):
         assert hasattr(parsed, "ensemble_scheduling")
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
+    request_schema = workflow.input_schema + workflow_2.input_schema
 
-    response = _run_ensemble_on_tritonserver(str(tmpdir), ["output"], df, triton_ens.name)
-    assert len(response.as_numpy("output")) == df.shape[0]
+    response = run_ensemble_on_tritonserver(
+        str(tmpdir), request_schema, df, ["output"], triton_ens.name
+    )
+    assert len(response["output"]) == df.shape[0]

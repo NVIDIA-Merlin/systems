@@ -27,7 +27,7 @@ from tritonclient.grpc import model_config_pb2
 
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
-from tests.unit.systems.utils.triton import run_triton_server
+from merlin.systems.triton.utils import run_triton_server
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 

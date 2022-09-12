@@ -27,7 +27,8 @@ from google.protobuf import text_format  # noqa
 
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag.ops.operator import InferenceOperator, _add_model_param  # noqa
+from merlin.systems.dag.ops import compute_dims  # noqa
+from merlin.systems.dag.ops.operator import InferenceOperator, add_model_param  # noqa
 
 
 class PredictTensorflow(InferenceOperator):
@@ -124,10 +125,20 @@ class PredictTensorflow(InferenceOperator):
         config.parameters["TF_SIGNATURE_DEF"].string_value = "serving_default"
 
         for _, col_schema in self.input_schema.column_schemas.items():
-            _add_model_param(config.input, model_config.ModelInput, col_schema)
+            add_model_param(
+                config.input,
+                model_config.ModelInput,
+                col_schema,
+                compute_dims(col_schema, self.scalar_shape),
+            )
 
         for _, col_schema in self.output_schema.column_schemas.items():
-            _add_model_param(config.output, model_config.ModelOutput, col_schema)
+            add_model_param(
+                config.output,
+                model_config.ModelOutput,
+                col_schema,
+                compute_dims(col_schema, self.scalar_shape),
+            )
 
         with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)
