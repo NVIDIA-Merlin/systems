@@ -1,3 +1,5 @@
+from distutils.spawn import find_executable  # pylint: disable=deprecated-module
+
 import pytest
 from testbook import testbook
 
@@ -15,8 +17,11 @@ try:
 except ImportError:
     _TRAIN_ON_GPU = [False]
 
+TRITON_SERVER_PATH = find_executable("tritonserver")
+
 
 @pytest.mark.notebook
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.parametrize("gpu", _TRAIN_ON_GPU)
 @testbook(REPO_ROOT / "examples/Serving-An-Implicit-Model-With-Merlin-Systems.ipynb", execute=False)
 def test_example_serving_implicit(tb, gpu):
