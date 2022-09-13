@@ -42,6 +42,7 @@
       ~FilterCandidates.output_dtype
       ~FilterCandidates.output_properties
       ~FilterCandidates.output_tags
+      ~FilterCandidates.scalar_shape
       ~FilterCandidates.supports
    
    

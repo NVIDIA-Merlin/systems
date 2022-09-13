@@ -42,6 +42,7 @@
       ~UnrollFeatures.output_dtype
       ~UnrollFeatures.output_properties
       ~UnrollFeatures.output_tags
+      ~UnrollFeatures.scalar_shape
       ~UnrollFeatures.supports
    
    

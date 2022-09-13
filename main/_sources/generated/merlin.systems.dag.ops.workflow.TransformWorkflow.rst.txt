@@ -40,6 +40,7 @@
       ~TransformWorkflow.output_dtype
       ~TransformWorkflow.output_properties
       ~TransformWorkflow.output_tags
+      ~TransformWorkflow.scalar_shape
       ~TransformWorkflow.supports
    
    

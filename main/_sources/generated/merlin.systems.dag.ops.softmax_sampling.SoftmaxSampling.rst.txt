@@ -42,6 +42,7 @@
       ~SoftmaxSampling.output_dtype
       ~SoftmaxSampling.output_properties
       ~SoftmaxSampling.output_tags
+      ~SoftmaxSampling.scalar_shape
       ~SoftmaxSampling.supports
    
    
