@@ -17,6 +17,7 @@
 import json
 import os
 import pathlib
+from pathlib import Path
 from shutil import copy2
 from typing import Dict, List, Tuple
 
@@ -24,9 +25,10 @@ import faiss
 import numpy as np
 
 from merlin.core.dispatch import HAS_GPU
+from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 
 class QueryFaiss(PipelineableInferenceOperator):
@@ -53,10 +55,21 @@ class QueryFaiss(PipelineableInferenceOperator):
         topk : int, optional
             The number of results we should receive from query to Faiss as output, by default 10
         """
+        super().__init__()
+
         self.index_path = str(index_path)
         self.topk = topk
         self._index = None
-        super().__init__()
+
+    def load_artifacts(self, artifact_path):
+        filename = Path(self.index_path).name
+        full_index_path = str(Path(artifact_path) / filename)
+        index = faiss.read_index(full_index_path)
+
+        if HAS_GPU:
+            res = faiss.StandardGpuResources()
+            index = faiss.index_cpu_to_gpu(res, 0, index)
+        self._index = index
 
     @classmethod
     def from_config(cls, config: dict, **kwargs) -> "QueryFaiss":
@@ -78,14 +91,13 @@ class QueryFaiss(PipelineableInferenceOperator):
         topk = parameters["topk"]
 
         operator = QueryFaiss(index_path, topk=topk)
-        index = faiss.read_index(str(index_path))
-
-        if HAS_GPU:
-            res = faiss.StandardGpuResources()
-            index = faiss.index_cpu_to_gpu(res, 0, index)
-        operator._index = index
+        operator.load_artifacts(index_path)
 
         return operator
+
+    @property
+    def exportable_backends(self):
+        return ["ensemble", "executor"]
 
     def export(
         self,
@@ -95,6 +107,7 @@ class QueryFaiss(PipelineableInferenceOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
+        backend: str = "ensemble",
     ) -> Tuple[Dict, List]:
         """
         Export the class object as a config and all related files to the user defined path.
@@ -121,8 +134,6 @@ class QueryFaiss(PipelineableInferenceOperator):
         """
         params = params or {}
 
-        # TODO: Copy the index into the export directory
-
         self_params = {
             # TODO: Write the (relative) path from inside the export directory
             "index_path": self.index_path,
@@ -131,39 +142,48 @@ class QueryFaiss(PipelineableInferenceOperator):
         self_params.update(params)
         index_filename = os.path.basename(os.path.realpath(self.index_path))
 
-        # set index path to new path after export
-        full_path = pathlib.Path(path) / f"{node_id}_{QueryFaiss.__name__.lower()}" / str(version)
+        if backend == "ensemble":
+            full_path = (
+                pathlib.Path(path) / f"{node_id}_{QueryFaiss.__name__.lower()}" / str(version)
+            )
+        else:
+            full_path = pathlib.Path(path) / "executor_model" / str(version) / "ensemble"
 
-        # set index path to new path after export
         new_index_path = full_path / index_filename
-
-        new_index_path.mkdir(parents=True, exist_ok=True)
+        full_path.mkdir(parents=True, exist_ok=True)
         copy2(self.index_path, new_index_path)
         self.index_path = str(new_index_path)
-        return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
-    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+        if backend == "ensemble":
+            return super().export(path, input_schema, output_schema, self_params, node_id, version)
+        else:
+            return ({}, [])
+
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
         """
         Transform input dataframe to output dataframe using function logic.
 
         Parameters
         ----------
-        df : InferenceDataFrame
+        df : DictArray
             Input tensor dictionary, data that will be manipulated
 
         Returns
         -------
-        InferenceDataFrame
+        DictArray
             Transformed tensor dictionary
         """
-        user_vector = list(df.tensors.values())[0]
+        # TODO: Verify we got this line right
+        user_vector = list(transformable.values())[0]
 
         _, indices = self._index.search(user_vector, self.topk)
         # distances, indices = self.index.search(user_vector, self.topk)
 
         candidate_ids = np.array(indices).T.astype(np.int32)
 
-        return InferenceDataFrame({"candidate_ids": candidate_ids})
+        return type(transformable)({"candidate_ids": candidate_ids})
 
     def compute_input_schema(
         self,

@@ -51,9 +51,12 @@ def test_tf_op_exports_own_config(tmpdir):
         metrics=[tf.metrics.SparseCategoricalAccuracy()],
     )
 
+    input_schema = Schema([ColumnSchema("input", dtype=np.int32)])
+    output_schema = Schema([ColumnSchema("output", dtype=np.float32)])
+
     # Triton
     triton_op = tf_op.PredictTensorflow(model)
-    triton_op.export(tmpdir, None, None)
+    triton_op.export(tmpdir, input_schema, output_schema)
 
     # Export creates directory
     export_path = pathlib.Path(tmpdir) / triton_op.export_name

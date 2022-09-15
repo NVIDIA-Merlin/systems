@@ -4,9 +4,10 @@ from typing import List
 import numpy as np
 from feast import FeatureStore, ValueType
 
+from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 # Feast_key: (numpy dtype, is_list, is_ragged)
 feast_2_numpy = {
@@ -185,6 +186,13 @@ class QueryFeast(PipelineableInferenceOperator):
         self.store = FeatureStore(repo_path=repo_path)
         super().__init__()
 
+    def __getstate__(self):
+        # feature store objects aren't picklable - exclude from saved representation
+        return {k: v for k, v in self.__dict__.items() if k != "store"}
+
+    def load_artifacts(self, artifact_path):
+        self.store = FeatureStore(self.repo_path)
+
     def compute_output_schema(
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
@@ -248,7 +256,16 @@ class QueryFeast(PipelineableInferenceOperator):
             suffix_int,
         )
 
-    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+        backend: str = "ensemble",
+    ):
         params = params or {}
         self_params = {
             "entity_id": self.entity_id,
@@ -264,21 +281,23 @@ class QueryFeast(PipelineableInferenceOperator):
         self_params.update(params)
         return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
-    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
         """
         Transform input dataframe to output dataframe using function logic.
 
         Parameters
         ----------
-        df : InferenceDataFrame
+        df : DictArray
             Input tensor dictionary, data that will be manipulated
 
         Returns
         -------
-        InferenceDataFrame
+        DictArray
             Transformed tensor dictionary
         """
-        entity_ids = df[self.entity_column]
+        entity_ids = transformable[self.entity_column]
 
         if len(entity_ids) < 1:
             raise ValueError(
@@ -341,7 +360,7 @@ class QueryFeast(PipelineableInferenceOperator):
             output_tensors[feature_out_name] = feature_array
             output_tensors[feature_out_nnz] = feature_nnzs
 
-        return InferenceDataFrame(output_tensors)
+        return type(transformable)(output_tensors)
 
     @classmethod
     def _prefixed_name(cls, output_prefix, col_name):

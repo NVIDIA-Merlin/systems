@@ -16,6 +16,8 @@
 import importlib
 import json
 
+from merlin.dag import ColumnSelector
+
 
 class OperatorRunner:
     """Runner for collection of operators in one triton model."""
@@ -50,8 +52,14 @@ class OperatorRunner:
 
     def execute(self, tensors):
         """Run transform on multiple operators"""
+
+        selector = ColumnSelector("*")
         for operator in self.operators:
-            tensors = operator.transform(tensors)
+            input_type = type(tensors)
+            tensors = operator.transform(selector, tensors)
+            if isinstance(tensors, dict):
+                tensors = input_type(tensors)
+
         return tensors
 
     def fetch_json_param(self, model_config, param_name):

@@ -17,9 +17,10 @@ import importlib
 import json
 import pathlib
 
-from merlin.dag import ColumnSelector  # noqa
+from merlin.core.protocols import Transformable
+from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 try:
     import implicit
@@ -49,6 +50,9 @@ class PredictImplicit(PipelineableInferenceOperator):
         self.num_to_recommend = num_to_recommend
         super().__init__(**kwargs)
 
+    def __getstate__(self):
+        return {k: v for k, v in self.__dict__.items() if k != "model"}
+
     def compute_output_schema(
         self,
         input_schema: Schema,
@@ -68,7 +72,20 @@ class PredictImplicit(PipelineableInferenceOperator):
         """Return the input schema representing the input columns this operator expects to use."""
         return Schema([ColumnSchema("user_id", dtype="int64")])
 
-    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+    @property
+    def exportable_backends(self):
+        return ["ensemble", "executor"]
+
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+        backend: str = "ensemble",
+    ):
         """Export the class and related files to the path specified."""
         node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
         version_path = pathlib.Path(path) / node_name / str(version)
@@ -117,21 +134,23 @@ class PredictImplicit(PipelineableInferenceOperator):
 
         return cls(model, num_to_recommend=num_to_recommend)
 
-    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
         """Transform the dataframe by applying this operator to the set of input columns.
 
         Parameters
         -----------
-        df: InferenceDataFrame
+        df: DictArray
             A pandas or cudf dataframe that this operator will work on
 
         Returns
         -------
-        InferenceDataFrame
+        DictArray
             Returns a transformed dataframe for this operator"""
-        user_id = df["user_id"].ravel()
+        user_id = transformable["user_id"].ravel()
         user_items = None
         ids, scores = self.model.recommend(
             user_id, user_items, N=self.num_to_recommend, filter_already_liked_items=False
         )
-        return InferenceDataFrame({"ids": ids, "scores": scores})
+        return type(transformable)({"ids": ids, "scores": scores})

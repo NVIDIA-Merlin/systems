@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
+from merlin.dag import ColumnSelector, DictArray
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceDataFrame
 
 feast = pytest.importorskip("feast")  # noqa
 
@@ -213,8 +213,8 @@ def test_feast_transform(prefix, is_ragged):
             output_prefix=prefix,
         )
 
-        df = InferenceDataFrame({"entity_id": [1]})
-        resp = feast_op.transform(df)
+        df = DictArray({"entity_id": [1]})
+        resp = feast_op.transform(ColumnSelector("*"), df)
         assert resp["entity_id"] == [1]
         assert resp[feature_name] == np.array([[1.0]])
         assert np.all(resp[feature_mh_1] == np.array([[1.0], [2.0], [3.0]]))

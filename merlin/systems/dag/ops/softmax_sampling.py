@@ -2,10 +2,11 @@ import json
 
 import numpy as np
 
+from merlin.core.protocols import Transformable
 from merlin.dag.node import Node
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 
 class SoftmaxSampling(PipelineableInferenceOperator):
@@ -53,7 +54,16 @@ class SoftmaxSampling(PipelineableInferenceOperator):
     def dependencies(self):
         return self.relevance_col
 
-    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+        backend: str = "ensemble",
+    ):
         """Write out a Triton model config directory"""
         params = params or {}
         self_params = {
@@ -91,12 +101,14 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         """Describe the operator's outputs"""
         return Schema([ColumnSchema("ordered_ids", dtype=np.int32, is_list=True, is_ragged=False)])
 
-    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
         """Transform the dataframe by applying this operator to the set of input columns"""
         # Extract parameters from the request
-        candidate_ids = df[self._input_col_name].reshape(-1)
+        candidate_ids = transformable[self._input_col_name].reshape(-1)
 
-        predicted_scores = df[self._relevance_col_name].reshape(-1)
+        predicted_scores = transformable[self._relevance_col_name].reshape(-1)
 
         # Exponential sort trick for sampling from a distribution without replacement from:
 
@@ -124,4 +136,4 @@ class SoftmaxSampling(PipelineableInferenceOperator):
         topk_item_ids = candidate_ids[sorted_indices][: self.topk]
         ordered_item_ids = topk_item_ids.reshape(1, -1).T
 
-        return InferenceDataFrame({"ordered_ids": ordered_item_ids})
+        return type(transformable)({"ordered_ids": ordered_item_ids})

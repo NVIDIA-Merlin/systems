@@ -63,10 +63,11 @@ disable=fixme,
     # producing false positives
     unexpected-keyword-arg,
     not-an-iterable,
-    unsubscriptable-object
+    unsubscriptable-object,
+    signature-differs
 
 [SIMILARITIES]
-min-similarity-lines=20
+min-similarity-lines=50
 ignore-comments=yes
 ignore-docstrings=yes
 ignore-imports=yes

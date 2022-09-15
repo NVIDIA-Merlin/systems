@@ -23,16 +23,16 @@
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-import json
 import pathlib
 import sys
 import traceback
+from pathlib import Path
 
 import triton_python_backend_utils as pb_utils
 
-from merlin.dag import DictArray
-from merlin.systems.dag.op_runner import OperatorRunner
+from merlin.dag import DictArray, postorder_iter_nodes
+from merlin.dag.executors import LocalExecutor
+from merlin.systems.dag import Ensemble
 
 
 class TritonPythonModel:
@@ -56,14 +56,23 @@ class TritonPythonModel:
           * model_version: Model version
           * model_name: Model name
         """
-        self.model_config = json.loads(args["model_config"])
+        # Arg parsing
+        model_repo = args["model_repository"]
+        repository_path = Path(model_repo)
 
-        self.runner = OperatorRunner(
-            self.model_config,
-            model_repository=_parse_model_repository(args["model_repository"]),
-            model_name=args["model_name"],
-            model_version=args["model_version"],
-        )
+        # Handle bug in Tritonserver 22.06
+        # model_repository argument became path to model.py
+        if str(repository_path).endswith(".py"):
+            repository_path = repository_path.parent.parent
+
+        ensemble_path = repository_path / str(args["model_version"]) / "ensemble"
+
+        self.executor = LocalExecutor()
+        self.ensemble = Ensemble.load(str(ensemble_path))
+
+        for node in list(postorder_iter_nodes(self.ensemble.graph.output_node)):
+            if hasattr(node.op, "load_artifacts"):
+                node.op.load_artifacts(str(ensemble_path))
 
     def execute(self, requests):
         """Receives a list of pb_utils.InferenceRequest as the only argument. This
@@ -84,12 +93,6 @@ class TritonPythonModel:
           A list of pb_utils.InferenceResponse. The length of this list must
           be the same as `requests`
         """
-        params = self.model_config["parameters"]
-        op_names = json.loads(params["operator_names"]["string_value"])
-        first_operator_name = op_names[0]
-        operator_params = json.loads(params[first_operator_name]["string_value"])
-        input_column_names = list(json.loads(operator_params["input_dict"]).keys())
-
         responses = []
 
         for request in requests:
@@ -97,12 +100,13 @@ class TritonPythonModel:
                 # transform the triton tensors to a dict of name:numpy tensor
                 input_tensors = {
                     name: pb_utils.get_input_tensor_by_name(request, name).as_numpy()
-                    for name in input_column_names
+                    for name in self.ensemble.input_schema.column_names
                 }
 
-                inf_df = DictArray(input_tensors)
-
-                return_values = self.runner.execute(inf_df)
+                return_values = self.executor.transform(
+                    DictArray(input_tensors),
+                    [self.ensemble.graph.output_node],
+                )
 
                 output_tensors = []
                 for name, data in return_values.items():

@@ -21,27 +21,25 @@ from shutil import copyfile
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 import torch  # noqa
+import torch.utils.dlpack  # noqa
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
+from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
-from merlin.systems.dag.ops.operator import InferenceOperator, add_model_param  # noqa
+from merlin.systems.dag.ops.compat import pb_utils  # noqa
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator, add_model_param  # noqa
 
 
-class PredictPyTorch(InferenceOperator):
+class PredictPyTorch(PipelineableInferenceOperator):
     """
     This operator takes a pytorch model and packages it correctly for tritonserver
     to run, on the pytorch backend.
     """
 
-    def __init__(
-        self,
-        model_or_path,
-        input_schema: Schema,
-        output_schema: Schema,
-    ):
+    def __init__(self, model_or_path, input_schema: Schema, output_schema: Schema, backend="torch"):
         """
         Instantiate a PredictPyTorch inference operator.
 
@@ -56,30 +54,71 @@ class PredictPyTorch(InferenceOperator):
             Output schema for the pytorch model.
         """
 
-        if isinstance(model_or_path, (str, os.PathLike)):
-            self.path = model_or_path
-            self.model = torch.load(self.path)
-        else:
-            self.path = None
-            self.model = model_or_path
-
-        # TODO: figure out if we can infer input / output schemas from the pytorch model. Now we
-        # just make them parameters.
+        super().__init__()
+        self._torch_model_name = None
         self.input_schema = input_schema
         self.output_schema = output_schema
 
-        # This is a hack to let us store the shapes for the ensemble to use
-        for col_name, col_schema in self.input_schema.column_schemas.items():
-            self.input_schema[col_name] = col_schema.with_properties(
-                {"shape": compute_dims(col_schema, self.scalar_shape)}
-            )
+        if model_or_path is not None:
+            if isinstance(model_or_path, (str, os.PathLike)):
+                self.path = model_or_path
+                self.model = torch.load(self.path)
+            else:
+                self.path = None
+                self.model = model_or_path
 
-        for col_name, col_schema in self.output_schema.column_schemas.items():
-            self.output_schema[col_name] = col_schema.with_properties(
-                {"shape": compute_dims(col_schema, self.scalar_shape)}
-            )
+            # This is a hack to let us store the shapes for the ensemble to use
+            for col_name, col_schema in self.input_schema.column_schemas.items():
+                self.input_schema[col_name] = col_schema.with_properties(
+                    {"shape": compute_dims(col_schema, self.scalar_shape)}
+                )
 
-        super().__init__()
+            for col_name, col_schema in self.output_schema.column_schemas.items():
+                self.output_schema[col_name] = col_schema.with_properties(
+                    {"shape": compute_dims(col_schema, self.scalar_shape)}
+                )
+
+    def __getstate__(self):
+        return {k: v for k, v in self.__dict__.items() if k != "model"}
+
+    @property
+    def torch_model_name(self):
+        return self._torch_model_name
+
+    def set_torch_model_name(self, torch_model_name):
+        """
+        Set the name of the Triton model to use
+
+        Parameters
+        ----------
+        torch_model_name : str
+            Triton model directory name
+        """
+        self._torch_model_name = torch_model_name
+
+    def transform(self, col_selector: ColumnSelector, transformable: Transformable):
+        # TODO: Validate that the inputs match the schema
+        # TODO: Should we coerce the dtypes to match the schema here?
+        input_tensors = []
+        for col_name in self.input_schema.column_schemas.keys():
+            input_tensors.append(pb_utils.Tensor(col_name, transformable[col_name]))
+
+        inference_request = pb_utils.InferenceRequest(
+            model_name=self.torch_model_name,
+            requested_output_names=self.output_schema.column_names,
+            inputs=input_tensors,
+        )
+        inference_response = inference_request.exec()
+
+        # TODO: Validate that the outputs match the schema
+        outputs_dict = {}
+        for out_col_name in self.output_schema.column_schemas.keys():
+            output_val = pb_utils.get_output_tensor_by_name(
+                inference_response, out_col_name
+            ).to_dlpack()
+            outputs_dict[out_col_name] = torch.from_dlpack(output_val).cpu().numpy()
+
+        return type(transformable)(outputs_dict)
 
     def compute_input_schema(
         self,
@@ -101,9 +140,23 @@ class PredictPyTorch(InferenceOperator):
         """
         return self.output_schema
 
-    def export(self, path, input_schema, output_schema, node_id=None, version=1):
+    @property
+    def exportable_backends(self):
+        return ["ensemble", "executor"]
+
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+        backend: str = "ensemble",
+    ):
         """Create a directory inside supplied path based on our export name"""
-        node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
+        export_name = self.__class__.__name__.lower()
+        node_name = f"{node_id}_{export_name}" if node_id is not None else export_name
 
         node_export_path = pathlib.Path(path) / node_name
         node_export_path.mkdir(exist_ok=True)
@@ -119,7 +172,21 @@ class PredictPyTorch(InferenceOperator):
         else:
             self.model.save(export_model_path / "model.pt")
 
-        return self._export_model_config(node_name, node_export_path)
+        self.set_torch_model_name(node_name)
+        backend_model_config = self._export_model_config(node_name, node_export_path)
+        return backend_model_config
+
+    @property
+    def export_name(self):
+        """
+        Provides a clear common english identifier for this operator.
+
+        Returns
+        -------
+        String
+            Name of the current class as spelled in module.
+        """
+        return self.__class__.__name__.lower()
 
     def _export_model_config(self, name, output_path):
         """Exports a PyTorch model for serving with Triton
@@ -132,7 +199,6 @@ class PredictPyTorch(InferenceOperator):
             The path to write the exported model to
         """
         config = self._export_torchscript_config(name, output_path)
-        # TODO: Add support for Python back-end configs here
 
         return config
 

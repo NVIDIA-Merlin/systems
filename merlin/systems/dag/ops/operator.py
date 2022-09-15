@@ -12,44 +12,13 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
+from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import BaseOperator  # noqa
 from merlin.dag.selector import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.node import InferenceNode  # noqa
+from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.triton.export import _convert_dtype  # noqa
-
-
-class InferenceDataFrame:
-    def __init__(self, tensors=None):
-        """
-        This is a dictionary that has a set of key (column name) and value (tensor)
-
-        Parameters
-        ----------
-        tensors : Dictionary, optional
-            A dictionary consisting of column name (key), tensor vector (value) , by default None
-        """
-        self.tensors = tensors or {}
-
-    def __getitem__(self, col_items):
-        if isinstance(col_items, list):
-            results = {name: self.tensors[name] for name in col_items}
-            return InferenceDataFrame(results)
-        else:
-            return self.tensors[col_items]
-
-    def __len__(self):
-        return len(self.tensors)
-
-    def __iter__(self):
-        for name, tensor in self.tensors.items():
-            yield name, tensor
-
-    def __repr__(self):
-        dict_rep = {}
-        for k, v in self.tensors.items():
-            dict_rep[k] = v
-        return str(dict_rep)
 
 
 class InferenceOperator(BaseOperator):
@@ -71,6 +40,39 @@ class InferenceOperator(BaseOperator):
         """
         return self.__class__.__name__.lower()
 
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
+        """Transform the dataframe by applying this operator to the set of input columns.
+
+        This is defined here to force child classes to define a transform method, in order
+        to avoid difficult to debug issues that surface in Triton with less-than-informative
+        errors.
+
+        Parameters
+        -----------
+        columns: list of str or list of list of str
+            The columns to apply this operator to
+        df: Dataframe
+            A pandas or cudf dataframe that this operator will work on
+
+        Returns
+        -------
+        DataFrame
+            Returns a transformed dataframe for this operator
+        """
+        raise NotImplementedError
+
+    def load_artifacts(self, artifact_path):
+        """
+        Hook method that provides a way to load saved artifacts for the operator
+
+        Parameters
+        ----------
+        artifact_path : str
+            Path where artifacts for the operator are stored.
+        """
+
     @property
     def exportable_backends(self):
         return ["ensemble"]
@@ -84,6 +86,7 @@ class InferenceOperator(BaseOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
+        backend: str = "ensemble",
     ):
         """
         Export the class object as a config and all related files to the user defined path.
@@ -198,7 +201,9 @@ class PipelineableInferenceOperator(InferenceOperator):
         """
 
     @abstractmethod
-    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
         """Transform the dataframe by applying this operator to the set of input columns
 
         Parameters
@@ -211,6 +216,7 @@ class PipelineableInferenceOperator(InferenceOperator):
         DataFrame
             Returns a transformed dataframe for this operator
         """
+        return transformable
 
     def export(
         self,
@@ -269,22 +275,13 @@ class PipelineableInferenceOperator(InferenceOperator):
             }
         )
 
-        for col_name, col_dict in _schema_to_dict(input_schema).items():
-            config.input.append(
-                model_config.ModelInput(
-                    name=col_name, data_type=_convert_dtype(col_dict["dtype"]), dims=[-1, -1]
-                )
-            )
+        for col_schema in input_schema.column_schemas.values():
+            col_dims = col_schema.properties.get("shape", None) or compute_dims(col_schema)
+            add_model_param(config.input, model_config.ModelInput, col_schema, col_dims)
 
-        for col_name, col_dict in _schema_to_dict(output_schema).items():
-            # this assumes the list columns are 1D tensors both for cats and conts
-            config.output.append(
-                model_config.ModelOutput(
-                    name=col_name,
-                    data_type=_convert_dtype(col_dict["dtype"]),
-                    dims=[-1, -1],
-                )
-            )
+        for col_schema in output_schema.column_schemas.values():
+            col_dims = col_schema.properties.get("shape", None) or compute_dims(col_schema)
+            add_model_param(config.output, model_config.ModelOutput, col_schema, col_dims)
 
         with open(os.path.join(node_export_path, "config.pbtxt"), "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)

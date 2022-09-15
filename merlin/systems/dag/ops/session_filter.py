@@ -18,9 +18,10 @@ import json
 
 import numpy as np
 
+from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector, Node
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 
 class FilterCandidates(PipelineableInferenceOperator):
@@ -155,27 +156,29 @@ class FilterCandidates(PipelineableInferenceOperator):
         Schema
             A schema object representing all outputs of this node.
         """
-        return Schema([ColumnSchema("filtered_ids", dtype=np.int32, is_list=False)])
+        return Schema([ColumnSchema("filtered_ids", dtype=np.int32)])
 
-    def transform(self, df: InferenceDataFrame):
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
         """
         Transform input dataframe to output dataframe using function logic.
 
         Parameters
         ----------
-        df : InferenceDataFrame
+        df : DictArray
             Input tensor dictionary, data that will be manipulated
 
         Returns
         -------
-        InferenceDataFrame
+        DictArray
             Transformed tensor dictionary
         """
-        candidate_ids = df[self._input_col]
-        filter_ids = df[self._filter_out_col]
+        candidate_ids = transformable[self._input_col]
+        filter_ids = transformable[self._filter_out_col]
 
-        filtered_results = np.array([candidate_ids[~np.isin(candidate_ids, filter_ids)]]).T
-        return InferenceDataFrame({"filtered_ids": filtered_results})
+        filtered_results = candidate_ids[~np.isin(candidate_ids, filter_ids)]
+        return type(transformable)({"filtered_ids": filtered_results})
 
     def export(
         self,
@@ -185,6 +188,7 @@ class FilterCandidates(PipelineableInferenceOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
+        backend: str = "ensemble",
     ):
         """
         Export the class object as a config and all related files to the user defined path.

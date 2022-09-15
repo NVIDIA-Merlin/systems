@@ -42,7 +42,13 @@ class InferenceNode(Node):
 
         return hasattr(self.op, "export") and backend in backends
 
-    def export(self, output_path: Union[str, os.PathLike], node_id: int = None, version: int = 1):
+    def export(
+        self,
+        output_path: Union[str, os.PathLike],
+        node_id: int = None,
+        version: int = 1,
+        backend="ensemble",
+    ):
         """
         Export a Triton config directory for this node.
 
@@ -61,7 +67,12 @@ class InferenceNode(Node):
             Triton model config corresponding to this node.
         """
         return self.op.export(
-            output_path, self.input_schema, self.output_schema, node_id=node_id, version=version
+            output_path,
+            self.input_schema,
+            self.output_schema,
+            node_id=node_id,
+            version=version,
+            backend=backend,
         )
 
     @property
