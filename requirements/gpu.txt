@@ -1,4 +1,4 @@
-feast<=0.20.0
+feast<0.20
 faiss-gpu
 pytest
 pytest-cov
