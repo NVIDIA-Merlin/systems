@@ -177,7 +177,7 @@ from merlin.systems.triton import convert_df_to_triton_input
 import tritonclient.grpc as grpcclient
 
 ten_examples = train.compute().drop(columns=['rating', 'title', 'rating_binary'])[:10]
-inputs = convert_df_to_triton_input(inf_workflow.input_schema.column_names, ten_examples, grpcclient.InferInput)
+inputs = convert_df_to_triton_input(inf_workflow.input_schema, ten_examples, grpcclient.InferInput)
 
 outputs = [
     grpcclient.InferRequestedOutput(col)

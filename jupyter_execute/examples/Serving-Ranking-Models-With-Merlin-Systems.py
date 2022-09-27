@@ -290,7 +290,7 @@ from merlin.systems.triton import convert_df_to_triton_input
 import tritonclient.grpc as grpcclient
 # create inputs and outputs
 
-inputs = convert_df_to_triton_input(workflow.input_schema.column_names, batch, grpcclient.InferInput)
+inputs = convert_df_to_triton_input(workflow.input_schema, batch, grpcclient.InferInput)
 
 output_cols = ensemble.graph.output_schema.column_names
 
