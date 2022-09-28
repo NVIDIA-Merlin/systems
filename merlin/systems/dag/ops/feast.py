@@ -1,5 +1,5 @@
 import json
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 from feast import FeatureStore, ValueType
@@ -36,7 +36,7 @@ class QueryFeast(PipelineableInferenceOperator):
         store: FeatureStore,
         view: str,
         column: str,
-        output_prefix: str = None,
+        output_prefix: Optional[str] = None,
         include_id: bool = False,
     ):
         """
@@ -52,7 +52,7 @@ class QueryFeast(PipelineableInferenceOperator):
             The feature view you want to pull feature from.
         column : str
             The column that input data will match against.
-        output_prefix : str, optional
+        output_prefix : Optional[str], optional
             A column prefix that can be added to each output column, by default None
         include_id : bool, optional
             A boolean to decide to include the input column in output, by default False
