@@ -1,8 +1,9 @@
 import json
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from feast import FeatureStore, ValueType
+from feast.types import VALUE_TYPES_TO_FEAST_TYPES
 
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
@@ -10,7 +11,7 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 # Feast_key: (numpy dtype, is_list, is_ragged)
-feast_2_numpy = {
+feast_2_numpy: Dict[ValueType, Tuple] = {
     ValueType.INT64: (np.int64, False, False),
     ValueType.INT32: (np.int32, False, False),
     ValueType.FLOAT: (np.float32, False, False),
@@ -18,6 +19,8 @@ feast_2_numpy = {
     ValueType.INT32_LIST: (np.int32, True, True),
     ValueType.FLOAT_LIST: (np.float32, True, True),
 }
+
+FEAST_TYPES_TO_VALUE_TYPES = {v: k for k, v in VALUE_TYPES_TO_FEAST_TYPES.items()}
 
 
 class QueryFeast(PipelineableInferenceOperator):
@@ -83,7 +86,9 @@ class QueryFeast(PipelineableInferenceOperator):
 
         output_schema = Schema([])
         for feature in feature_view.features:
-            feature_dtype, is_list, is_ragged = feast_2_numpy[feature.dtype]
+            feature_dtype, is_list, is_ragged = feast_2_numpy[
+                FEAST_TYPES_TO_VALUE_TYPES[feature.dtype]
+            ]
 
             if is_list:
                 mh_features.append(feature.name)
