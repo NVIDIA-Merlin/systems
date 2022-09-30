@@ -20,6 +20,7 @@ feast_2_numpy: Dict[ValueType, Tuple] = {
     ValueType.FLOAT_LIST: (np.float32, True, True),
 }
 
+# We need an inverted-index of Feast's VALUE_TYPES_TO_FEAST_TYPES mapping.
 FEAST_TYPES_TO_VALUE_TYPES = {v: k for k, v in VALUE_TYPES_TO_FEAST_TYPES.items()}
 
 
