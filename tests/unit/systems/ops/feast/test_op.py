@@ -11,9 +11,12 @@ from merlin.systems.dag import DictArray
 
 feast = pytest.importorskip("feast")  # noqa
 
+from feast import Entity, Field  # noqa
+from feast.types import Int32, Float32, Array  # noqa
 from feast.online_response import OnlineResponse  # noqa
 from feast.protos.feast.serving import ServingService_pb2  # noqa
 from feast.protos.feast.types import Value_pb2  # noqa
+from feast.value_type import ValueType  # noqa
 
 from merlin.systems.dag.ops.feast import QueryFeast  # noqa
 
@@ -67,22 +70,28 @@ def test_feast_from_feature_view(tmpdir):
         MagicMock(side_effect=QueryFeast),
     ) as qf_init:
         input_source = feast.FileSource(
-            path=tmpdir,
+            path=str(tmpdir),
             event_timestamp_column="datetime",
             created_timestamp_column="created",
         )
+        item_entity = Entity(
+            name="item_id",
+            value_type=ValueType.INT32,
+            description="item id",
+        )
+
         feature_view = feast.FeatureView(
             name="item_features",
-            entities=["item_id"],
+            entities=[item_entity],
             ttl=timedelta(seconds=100),
-            features=[
-                feast.Feature(name="int_feature", dtype=feast.ValueType.INT32),
-                feast.Feature(name="float_feature", dtype=feast.ValueType.FLOAT),
-                feast.Feature(name="int_list_feature", dtype=feast.ValueType.INT32_LIST),
-                feast.Feature(name="float_list_feature", dtype=feast.ValueType.FLOAT_LIST),
+            schema=[
+                Field(name="int_feature", dtype=Int32),
+                Field(name="float_feature", dtype=Float32),
+                Field(name="int_list_feature", dtype=Array(Int32)),
+                Field(name="float_list_feature", dtype=Array(Float32)),
             ],
             online=True,
-            input=input_source,
+            source=input_source,
             tags={},
         )
         fs = feast.FeatureStore("repo_path")
@@ -158,10 +167,18 @@ def test_feast_transform(prefix, is_ragged):
                 ServingService_pb2.GetOnlineFeaturesResponse.FeatureVector(
                     values=[
                         Value_pb2.Value(int32_val=1),
+                    ]
+                ),
+                ServingService_pb2.GetOnlineFeaturesResponse.FeatureVector(
+                    values=[
                         Value_pb2.Value(float_val=1.0),
+                    ]
+                ),
+                ServingService_pb2.GetOnlineFeaturesResponse.FeatureVector(
+                    values=[
                         Value_pb2.Value(float_list_val=Value_pb2.FloatList(val=[1.0, 2.0, 3.0])),
                     ]
-                )
+                ),
             ],
         )
     )

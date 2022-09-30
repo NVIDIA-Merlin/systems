@@ -1,4 +1,4 @@
-feast~=0.25
+feast~=0.25.0
 faiss-gpu
 pytest
 pytest-cov
