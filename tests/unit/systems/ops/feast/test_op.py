@@ -12,10 +12,10 @@ from merlin.systems.dag import DictArray
 feast = pytest.importorskip("feast")  # noqa
 
 from feast import Entity, Field  # noqa
-from feast.types import Int32, Float32, Array  # noqa
 from feast.online_response import OnlineResponse  # noqa
 from feast.protos.feast.serving import ServingService_pb2  # noqa
 from feast.protos.feast.types import Value_pb2  # noqa
+from feast.types import Array, Float32, Int32  # noqa
 from feast.value_type import ValueType  # noqa
 
 from merlin.systems.dag.ops.feast import QueryFeast  # noqa
