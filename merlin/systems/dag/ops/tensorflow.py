@@ -18,6 +18,9 @@ import pathlib
 import tempfile
 from shutil import copytree
 
+import cupy
+import numpy as np
+
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
@@ -106,6 +109,13 @@ class PredictTensorflow(PipelineableInferenceOperator):
             outputs_dict[out_col_name] = output_val
 
         return type(transformable)(outputs_dict)
+
+    def transform_batch(self, col_selector: ColumnSelector, transformable: Transformable):
+        dict_arrays = {}
+        for col in transformable:
+            dict_arrays[col] = cupy.asnumpy(transformable[col].values)
+        outputs = self.model.predict(dict_arrays)
+        return type(transformable)({"output": np.squeeze(outputs)})
 
     @property
     def exportable_backends(self):

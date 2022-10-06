@@ -19,6 +19,7 @@ from typing import List
 
 from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector
+from merlin.dag.executors import LocalExecutor
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.compat import pb_utils  # noqa
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator  # noqa
@@ -102,6 +103,9 @@ class TransformWorkflow(PipelineableInferenceOperator):
             outputs_dict[out_col_name] = output_val
 
         return type(transformable)(outputs_dict)
+
+    def transform_batch(self, col_selector: ColumnSelector, transformable: Transformable):
+        return LocalExecutor().transform(transformable, [self.workflow.graph.output_node])
 
     @classmethod
     def from_config(cls, config: dict, **kwargs) -> "TransformWorkflow":

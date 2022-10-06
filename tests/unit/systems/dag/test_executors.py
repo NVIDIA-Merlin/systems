@@ -13,19 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 import numpy as np
 import pandas as pd
 import pytest
 
 from merlin.core.dispatch import HAS_GPU, make_df
-from merlin.dag import DictArray
+from merlin.dag import ColumnSelector
+from merlin.dag.dictarray import DictArray
 from merlin.dag.executors import DaskExecutor, LocalExecutor
 from merlin.io import Dataset
-from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ensemble import Ensemble
-from merlin.systems.dag.ops.session_filter import FilterCandidates
-from merlin.systems.triton.utils import run_ensemble_on_tritonserver
+from merlin.schema import ColumnSchema, Schema, Tags
+
+loader_tf_utils = pytest.importorskip("nvtabular.loader.tf_utils")
+
+# everything tensorflow related must be imported after this.
+loader_tf_utils.configure_tensorflow()
+tf = pytest.importorskip("tensorflow")
+
+from merlin.systems.dag.ensemble import Ensemble  # noqa
+from merlin.systems.dag.ops.session_filter import FilterCandidates  # noqa
+from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
+from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
+from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
+from nvtabular import Workflow  # noqa
+from nvtabular import ops as wf_ops  # noqa
 
 
 def test_run_dag_on_dictarray_with_local_executor():
@@ -160,3 +171,42 @@ def test_triton_executor_model(tmpdir):
     assert response is not None
     # assert isinstance(response, DictArray)
     assert len(response["filtered_ids"]) == 80
+
+
+@pytest.mark.parametrize("engine", ["parquet"])
+def test_run_complex_dag_on_dataframe_with_dask_executor(tmpdir, dataset, engine):
+    # Create a Workflow
+    schema = dataset.schema
+    for name in ["x", "y", "id"]:
+        dataset.schema.column_schemas[name] = dataset.schema.column_schemas[name].with_tags(
+            [Tags.USER]
+        )
+    selector = ColumnSelector(["x", "y", "id"])
+
+    workflow_ops = selector >> wf_ops.Rename(postfix="_nvt")
+    workflow = Workflow(workflow_ops["x_nvt"])
+    workflow.fit(dataset)
+
+    # Create Tensorflow Model
+    model = tf.keras.models.Sequential(
+        [
+            tf.keras.Input(name="x_nvt", dtype=tf.float64, shape=(1,)),
+            tf.keras.layers.Dense(16, activation="relu"),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(1, name="output"),
+        ]
+    )
+    model.compile(
+        optimizer="adam",
+        loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=[tf.metrics.SparseCategoricalAccuracy()],
+    )
+
+    op_chain = selector >> TransformWorkflow(workflow, cats=["x_nvt"]) >> PredictTensorflow(model)
+    ensemble = Ensemble(op_chain, schema)
+
+    df = make_df({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "id": [7, 8, 9]})
+    ds = Dataset(df)
+    dask_exec = DaskExecutor(transform_method="transform_batch")
+    response = dask_exec.transform(ds.to_ddf(), [ensemble.graph.output_node])
+    assert len(response["output"]) == df.shape[0]
