@@ -71,6 +71,10 @@ class InferenceOperator(BaseOperator):
         """
         return self.__class__.__name__.lower()
 
+    @property
+    def exportable_backends(self):
+        return ["ensemble"]
+
     @abstractmethod
     def export(
         self,

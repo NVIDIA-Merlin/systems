@@ -66,10 +66,12 @@ class Ensemble:
         Write out an ensemble model configuration directory. The exported
         ensemble is designed for use with Triton Inference Server.
         """
+        backend = "ensemble"
+
         # Create ensemble config
         ensemble_config = model_config.ModelConfig(
             name=self.name,
-            platform="ensemble",
+            platform=backend,
             # max_batch_size=configs[0].max_batch_size
         )
 
@@ -95,14 +97,14 @@ class Ensemble:
         node_idx = 0
         node_id_lookup = {}
         for node in postorder_nodes:
-            if node.exportable:
+            if node.exportable(backend):
                 node_id_lookup[node] = node_idx
                 node_idx += 1
 
         node_configs = []
         # Export node configs and add ensemble steps
         for node in postorder_nodes:
-            if node.exportable:
+            if node.exportable(backend):
                 node_id = node_id_lookup.get(node, None)
                 node_name = f"{node_id}_{node.export_name}"
 
@@ -120,7 +122,9 @@ class Ensemble:
                 )
 
                 for input_col_name, input_col_schema in node.input_schema.column_schemas.items():
-                    source = _find_column_source(node.parents_with_dependencies, input_col_name)
+                    source = _find_column_source(
+                        node.parents_with_dependencies, input_col_name, backend
+                    )
                     source_id = node_id_lookup.get(source, None)
                     in_suffix = f"_{source_id}" if source_id is not None else ""
                     if input_col_schema.is_list and input_col_schema.is_ragged:
@@ -163,14 +167,14 @@ class Ensemble:
         return (ensemble_config, node_configs)
 
 
-def _find_column_source(upstream_nodes, column_name):
+def _find_column_source(upstream_nodes, column_name, backend):
     source_node = None
     for upstream_node in upstream_nodes:
         if column_name in upstream_node.output_columns.names:
             source_node = upstream_node
             break
 
-    if source_node and not source_node.exportable:
-        return _find_column_source(source_node.parents_with_dependencies, column_name)
+    if source_node and not source_node.exportable(backend):
+        return _find_column_source(source_node.parents_with_dependencies, column_name, backend)
     else:
         return source_node
