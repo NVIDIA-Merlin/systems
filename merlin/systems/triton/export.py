@@ -23,9 +23,9 @@ import numpy as np
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
+import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
-import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 from merlin.core.dispatch import is_string_dtype  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Tags  # noqa
@@ -360,7 +360,7 @@ def generate_nvtabular_model(
     # copy the model file over. note that this isn't necessary with the c++ backend, but
     # does provide us to use the python backend with just changing the 'backend' parameter
     copyfile(
-        os.path.join(os.path.dirname(__file__), "workflow_model.py"),
+        os.path.join(os.path.dirname(__file__), "models", "workflow_model.py"),
         os.path.join(output_path, str(version), "model.py"),
     )
 
@@ -403,7 +403,7 @@ def _generate_nvtabular_config(
     and outputs to that workflow"""
     config = model_config.ModelConfig(name=name, backend=backend, max_batch_size=max_batch_size)
 
-    config.parameters["python_module"].string_value = "merlin.systems.triton.workflow_model"
+    config.parameters["python_module"].string_value = "merlin.systems.triton.models.workflow_model"
     config.parameters["output_model"].string_value = output_model if output_model else ""
 
     config.parameters["cats"].string_value = json.dumps(cats) if cats else ""

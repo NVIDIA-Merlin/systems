@@ -34,42 +34,103 @@ from merlin.systems.triton.export import (  # noqa
 )
 
 
-def convert_df_to_triton_input(column_names, batch, input_class=grpcclient.InferInput):
-    columns = [(col, batch[col]) for col in column_names]
-    inputs = []
-    for i, (name, col) in enumerate(columns):
-        if is_list_dtype(col):
-            if isinstance(col, pd.Series):
-                raise ValueError("this function doesn't support CPU list values yet")
-            inputs.append(
-                _convert_column_to_triton_input(
-                    col._column.offsets.values_host.astype("int64"), name + "__nnzs", input_class
-                )
-            )
-            inputs.append(
-                _convert_column_to_triton_input(
-                    col.list.leaves.values_host.astype("int64"), name + "__values", input_class
-                )
-            )
-        else:
-            values = col.values if isinstance(col, pd.Series) else col.values_host
-            inputs.append(_convert_column_to_triton_input(values, name, input_class))
+def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput, dtype="int32"):
+    """
+    Convert a dataframe to a set of Triton inputs
+
+    Parameters
+    ----------
+    schema : Schema
+        Schema of the input data
+    batch : DataFrame
+        The input data itself
+    input_class : Triton input class, optional
+        The Triton input class to use, by default grpcclient.InferInput
+    dtype : str, optional
+        The dtype for nnzs/offsets values, by default "int32"
+
+    Returns
+    -------
+    List[input_class]
+        A list of Triton inputs of the requested input class
+    """
+    df_dict = _convert_df_to_dict(schema, batch, dtype)
+    inputs = [
+        _convert_column_to_triton_input(col_name, col_values, input_class)
+        for col_name, col_values in df_dict.items()
+    ]
     return inputs
 
 
-def _convert_column_to_triton_input(col, name, input_class=grpcclient.InferInput):
-    col = col.reshape(len(col), 1)
-    input_tensor = input_class(name, col.shape, np_to_triton_dtype(col.dtype))
-    input_tensor.set_data_from_numpy(col)
+def _convert_df_to_dict(schema, batch, dtype="int32"):
+    df_dict = {}
+    for col_name, col_schema in schema.column_schemas.items():
+        col = batch[col_name]
+        shape = col_schema.properties.get("shape", None) or [-1, 1]
+
+        if col_schema.is_list:
+            if isinstance(col, pd.Series):
+                raise ValueError("this function doesn't support CPU list values yet")
+
+            if col_schema.is_ragged:
+                df_dict[col_name + "__values"] = col.list.leaves.values_host.astype(
+                    col_schema.dtype
+                )
+                df_dict[col_name + "__nnzs"] = col._column.offsets.values_host.astype(dtype)
+            else:
+                values = col.list.leaves.values_host
+                values = values.reshape(*shape).astype(col_schema.dtype)
+                df_dict[col_name] = values
+
+        else:
+            values = col.values if isinstance(col, pd.Series) else col.values_host
+            values = values.reshape(*shape).astype(col_schema.dtype)
+            df_dict[col_name] = values
+    return df_dict
+
+
+def _convert_column_to_triton_input(col_name, col_values, input_class=grpcclient.InferInput):
+    dtype = np_to_triton_dtype(col_values.dtype)
+    input_tensor = input_class(col_name, col_values.shape, dtype)
+    input_tensor.set_data_from_numpy(col_values)
     return input_tensor
 
 
 def convert_triton_output_to_df(columns, response):
+    """
+    Convert a Triton response to a dataframe
+
+    Parameters
+    ----------
+    columns : List[str]
+        Names of the response columns to include in the dataframe
+    response : Triton output class
+        The Triton response itself
+
+    Returns
+    -------
+    DataFrame
+        A dataframe with the requested columns
+    """
     return make_df({col: response.as_numpy(col) for col in columns})
 
 
 def get_column_types(path):
-    return json.load(open(os.path.join(path, "column_types.json")))
+    """
+    Load column types from a JSON file
+
+    Parameters
+    ----------
+    path : str
+        Path of the directory containing `column_types.json` file
+
+    Returns
+    -------
+    dict
+        JSON loaded from the file
+    """
+    path = os.path.join(path, "column_types.json")
+    return json.load(open(path, encoding="utf-8"))
 
 
 def _convert_tensor(t):

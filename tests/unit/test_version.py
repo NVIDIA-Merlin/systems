@@ -13,10 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import pytest
+from packaging.version import Version
 
 import merlin.systems
 
 
+@pytest.mark.version
 def test_version():
     """test to get back version of library"""
-    assert merlin.systems.__version__ is not None
+    assert Version(merlin.systems.__version__) >= Version("0.5.0")

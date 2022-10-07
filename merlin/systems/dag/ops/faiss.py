@@ -59,7 +59,7 @@ class QueryFaiss(PipelineableInferenceOperator):
         super().__init__()
 
     @classmethod
-    def from_config(cls, config: dict) -> "QueryFaiss":
+    def from_config(cls, config: dict, **kwargs) -> "QueryFaiss":
         """
         Instantiate a class object given a config.
 

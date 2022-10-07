@@ -22,13 +22,13 @@ import pytest
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
+from tritonclient.grpc import model_config_pb2 as model_config  # noqa
 
 from merlin.schema import Schema  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
 
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")
-model_config = pytest.importorskip("nvtabular.inference.triton.model_config_pb2")
 workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
 
 
@@ -79,4 +79,4 @@ def test_workflow_op_exports_own_config(tmpdir, dataset, engine):
 
         # The config file contents are correct
         assert parsed.name == triton_op.export_name
-        assert parsed.backend == "nvtabular"
+        assert parsed.backend == "python"

@@ -18,17 +18,18 @@ import os
 import pathlib
 from copy import deepcopy
 
+import numpy as np
 import pytest
 
 from merlin.dag import ColumnSelector, Graph
-from merlin.schema import Schema
+from merlin.schema import ColumnSchema, Schema
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from google.protobuf import text_format  # noqa
+from tritonclient.grpc import model_config_pb2 as model_config  # noqa
 
-model_config = pytest.importorskip("nvtabular.inference.triton.model_config_pb2")
 tf_op = pytest.importorskip("merlin.systems.dag.ops.tensorflow")
 
 tf = pytest.importorskip("tensorflow")
@@ -127,3 +128,41 @@ def test_tf_schema_validation():
     with pytest.raises(ValueError) as exception_info:
         deepcopy(tf_graph).construct_schema(Schema(["input", "not_input"]))
     assert "Mismatched dtypes for column 'input'" in str(exception_info.value)
+
+
+def test_tf_op_infers_schema_for_input_tuples():
+    inputs = (tf.keras.Input(shape=(128,)), tf.keras.Input(shape=(128,)))
+    towers = (tf.keras.layers.Dense(64)(inputs[0]), tf.keras.layers.Dense(64)(inputs[1]))
+    outputs = tf.keras.layers.dot(towers, [1, 1])
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    model.compile(
+        optimizer="adam",
+        loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=[tf.metrics.SparseCategoricalAccuracy()],
+    )
+
+    # Triton
+    triton_op = tf_op.PredictTensorflow(model)
+    assert triton_op.input_schema == Schema(
+        [
+            ColumnSchema(
+                name="input_1",
+                tags=set(),
+                properties={"value_count": {"min": 128, "max": 128}},
+                dtype=np.dtype("float32"),
+                is_list=True,
+                is_ragged=False,
+            ),
+            ColumnSchema(
+                "input_2",
+                properties={"value_count": {"min": 128, "max": 128}},
+                dtype=np.float32,
+                is_list=True,
+                is_ragged=False,
+            ),
+        ]
+    )
+    assert triton_op.output_schema == Schema(
+        [ColumnSchema("dot", dtype=np.float32, is_list=False, is_ragged=False)]
+    )

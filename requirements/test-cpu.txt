@@ -1,0 +1,10 @@
+-r test.txt
+
+merlin-models>=0.6.0
+faiss-cpu==1.7.2
+tensorflow<=2.9.0
+treelite==2.4.0
+treelite_runtime==2.4.0
+torch~=1.12
+lightgbm==3.3.2
+ipykernel

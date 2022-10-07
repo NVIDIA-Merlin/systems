@@ -15,12 +15,17 @@
 #
 import pytest
 
+from merlin.dag.node import postorder_iter_nodes
+from merlin.dag.ops.concat_columns import ConcatColumns
+from merlin.dag.ops.selection import SelectionOp
 from merlin.schema import Schema
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
 
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")
 workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
+
+from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
 
 
 def test_inference_schema_propagation():
@@ -33,10 +38,24 @@ def test_inference_schema_propagation():
     workflow = Workflow(workflow_ops)
     workflow.fit_schema(request_schema)
 
-    assert workflow.graph.output_schema == expected_schema
+    assert workflow.input_schema == request_schema
+    assert workflow.output_schema == expected_schema
 
     # Triton
     triton_ops = input_columns >> workflow_op.TransformWorkflow(workflow)
     ensemble_out = ensemble.Ensemble(triton_ops, request_schema)
 
-    assert ensemble_out.graph.output_schema == expected_schema
+    assert ensemble_out.input_schema == request_schema
+    assert ensemble_out.output_schema == expected_schema
+
+
+def test_graph_traverse_algo():
+    chain_1 = ["name-cat"] >> TransformWorkflow(Workflow(["name-cat"] >> wf_ops.Categorify()))
+    chain_2 = ["name-string"] >> TransformWorkflow(Workflow(["name-string"] >> wf_ops.Categorify()))
+
+    triton_chain = chain_1 + chain_2
+
+    ordered_list = list(postorder_iter_nodes(triton_chain))
+    assert len(ordered_list) == 5
+    assert isinstance(ordered_list[0].op, SelectionOp)
+    assert isinstance(ordered_list[-1].op, ConcatColumns)

@@ -23,6 +23,25 @@ from merlin.schema import Schema
 class InferenceNode(Node):
     """Specialized node class used in Triton Ensemble DAGs"""
 
+    def exportable(self, backend: str = None):
+        """
+        Determine whether the current node's operator is exportable for a given back-end
+
+        Parameters
+        ----------
+        backend : str, optional
+            The Merlin Systems (not Triton) back-end to use,
+            either "ensemble" or "executor", by default None
+
+        Returns
+        -------
+        bool
+            True if the node's operator is exportable for the supplied back-end
+        """
+        backends = getattr(self.op, "exportable_backends", [])
+
+        return hasattr(self.op, "export") and backend in backends
+
     def export(self, output_path: Union[str, os.PathLike], node_id: int = None, version: int = 1):
         """
         Export a Triton config directory for this node.
@@ -58,6 +77,24 @@ class InferenceNode(Node):
         return self.op.export_name
 
     def validate_schemas(self, root_schema, strict_dtypes=False):
+        """
+        Checks that the output schema is valid given the previous
+        nodes in the graph and following nodes in the graph, as
+        well as any additional root inputs.
+
+        Parameters
+        ----------
+        root_schema : Schema
+            Schema of selection from the original data supplied
+        strict_dtypes : bool, optional
+            If True, raises an error when the dtypes in the input data
+            do not match the dtypes in the schema, by default False
+
+        Raises
+        ------
+        ValueError
+            If an output column is produced but not used by child nodes
+        """
         super().validate_schemas(root_schema, strict_dtypes)
 
         if self.children:

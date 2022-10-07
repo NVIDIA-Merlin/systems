@@ -20,11 +20,12 @@ from merlin.dag import postorder_iter_nodes
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
+import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
-import merlin.systems.triton.model_config_pb2 as model_config  # noqa
 from merlin.dag import Graph  # noqa
-from merlin.systems.triton.export import _convert_dtype  # noqa
+from merlin.systems.dag.ops import compute_dims  # noqa
+from merlin.systems.dag.ops.operator import add_model_param  # noqa
 
 
 class Ensemble:
@@ -52,30 +53,42 @@ class Ensemble:
         self.name = name
         self.label_columns = label_columns or []
 
+    @property
+    def input_schema(self):
+        return self.graph.input_schema
+
+    @property
+    def output_schema(self):
+        return self.graph.output_schema
+
     def export(self, export_path, version=1):
         """
         Write out an ensemble model configuration directory. The exported
         ensemble is designed for use with Triton Inference Server.
         """
+        backend = "ensemble"
+
         # Create ensemble config
         ensemble_config = model_config.ModelConfig(
             name=self.name,
-            platform="ensemble",
+            platform=backend,
             # max_batch_size=configs[0].max_batch_size
         )
 
-        for col_name, col_schema in self.graph.input_schema.column_schemas.items():
-            ensemble_config.input.append(
-                model_config.ModelInput(
-                    name=col_name, data_type=_convert_dtype(col_schema.dtype), dims=[-1, -1]
-                )
+        for _, col_schema in self.graph.input_schema.column_schemas.items():
+            add_model_param(
+                ensemble_config.input,
+                model_config.ModelInput,
+                col_schema,
+                col_schema.properties.get("shape", None) or compute_dims(col_schema),
             )
 
-        for col_name, col_schema in self.graph.output_schema.column_schemas.items():
-            ensemble_config.output.append(
-                model_config.ModelOutput(
-                    name=col_name, data_type=_convert_dtype(col_schema.dtype), dims=[-1, -1]
-                )
+        for _, col_schema in self.graph.output_schema.column_schemas.items():
+            add_model_param(
+                ensemble_config.output,
+                model_config.ModelOutput,
+                col_schema,
+                col_schema.properties.get("shape", None) or compute_dims(col_schema),
             )
 
         # Build node id lookup table
@@ -84,14 +97,14 @@ class Ensemble:
         node_idx = 0
         node_id_lookup = {}
         for node in postorder_nodes:
-            if node.exportable:
+            if node.exportable(backend):
                 node_id_lookup[node] = node_idx
                 node_idx += 1
 
         node_configs = []
         # Export node configs and add ensemble steps
         for node in postorder_nodes:
-            if node.exportable:
+            if node.exportable(backend):
                 node_id = node_id_lookup.get(node, None)
                 node_name = f"{node_id}_{node.export_name}"
 
@@ -108,17 +121,36 @@ class Ensemble:
                     model_name=node_name, model_version=-1
                 )
 
-                for input_col_name in node.input_schema.column_names:
-                    source = _find_column_source(node.parents_with_dependencies, input_col_name)
+                for input_col_name, input_col_schema in node.input_schema.column_schemas.items():
+                    source = _find_column_source(
+                        node.parents_with_dependencies, input_col_name, backend
+                    )
                     source_id = node_id_lookup.get(source, None)
                     in_suffix = f"_{source_id}" if source_id is not None else ""
-                    config_step.input_map[input_col_name] = input_col_name + in_suffix
+                    if input_col_schema.is_list and input_col_schema.is_ragged:
+                        config_step.input_map[input_col_name + "__values"] = (
+                            input_col_name + "__values" + in_suffix
+                        )
+                        config_step.input_map[input_col_name + "__nnzs"] = (
+                            input_col_name + "__nnzs" + in_suffix
+                        )
+                    else:
+                        config_step.input_map[input_col_name] = input_col_name + in_suffix
 
-                for output_col_name in node.output_schema.column_names:
+                for output_col_name, output_col_schema in node.output_schema.column_schemas.items():
                     out_suffix = (
                         f"_{node_id}" if node_id is not None and node_id < node_idx - 1 else ""
                     )
-                    config_step.output_map[output_col_name] = output_col_name + out_suffix
+
+                    if output_col_schema.is_list and output_col_schema.is_ragged:
+                        config_step.output_map[output_col_name + "__values"] = (
+                            output_col_name + "__values" + out_suffix
+                        )
+                        config_step.output_map[output_col_name + "__nnzs"] = (
+                            output_col_name + "__nnzs" + out_suffix
+                        )
+                    else:
+                        config_step.output_map[output_col_name] = output_col_name + out_suffix
 
                 ensemble_config.ensemble_scheduling.step.append(config_step)
                 node_configs.append(node_config)
@@ -128,20 +160,21 @@ class Ensemble:
         os.makedirs(ensemble_path, exist_ok=True)
         os.makedirs(os.path.join(ensemble_path, str(version)), exist_ok=True)
 
-        with open(os.path.join(ensemble_path, "config.pbtxt"), "w") as o:
+        config_path = os.path.join(ensemble_path, "config.pbtxt")
+        with open(config_path, "w", encoding="utf-8") as o:
             text_format.PrintMessage(ensemble_config, o)
 
         return (ensemble_config, node_configs)
 
 
-def _find_column_source(upstream_nodes, column_name):
+def _find_column_source(upstream_nodes, column_name, backend):
     source_node = None
     for upstream_node in upstream_nodes:
         if column_name in upstream_node.output_columns.names:
             source_node = upstream_node
             break
 
-    if source_node and not source_node.exportable:
-        return _find_column_source(source_node.parents_with_dependencies, column_name)
+    if source_node and not source_node.exportable(backend):
+        return _find_column_source(source_node.parents_with_dependencies, column_name, backend)
     else:
         return source_node

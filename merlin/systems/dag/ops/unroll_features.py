@@ -36,7 +36,7 @@ class UnrollFeatures(PipelineableInferenceOperator):
         super().__init__()
 
     @classmethod
-    def from_config(cls, config):
+    def from_config(cls, config, **kwargs) -> "UnrollFeatures":
         """Load operator and properties from Triton config"""
         parameters = json.loads(config.get("params", ""))
         candidate_col = parameters["item_id_col"]
