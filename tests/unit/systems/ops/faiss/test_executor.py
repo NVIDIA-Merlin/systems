@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import numpy as np
+import pytest
 
 from merlin.core.dispatch import make_df
 from merlin.dag import DictArray
@@ -21,7 +22,11 @@ from merlin.models.loader.tf_utils import configure_tensorflow
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.faiss import QueryFaiss, setup_faiss
-from merlin.systems.triton.utils import run_ensemble_on_tritonserver
+
+tritonclient = pytest.importorskip("tritonclient")
+grpcclient = pytest.importorskip("tritonclient.grpc")
+
+from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 configure_tensorflow()
 
