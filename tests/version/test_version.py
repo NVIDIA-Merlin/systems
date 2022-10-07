@@ -22,4 +22,4 @@ import merlin.systems
 @pytest.mark.version
 def test_version():
     """test to get back version of library"""
-    assert Version(merlin.systems.__version__) >= Version("0.5.0")
+    assert Version(merlin.systems.__version__) >= Version("0.6.0")
