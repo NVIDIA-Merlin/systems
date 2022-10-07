@@ -222,11 +222,6 @@ class QueryFaiss(PipelineableInferenceOperator):
         input_schema = super().compute_input_schema(
             root_schema, parents_schema, deps_schema, selector
         )
-        if len(input_schema.column_schemas) > 1:
-            raise ValueError(
-                "More than one input has been detected for this node,"
-                / f"inputs received: {input_schema.column_names}"
-            )
         return input_schema
 
     def compute_output_schema(
@@ -256,6 +251,15 @@ class QueryFaiss(PipelineableInferenceOperator):
                 ColumnSchema("candidate_ids", dtype=np.int32),
             ]
         )
+
+    def validate_schemas(
+        self, parents_schema, deps_schema, input_schema, output_schema, strict_dtypes=False
+    ):
+        if len(input_schema.column_schemas) > 1:
+            raise ValueError(
+                "More than one input has been detected for this node,"
+                / f"inputs received: {input_schema.column_names}"
+            )
 
 
 def setup_faiss(item_vector, output_path: str):
