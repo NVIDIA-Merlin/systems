@@ -57,7 +57,7 @@ def test_faiss_in_triton_executor_model(tmpdir):
     )
 
     request_features = {
-        "user_id": np.array(1),
+        "user_id": np.array([1]),
     }
     request_data = DictArray(request_features)
 
