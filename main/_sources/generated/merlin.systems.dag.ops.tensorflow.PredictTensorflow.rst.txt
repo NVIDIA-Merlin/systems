@@ -36,6 +36,7 @@
       ~PredictTensorflow.dependencies
       ~PredictTensorflow.dynamic_dtypes
       ~PredictTensorflow.export_name
+      ~PredictTensorflow.exportable_backends
       ~PredictTensorflow.label
       ~PredictTensorflow.output_dtype
       ~PredictTensorflow.output_properties

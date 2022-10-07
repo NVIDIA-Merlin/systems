@@ -38,6 +38,7 @@
       ~UnrollFeatures.dependencies
       ~UnrollFeatures.dynamic_dtypes
       ~UnrollFeatures.export_name
+      ~UnrollFeatures.exportable_backends
       ~UnrollFeatures.label
       ~UnrollFeatures.output_dtype
       ~UnrollFeatures.output_properties

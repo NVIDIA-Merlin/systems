@@ -38,6 +38,7 @@
       ~FilterCandidates.dependencies
       ~FilterCandidates.dynamic_dtypes
       ~FilterCandidates.export_name
+      ~FilterCandidates.exportable_backends
       ~FilterCandidates.label
       ~FilterCandidates.output_dtype
       ~FilterCandidates.output_properties

@@ -36,6 +36,7 @@
       ~TransformWorkflow.dependencies
       ~TransformWorkflow.dynamic_dtypes
       ~TransformWorkflow.export_name
+      ~TransformWorkflow.exportable_backends
       ~TransformWorkflow.label
       ~TransformWorkflow.output_dtype
       ~TransformWorkflow.output_properties

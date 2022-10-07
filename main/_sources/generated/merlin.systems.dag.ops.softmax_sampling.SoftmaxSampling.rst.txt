@@ -38,6 +38,7 @@
       ~SoftmaxSampling.dependencies
       ~SoftmaxSampling.dynamic_dtypes
       ~SoftmaxSampling.export_name
+      ~SoftmaxSampling.exportable_backends
       ~SoftmaxSampling.label
       ~SoftmaxSampling.output_dtype
       ~SoftmaxSampling.output_properties
