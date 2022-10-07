@@ -58,14 +58,9 @@ class TritonPythonModel:
         """
         # Arg parsing
         model_repo = args["model_repository"]
-        repository_path = Path(model_repo)
+        repository_path = _parse_model_repository(model_repo)
 
-        # Handle bug in Tritonserver 22.06
-        # model_repository argument became path to model.py
-        if str(repository_path).endswith(".py"):
-            repository_path = repository_path.parent.parent
-
-        ensemble_path = repository_path / str(args["model_version"]) / "ensemble"
+        ensemble_path = Path(repository_path) / str(args["model_version"]) / "ensemble"
 
         self.executor = LocalExecutor()
         self.ensemble = Ensemble.load(str(ensemble_path))
