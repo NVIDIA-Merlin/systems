@@ -3,13 +3,13 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/merlin-systems)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/merlin-systems.svg)](https://pypi.python.org/pypi/merlin-systems/)
 ![GitHub License](https://img.shields.io/github/license/NVIDIA-Merlin/systems)
-[![Documentation](https://img.shields.io/badge/documentation-blue.svg)](https://nvidia-merlin.github.io/systems/main/Introduction.html)
+[![Documentation](https://img.shields.io/badge/documentation-blue.svg)](https://nvidia-merlin.github.io/systems/main/README.html)
 
 Merlin Systems provides tools for combining recommendation models with other elements of production recommender systems like feature stores, nearest neighbor search, and exploration strategies into end-to-end recommendation pipelines that can be served with [Triton Inference Server](https://github.com/triton-inference-server/server).
 
 ## Quickstart
 
-Merlin Systems uses the Merlin Operator DAG API, the same API used in [NVTabular](https://github.com/NVIDIA-Merlin/NVTabular) for feature engineering, to create serving ensembles. To combine a feature engineering workflow and a Tensorflow model into an inference pipeline: 
+Merlin Systems uses the Merlin Operator DAG API, the same API used in [NVTabular](https://github.com/NVIDIA-Merlin/NVTabular) for feature engineering, to create serving ensembles. To combine a feature engineering workflow and a Tensorflow model into an inference pipeline:
 
 ```python
 import tensorflow as tf
@@ -25,8 +25,8 @@ workflow = workflow.remove_inputs([<target_columns>])
 
 # Define ensemble pipeline
 pipeline = (
-	workflow.input_schema.column_names >> 
-	TransformWorkflow(workflow) >> 
+	workflow.input_schema.column_names >>
+	TransformWorkflow(workflow) >>
 	PredictTensorflow(model)
 )
 
@@ -41,7 +41,7 @@ After you export your ensemble, you reference the directory to run an instance o
 tritonserver --model-repository=/export_path/
 ```
 
-Refer to the [Merlin Systems Example Notebooks](http://github.io/NVIDIA-Merlin/systems/main/examples/README.html) for a notebook that serves a ranking models ensemble.
+Refer to the [Merlin Systems Example Notebooks](./examples/) for a notebook that serves a ranking models ensemble.
 The notebook shows how to deploy the ensemble and demonstrates sending requests to Triton Inference Server.
 
 ## Building a Four-Stage Recommender Pipeline
@@ -59,7 +59,7 @@ request_schema = Schema([
     ColumnSchema("user_id", dtype=np.int32),
 ])
 
-# Fetch user features, use them to a compute user vector with retrieval model, 
+# Fetch user features, use them to a compute user vector with retrieval model,
 # and find candidate items closest to the user vector with nearest neighbor search
 user_features = request_schema.column_names >> QueryFeast.from_feature_view(
     store=feature_store, view="user_features", column="user_id"
@@ -81,7 +81,7 @@ item_features = filtering >> QueryFeast.from_feature_view(
     store=feature_store, view="movie_features", column="filtered_ids",
 )
 
-# Join user and item features for the candidates and use them to predict relevance scores  
+# Join user and item features for the candidates and use them to predict relevance scores
 combined_features = item_features >> UnrollFeatures(
     "movie_id", user_features, unrolled_prefix="user"
 )
@@ -121,12 +121,13 @@ cd systems && python setup.py develop
 
 ### Running Merlin Systems from Docker
 
-Merlin Systems is installed on multiple Docker containers, which are available in the [NVIDIA Merlin container repository](https://catalog.ngc.nvidia.com/containers?filters=&orderBy=dateModifiedDESC&query=merlin):
+Merlin Systems is installed on multiple Docker containers that are available from the NVIDIA GPU Cloud (NGC) catalog.
+The following table lists the containers that include Triton Inference Server for use with Merlin.
 
-| Container Name             | Container Location | Functionality |
-| -------------------------- | ------------------ | ------------- |
-| merlin-inference           | https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-inference           | Merlin frameworks and Triton Inference Server |
-| merlin-tensorflow-inference            | https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow-inference            | Merlin frameworks selected for only Tensorflow support and Triton Inference Server                    |
+| Container Name      | Container Location                                                                     | Functionality                                                                      |
+| --------------------| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `merlin-hugectr`    | <https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-hugectr>    | Merlin frameworks, HugeCTR, and Triton Inference Server                            |
+| `merlin-tensorflow` | <https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow> | Merlin frameworks selected for only Tensorflow support and Triton Inference Server |
 
 If you want to add support for GPU-accelerated workflows, you will first need to install the [NVIDIA Container Toolkit](https://github.com/NVIDIA/nvidia-docker) to provide GPU support for Docker. You can use the NGC links referenced in the table above to obtain more information about how to launch and run these containers.
 

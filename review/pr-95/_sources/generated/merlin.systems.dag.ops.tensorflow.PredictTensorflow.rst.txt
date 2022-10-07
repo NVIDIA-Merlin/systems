@@ -21,6 +21,8 @@
       ~PredictTensorflow.compute_selector
       ~PredictTensorflow.create_node
       ~PredictTensorflow.export
+      ~PredictTensorflow.from_model_registry
+      ~PredictTensorflow.from_path
       ~PredictTensorflow.output_column_names
    
    
@@ -34,10 +36,12 @@
       ~PredictTensorflow.dependencies
       ~PredictTensorflow.dynamic_dtypes
       ~PredictTensorflow.export_name
+      ~PredictTensorflow.exportable_backends
       ~PredictTensorflow.label
       ~PredictTensorflow.output_dtype
       ~PredictTensorflow.output_properties
       ~PredictTensorflow.output_tags
+      ~PredictTensorflow.scalar_shape
       ~PredictTensorflow.supports
    
    

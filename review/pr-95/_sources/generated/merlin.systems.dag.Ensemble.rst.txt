@@ -20,4 +20,11 @@
 
    
    
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Ensemble.input_schema
+      ~Ensemble.output_schema
+   
    

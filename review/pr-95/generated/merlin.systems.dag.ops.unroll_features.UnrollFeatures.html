@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>merlin.systems.dag.ops.unroll_features.UnrollFeatures &mdash; Merlin Systems  documentation</title><link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/togglebutton.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/mystnb.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -12,7 +14,11 @@
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script >let toggleHintShow = 'Click to show';</script>
+        <script >let toggleHintHide = 'Click to hide';</script>
+        <script >let toggleOpenOnPrint = 'true';</script>
+        <script src="../_static/togglebutton.js"></script>
+        <script >var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,18 +43,10 @@
               <p class="caption"><span class="caption-text">Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples/README.html">Example Notebooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example Notebooks</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ensemble-graph-constructors">Ensemble Graph Constructors</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../api.html#ensemble-operator-constructors">Ensemble Operator Constructors</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="merlin.systems.dag.ops.workflow.TransformWorkflow.html">merlin.systems.dag.ops.workflow.TransformWorkflow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="merlin.systems.dag.ops.operator.InferenceDataFrame.html">merlin.systems.dag.ops.operator.InferenceDataFrame</a></li>
-<li class="toctree-l3"><a class="reference internal" href="merlin.systems.dag.ops.tensorflow.PredictTensorflow.html">merlin.systems.dag.ops.tensorflow.PredictTensorflow</a></li>
-<li class="toctree-l3"><a class="reference internal" href="merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html">merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling</a></li>
-<li class="toctree-l3"><a class="reference internal" href="merlin.systems.dag.ops.session_filter.FilterCandidates.html">merlin.systems.dag.ops.session_filter.FilterCandidates</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">merlin.systems.dag.ops.unroll_features.UnrollFeatures</a></li>
-</ul>
-</li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#ensemble-operator-constructors">Ensemble Operator Constructors</a></li>
 </ul>
 </li>
 </ul>
@@ -77,31 +75,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  
-<style>
-/* CSS overrides for sphinx_rtd_theme */
-
-/* 24px margin */
-.nbinput.nblast.container,
-.nboutput.nblast.container {
-    margin-bottom: 19px;  /* padding has already 5px */
-}
-
-/* ... except between code cells! */
-.nblast.container + .nbinput.container {
-    margin-top: -19px;
-}
-
-.admonition > p:before {
-    margin-right: 4px;  /* make room for the exclamation icon */
-}
-
-/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
-.math {
-    text-align: unset;
-}
-</style>
-<div class="section" id="merlin-systems-dag-ops-unroll-features-unrollfeatures">
+  <div class="section" id="merlin-systems-dag-ops-unroll-features-unrollfeatures">
 <h1>merlin.systems.dag.ops.unroll_features.UnrollFeatures<a class="headerlink" href="#merlin-systems-dag-ops-unroll-features-unrollfeatures" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt id="merlin.systems.dag.ops.unroll_features.UnrollFeatures">
@@ -145,8 +119,14 @@ when broadcasting a series of user features to a set of items.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.unroll_features.UnrollFeatures.export" title="merlin.systems.dag.ops.unroll_features.UnrollFeatures.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(path, input_schema, output_schema[, …])</p></td>
 <td><p>Write out a Triton model config directory</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.unroll_features.UnrollFeatures.from_config" title="merlin.systems.dag.ops.unroll_features.UnrollFeatures.from_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code></a>(config)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.unroll_features.UnrollFeatures.from_config" title="merlin.systems.dag.ops.unroll_features.UnrollFeatures.from_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code></a>(config, **kwargs)</p></td>
 <td><p>Load operator and properties from Triton config</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
+<td><p>Loads the InferenceOperator from the provided ModelRegistry.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code>(path, **kwargs)</p></td>
+<td><p>Loads the InferenceOperator from the path where it was exported after training.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
 <td><p>Given a set of columns names returns the names of the transformed columns this operator will produce :param columns: The columns to apply this operator to :type columns: list of str, or list of list of str</p></td>
@@ -172,16 +152,22 @@ when broadcasting a series of user features to a set of items.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_name</span></code></p></td>
 <td><p>Provides a clear common english identifier for this operator.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportable_backends</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_dtype</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">label</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_properties</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_dtype</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tags</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_properties</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tags</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_shape</span></code></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports</span></code></p></td>
@@ -191,7 +177,7 @@ when broadcasting a series of user features to a set of items.</p>
 </table>
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.unroll_features.UnrollFeatures.from_config">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/unroll_features.html#UnrollFeatures.from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.unroll_features.UnrollFeatures.from_config" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#merlin.systems.dag.ops.unroll_features.UnrollFeatures" title="merlin.systems.dag.ops.unroll_features.UnrollFeatures"><span class="pre">merlin.systems.dag.ops.unroll_features.UnrollFeatures</span></a><a class="reference internal" href="../_modules/merlin/systems/dag/ops/unroll_features.html#UnrollFeatures.from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.unroll_features.UnrollFeatures.from_config" title="Permalink to this definition"></a></dt>
 <dd><p>Load operator and properties from Triton config</p>
 </dd></dl>
 

@@ -22,6 +22,8 @@
       ~SoftmaxSampling.create_node
       ~SoftmaxSampling.export
       ~SoftmaxSampling.from_config
+      ~SoftmaxSampling.from_model_registry
+      ~SoftmaxSampling.from_path
       ~SoftmaxSampling.output_column_names
       ~SoftmaxSampling.transform
    
@@ -36,10 +38,12 @@
       ~SoftmaxSampling.dependencies
       ~SoftmaxSampling.dynamic_dtypes
       ~SoftmaxSampling.export_name
+      ~SoftmaxSampling.exportable_backends
       ~SoftmaxSampling.label
       ~SoftmaxSampling.output_dtype
       ~SoftmaxSampling.output_properties
       ~SoftmaxSampling.output_tags
+      ~SoftmaxSampling.scalar_shape
       ~SoftmaxSampling.supports
    
    

@@ -21,6 +21,8 @@
       ~TransformWorkflow.compute_selector
       ~TransformWorkflow.create_node
       ~TransformWorkflow.export
+      ~TransformWorkflow.from_model_registry
+      ~TransformWorkflow.from_path
       ~TransformWorkflow.output_column_names
    
    
@@ -34,10 +36,12 @@
       ~TransformWorkflow.dependencies
       ~TransformWorkflow.dynamic_dtypes
       ~TransformWorkflow.export_name
+      ~TransformWorkflow.exportable_backends
       ~TransformWorkflow.label
       ~TransformWorkflow.output_dtype
       ~TransformWorkflow.output_properties
       ~TransformWorkflow.output_tags
+      ~TransformWorkflow.scalar_shape
       ~TransformWorkflow.supports
    
    

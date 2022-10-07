@@ -22,6 +22,8 @@
       ~FilterCandidates.create_node
       ~FilterCandidates.export
       ~FilterCandidates.from_config
+      ~FilterCandidates.from_model_registry
+      ~FilterCandidates.from_path
       ~FilterCandidates.output_column_names
       ~FilterCandidates.transform
       ~FilterCandidates.validate_schemas
@@ -37,10 +39,12 @@
       ~FilterCandidates.dependencies
       ~FilterCandidates.dynamic_dtypes
       ~FilterCandidates.export_name
+      ~FilterCandidates.exportable_backends
       ~FilterCandidates.label
       ~FilterCandidates.output_dtype
       ~FilterCandidates.output_properties
       ~FilterCandidates.output_tags
+      ~FilterCandidates.scalar_shape
       ~FilterCandidates.supports
    
    
