@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from distutils.spawn import find_executable
+
 import numpy as np
 import pytest
 
@@ -22,6 +24,8 @@ from merlin.models.loader.tf_utils import configure_tensorflow
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.faiss import QueryFaiss, setup_faiss
+
+TRITON_SERVER_PATH = find_executable("tritonserver")
 
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
@@ -35,6 +39,7 @@ import tensorflow as tf  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 
 
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 def test_faiss_in_triton_executor_model(tmpdir):
     # Simulate a user vector with a TF model
     model = tf.keras.models.Sequential(
