@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from distutils.spawn import find_executable
 
 import numpy as np
 import pandas as pd
@@ -26,6 +27,8 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
+
+TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
 def test_run_dag_on_dictarray_with_local_executor():
@@ -126,6 +129,7 @@ def test_run_dag_on_dataframe_with_dask_executor():
     assert len(response["filtered_ids"]) == 80
 
 
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 def test_triton_executor_model(tmpdir):
     request_schema = Schema(
         [
