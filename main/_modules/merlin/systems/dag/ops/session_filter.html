@@ -183,24 +183,6 @@
             <span class="n">root_schema</span><span class="p">,</span> <span class="n">parents_schema</span><span class="p">,</span> <span class="n">deps_schema</span><span class="p">,</span> <span class="n">selector</span>
         <span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parents_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;More than one input has been detected for this node,&quot;</span>
-                <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;inputs received: </span><span class="si">{</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deps_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;More than one dependency input has been detected&quot;</span>
-                <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;for this node, inputs received: </span><span class="si">{</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-
-        <span class="c1"># 1 for deps and 1 for parents</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;More than one input has been detected for this node,&quot;</span>
-                <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;inputs received: </span><span class="si">{</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">_input_col</span> <span class="o">=</span> <span class="n">parents_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filter_out_col</span> <span class="o">=</span> <span class="n">deps_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -229,6 +211,27 @@
 <span class="sd">            A schema object representing all outputs of this node.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Schema</span><span class="p">([</span><span class="n">ColumnSchema</span><span class="p">(</span><span class="s2">&quot;filtered_ids&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">is_list</span><span class="o">=</span><span class="kc">False</span><span class="p">)])</span></div>
+
+<div class="viewcode-block" id="FilterCandidates.validate_schemas"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.session_filter.FilterCandidates.html#merlin.systems.dag.ops.session_filter.FilterCandidates.validate_schemas">[docs]</a>    <span class="k">def</span> <span class="nf">validate_schemas</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">parents_schema</span><span class="p">,</span> <span class="n">deps_schema</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="n">output_schema</span><span class="p">,</span> <span class="n">strict_dtypes</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parents_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;More than one input has been detected for this node,&quot;</span>
+                <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;inputs received: </span><span class="si">{</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">deps_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;More than one dependency input has been detected&quot;</span>
+                <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;for this node, inputs received: </span><span class="si">{</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 1 for deps and 1 for parents</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;More than one input has been detected for this node,&quot;</span>
+                <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;inputs received: </span><span class="si">{</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span></div>
 
 <div class="viewcode-block" id="FilterCandidates.transform"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.session_filter.FilterCandidates.html#merlin.systems.dag.ops.session_filter.FilterCandidates.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">InferenceDataFrame</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
