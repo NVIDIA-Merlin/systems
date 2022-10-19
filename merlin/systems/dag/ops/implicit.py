@@ -47,11 +47,23 @@ class PredictImplicit(PipelineableInferenceOperator):
            the number of items to return
         """
         self.model = model
+        self.model_module_name: str = self.model.__module__
+        self.model_class_name: str = self.model.__class__.__name__
         self.num_to_recommend = num_to_recommend
         super().__init__(**kwargs)
 
     def __getstate__(self):
         return {k: v for k, v in self.__dict__.items() if k != "model"}
+
+    def load_artifacts(self, artifact_path: str):
+        model_file = pathlib.Path(artifact_path) / "model.npz"
+
+        model_module_name = self.model_module_name
+        model_class_name = self.model_class_name
+        model_module = importlib.import_module(model_module_name)
+        model_cls = getattr(model_module, model_class_name)
+
+        self.model = model_cls.load(str(model_file))
 
     def compute_output_schema(
         self,
@@ -60,7 +72,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         prev_output_schema: Schema = None,
     ) -> Schema:
         """Return the output schema representing the columns this operator returns."""
-        return Schema([ColumnSchema("ids", dtype="int64"), ColumnSchema("scores", dtype="float64")])
+        return Schema([ColumnSchema("ids", dtype="int32"), ColumnSchema("scores", dtype="float32")])
 
     def compute_input_schema(
         self,
@@ -70,7 +82,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         selector: ColumnSelector,
     ) -> Schema:
         """Return the input schema representing the input columns this operator expects to use."""
-        return Schema([ColumnSchema("user_id", dtype="int64")])
+        return Schema([ColumnSchema("user_id", dtype="int32")])
 
     @property
     def exportable_backends(self):
@@ -88,22 +100,31 @@ class PredictImplicit(PipelineableInferenceOperator):
     ):
         """Export the class and related files to the path specified."""
         node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
-        version_path = pathlib.Path(path) / node_name / str(version)
-        version_path.mkdir(parents=True, exist_ok=True)
-        model_path = version_path / "model.npz"
+
+        if backend == "ensemble":
+            artifact_path = pathlib.Path(path) / node_name / str(version)
+        else:
+            artifact_path = pathlib.Path(path) / "executor_model" / str(version) / "ensemble"
+
+        artifact_path.mkdir(parents=True, exist_ok=True)
+        model_path = artifact_path / "model.npz"
         self.model.save(str(model_path))
-        params = params or {}
-        params["model_module_name"] = self.model.__module__
-        params["model_class_name"] = self.model.__class__.__name__
-        params["num_to_recommend"] = self.num_to_recommend
-        return super().export(
-            path,
-            input_schema,
-            output_schema,
-            params=params,
-            node_id=node_id,
-            version=version,
-        )
+
+        if backend == "ensemble":
+            params = params or {}
+            params["model_module_name"] = self.model.__module__
+            params["model_class_name"] = self.model.__class__.__name__
+            params["num_to_recommend"] = self.num_to_recommend
+            return super().export(
+                path,
+                input_schema,
+                output_schema,
+                params=params,
+                node_id=node_id,
+                version=version,
+            )
+        else:
+            return ({}, [])
 
     @classmethod
     def from_config(cls, config: dict, **kwargs) -> "PredictImplicit":
