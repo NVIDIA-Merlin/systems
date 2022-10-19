@@ -40,7 +40,7 @@ def test_implicit_in_triton_executor_model(tmpdir):
     user_items = csr_matrix(np.random.choice([0, 1], size=n * n, p=[0.9, 0.1]).reshape(n, n))
     model.fit(user_items)
 
-    request_schema = Schema([ColumnSchema("user_id", dtype="int32")])
+    request_schema = Schema([ColumnSchema("user_id", dtype="int64")])
 
     implicit_op = PredictImplicit(model, num_to_recommend=10)
     triton_chain = request_schema.column_names >> implicit_op
@@ -48,7 +48,7 @@ def test_implicit_in_triton_executor_model(tmpdir):
     ensemble = Ensemble(triton_chain, request_schema)
     ensemble.export(tmpdir, backend="executor")
 
-    input_user_id = np.array([0, 1], dtype=np.int32)
+    input_user_id = np.array([0, 1], dtype=np.int64)
 
     response = run_ensemble_on_tritonserver(
         tmpdir,

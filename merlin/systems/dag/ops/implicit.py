@@ -17,6 +17,8 @@ import importlib
 import json
 import pathlib
 
+import numpy as np
+
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
@@ -65,15 +67,6 @@ class PredictImplicit(PipelineableInferenceOperator):
 
         self.model = model_cls.load(str(model_file))
 
-    def compute_output_schema(
-        self,
-        input_schema: Schema,
-        col_selector: ColumnSelector,
-        prev_output_schema: Schema = None,
-    ) -> Schema:
-        """Return the output schema representing the columns this operator returns."""
-        return Schema([ColumnSchema("ids", dtype="int32"), ColumnSchema("scores", dtype="float32")])
-
     def compute_input_schema(
         self,
         root_schema: Schema,
@@ -82,7 +75,16 @@ class PredictImplicit(PipelineableInferenceOperator):
         selector: ColumnSelector,
     ) -> Schema:
         """Return the input schema representing the input columns this operator expects to use."""
-        return Schema([ColumnSchema("user_id", dtype="int32")])
+        return Schema([ColumnSchema("user_id", dtype="int64")])
+
+    def compute_output_schema(
+        self,
+        input_schema: Schema,
+        col_selector: ColumnSelector,
+        prev_output_schema: Schema = None,
+    ) -> Schema:
+        """Return the output schema representing the columns this operator returns."""
+        return Schema([ColumnSchema("ids", dtype="int64"), ColumnSchema("scores", dtype="float64")])
 
     @property
     def exportable_backends(self):
@@ -174,4 +176,6 @@ class PredictImplicit(PipelineableInferenceOperator):
         ids, scores = self.model.recommend(
             user_id, user_items, N=self.num_to_recommend, filter_already_liked_items=False
         )
-        return type(transformable)({"ids": ids, "scores": scores})
+        return type(transformable)(
+            {"ids": ids.astype(np.int64), "scores": scores.astype(np.float64)}
+        )

@@ -99,7 +99,7 @@ def test_ensemble(model_cls, backend, tmpdir):
 
     implicit_op = PredictImplicit(model, num_to_recommend=num_to_recommend)
 
-    input_schema = Schema([ColumnSchema("user_id", dtype="int32")])
+    input_schema = Schema([ColumnSchema("user_id", dtype="int64")])
 
     triton_chain = input_schema.column_names >> implicit_op
 
@@ -107,7 +107,7 @@ def test_ensemble(model_cls, backend, tmpdir):
     triton_ens.export(tmpdir, backend=backend)
 
     model_name = triton_ens.name
-    input_user_id = np.array([[0], [1]], dtype=np.int32)
+    input_user_id = np.array([[0], [1]], dtype=np.int64)
     inputs = [
         grpcclient.InferInput(
             "user_id", input_user_id.shape, triton.np_to_triton_dtype(input_user_id.dtype)
