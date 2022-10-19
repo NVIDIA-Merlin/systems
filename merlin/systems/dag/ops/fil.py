@@ -110,17 +110,20 @@ class PredictForest(PipelineableInferenceOperator):
             node_id=node_id,
             version=version,
         )
-        params = params or {}
-        params = {**params, "fil_model_name": fil_model_config.name}
-        return super().export(
-            path,
-            input_schema,
-            output_schema,
-            params=params,
-            node_id=node_id,
-            version=version,
-            backend=self.backend,
-        )
+        if backend == "ensemble":
+            params = params or {}
+            params = {**params, "fil_model_name": fil_model_config.name}
+            return super().export(
+                path,
+                input_schema,
+                output_schema,
+                params=params,
+                node_id=node_id,
+                version=version,
+                backend=self.backend,
+            )
+        else:
+            return fil_model_config
 
     @classmethod
     def from_config(cls, config: dict, **kwargs) -> "PredictForest":
