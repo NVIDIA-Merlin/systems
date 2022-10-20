@@ -54,9 +54,6 @@ def test_example_serving_implicit(gpu, tmpdir):
 
         with run_triton_server(f"{tmpdir}/ensemble", grpc_port=8001):
             tb.execute_cell(list(range(18, len(tb.cells) - 2)))
-            import ipdb
-
-            ipdb.set_trace()
             pft = tb.ref("predictions_from_triton")
             lp = tb.ref("local_predictions")
             assert pft.shape == lp.shape
