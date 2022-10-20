@@ -23,33 +23,37 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 @pytest.mark.notebook
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.parametrize("gpu", _TRAIN_ON_GPU)
-@testbook(REPO_ROOT / "examples/Serving-An-Implicit-Model-With-Merlin-Systems.ipynb", execute=False)
-def test_example_serving_implicit(tb, gpu):
-    tb.inject(
-        """
-        from unittest.mock import patch
-        from merlin.datasets.synthetic import generate_data
-        mock_train, mock_valid = generate_data(
-            input="movielens-100k",
-            num_rows=1000,
-            set_sizes=(0.8, 0.2)
+def test_example_serving_implicit(gpu, tmpdir):
+    with testbook(
+        REPO_ROOT / "examples/Serving-An-Implicit-Model-With-Merlin-Systems.ipynb",
+        execute=False,
+        timeout=180,
+    ) as tb:
+        tb.inject(
+            f"""
+            import os
+            os.environ["OUTPUT_DATA_DIR"] = "{tmpdir}/ensemble"
+            os.environ["USE_GPU"] = "{int(gpu)}"
+            from unittest.mock import patch
+            from merlin.datasets.synthetic import generate_data
+            mock_train, mock_valid = generate_data(
+                input="movielens-100k",
+                num_rows=1000,
+                set_sizes=(0.8, 0.2)
+            )
+            p1 = patch(
+                "merlin.datasets.entertainment.get_movielens",
+                return_value=[mock_train, mock_valid]
+            )
+            p1.start()
+            """,
+            pop=True,
         )
-        p1 = patch(
-            "merlin.datasets.entertainment.get_movielens",
-            return_value=[mock_train, mock_valid]
-        )
-        p1.start()
-        """,
-        pop=True,
-    )
-    NUM_OF_CELLS = len(tb.cells)
-    if not gpu:
-        tb.cells[
-            6
-        ].source = (
-            "model = BayesianPersonalizedRanking(use_gpu=False)\nmodel.fit(train_transformed)"
-        )
-    tb.execute_cell(list(range(0, 16)))
 
-    with run_triton_server("ensemble", grpc_port=8001):
-        tb.execute_cell(list(range(16, NUM_OF_CELLS - 2)))
+        tb.execute_cell(list(range(0, 18)))
+
+        with run_triton_server(f"{tmpdir}/ensemble", grpc_port=8001):
+            tb.execute_cell(list(range(18, len(tb.cells) - 2)))
+            pft = tb.ref("predictions_from_triton")
+            lp = tb.ref("local_predictions")
+            assert pft.shape == lp.shape
