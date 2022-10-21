@@ -63,7 +63,10 @@ class QueryFaiss(PipelineableInferenceOperator):
 
     def load_artifacts(self, artifact_path):
         filename = Path(self.index_path).name
-        full_index_path = str(Path(artifact_path) / filename)
+        path_artifact = Path(artifact_path)
+        if path_artifact.is_file():
+            path_artifact = path_artifact.parent
+        full_index_path = str(path_artifact / filename)
         index = faiss.read_index(full_index_path)
 
         if HAS_GPU:
