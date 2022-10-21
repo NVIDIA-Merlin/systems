@@ -191,3 +191,44 @@ def test_pytorch_op_serving(tmpdir, use_path, torchscript):
         response = client.infer(model_name, inputs, outputs=outputs)
 
     assert response.as_numpy("OUTPUT__0").shape[0] == input_data["input"].shape[0]
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+@pytest.mark.parametrize("torchscript", [True])
+@pytest.mark.parametrize("use_path", [True, False])
+def test_pytorch_op_serving_python(tmpdir, use_path, torchscript):
+    model_path = str(tmpdir / "model.pt")
+
+    model_to_use = model_scripted if torchscript else model
+    model_or_path = model_path if use_path else model_to_use
+
+    if use_path:
+        try:
+            # jit-compiled version of a model
+            model_to_use.save(model_path)
+        except AttributeError:
+            # non-jit-compiled version of a model
+            torch.save(model_to_use, model_path)
+
+    predictions = ["input"] >> ptorch_op.PredictPyTorch(
+        model_or_path, model_input_schema, model_output_schema
+    )
+    ensemble = Ensemble(predictions, model_input_schema)
+    ens_config, node_configs = ensemble.export(tmpdir)
+
+    input_data = {"input": np.array([[2.0, 3.0, 4.0], [4.0, 8.0, 1.0]]).astype(np.float32)}
+
+    inputs = [
+        grpcclient.InferInput(
+            "input", input_data["input"].shape, triton.np_to_triton_dtype(input_data["input"].dtype)
+        )
+    ]
+    inputs[0].set_data_from_numpy(input_data["input"])
+
+    outputs = [grpcclient.InferRequestedOutput("OUTPUT__0")]
+
+    response = None
+    with run_triton_server(tmpdir) as client:
+        response = client.infer("0_predictpytorch", inputs, outputs=outputs)
+
+    assert response.as_numpy("OUTPUT__0").shape[0] == input_data["input"].shape[0]

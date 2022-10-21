@@ -24,7 +24,7 @@ from google.protobuf.json_format import MessageToDict
 
 import nvtabular as nvt
 import nvtabular.ops as wf_ops
-from merlin.dag import Graph
+from merlin.dag import DictArray, Graph
 from merlin.schema import Tags
 from tests.unit.systems.utils.ops import PlusTwoOp
 
@@ -150,11 +150,11 @@ def test_op_runner_loads_multiple_ops_same_execute(tmpdir, dataset, engine):
 
     inputs = {}
     for col_name in schema.column_names:
-        inputs[col_name] = np.random.randint(10)
+        inputs[col_name] = np.random.randint(10, size=(10,))
 
-    outputs = runner.execute(inf_op.InferenceDataFrame(inputs))
+    outputs = runner.execute(DictArray(inputs))
 
-    assert outputs["x_plus_2_plus_2"] == inputs["x"] + 4
+    assert all(outputs["x_plus_2_plus_2"] == inputs["x"] + 4)
 
 
 @pytest.mark.parametrize("engine", ["parquet"])
@@ -195,11 +195,11 @@ def test_op_runner_single_node_export(mock_from_config, tmpdir, dataset, engine)
         model_name=config.name,
         model_version="1",
     )
-    inputs = inf_op.InferenceDataFrame({"x": 1, "y": 5})
+    inputs = DictArray({"x": np.array([1]), "y": np.array([5])}, {"x": np.int32, "y": np.int32})
     outputs = runner.execute(inputs)
 
-    assert outputs["x_plus_2"] == 3
-    assert outputs["y_plus_2"] == 7
+    assert outputs["x_plus_2"] == np.array([3])
+    assert outputs["y_plus_2"] == np.array([7])
 
     assert mock_from_config.call_count == 1
     assert mock_from_config.call_args.kwargs == {

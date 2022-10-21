@@ -17,10 +17,11 @@ import json
 
 import numpy as np
 
+from merlin.core.protocols import Transformable
 from merlin.dag import Node
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import Schema
-from merlin.systems.dag.ops.operator import InferenceDataFrame, PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 
 class UnrollFeatures(PipelineableInferenceOperator):
@@ -44,7 +45,16 @@ class UnrollFeatures(PipelineableInferenceOperator):
         unrolled_prefix = parameters["unrolled_prefix"]
         return UnrollFeatures(candidate_col, unroll_cols, unrolled_prefix)
 
-    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+        backend: str = "ensemble",
+    ):
         """Write out a Triton model config directory"""
         params = params or {}
         self_params = {
@@ -71,10 +81,12 @@ class UnrollFeatures(PipelineableInferenceOperator):
 
         return schema
 
-    def transform(self, df: InferenceDataFrame):
-        num_items = df[self.item_id_col].shape[0]
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
+        num_items = transformable[self.item_id_col].shape[0]
         outputs = {}
-        for col_name, col_value in df.tensors.items():
+        for col_name, col_value in transformable.items():
             outputs[col_name] = col_value
 
         for col in self._unroll_col_names:
@@ -82,7 +94,7 @@ class UnrollFeatures(PipelineableInferenceOperator):
             col_name = f"{self.unrolled_prefix}_{col}" if self.unrolled_prefix else col
             outputs[col_name] = np.repeat(target, num_items, axis=0)
 
-        return InferenceDataFrame(outputs)
+        return type(transformable)(outputs)
 
     @property
     def _unroll_col_names(self):

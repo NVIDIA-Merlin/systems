@@ -75,6 +75,7 @@ def test_reload_from_config(model_cls, tmpdir):
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+@pytest.mark.parametrize("backend", ["ensemble", "executor"])
 @pytest.mark.parametrize(
     "model_cls",
     [
@@ -83,7 +84,7 @@ def test_reload_from_config(model_cls, tmpdir):
         implicit.lmf.LogisticMatrixFactorization,
     ],
 )
-def test_ensemble(model_cls, tmpdir):
+def test_ensemble(model_cls, backend, tmpdir):
     model = model_cls()
     n = 100
     user_items = csr_matrix(np.random.choice([0, 1], size=n * n, p=[0.9, 0.1]).reshape(n, n))
@@ -102,8 +103,8 @@ def test_ensemble(model_cls, tmpdir):
 
     triton_chain = input_schema.column_names >> implicit_op
 
-    triton_ens = Ensemble(triton_chain, input_schema)
-    triton_ens.export(tmpdir)
+    triton_ens = Ensemble(triton_chain, input_schema, name=f"{backend}_model")
+    triton_ens.export(tmpdir, backend=backend)
 
     model_name = triton_ens.name
     input_user_id = np.array([[0], [1]], dtype=np.int64)

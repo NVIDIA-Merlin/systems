@@ -3,7 +3,6 @@ tritonclient[all]
 
 # linting
 pylint==2.7.4
-click==8.0.3
 black==22.6.0
 flake8==3.9.2
 isort==5.9.3

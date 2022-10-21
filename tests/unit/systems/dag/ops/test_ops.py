@@ -23,7 +23,7 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.dag.ops.softmax_sampling import SoftmaxSampling
-from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
+from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
@@ -57,7 +57,7 @@ def test_softmax_sampling(tmpdir):
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-def test_filter_candidates(tmpdir):
+def test_filter_candidates_with_triton(tmpdir):
     request_schema = Schema(
         [
             ColumnSchema("candidate_ids", dtype=np.int32),
@@ -84,5 +84,6 @@ def test_filter_candidates(tmpdir):
     response = run_ensemble_on_tritonserver(
         tmpdir, request_schema, request_df, ensemble.output_schema.column_names, "ensemble_model"
     )
+
     assert response is not None
     assert len(response["filtered_ids"]) == 80

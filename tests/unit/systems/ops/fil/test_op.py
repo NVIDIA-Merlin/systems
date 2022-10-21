@@ -23,9 +23,9 @@ import sklearn.datasets
 import sklearn.ensemble
 import xgboost
 
-import merlin.systems.dag.ops.fil as fil_op
 from merlin.dag import ColumnSelector, Graph
 from merlin.schema import Schema
+from merlin.systems.dag.ops import fil as fil_op
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"

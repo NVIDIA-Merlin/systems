@@ -25,19 +25,21 @@ import tensorflow as tf  # noqa
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
+from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
-from merlin.systems.dag.ops.operator import InferenceOperator, add_model_param  # noqa
+from merlin.systems.dag.ops.compat import pb_utils  # noqa
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator, add_model_param  # noqa
 
 
-class PredictTensorflow(InferenceOperator):
+class PredictTensorflow(PipelineableInferenceOperator):
     """
     This operator takes a tensorflow model and packages it correctly for tritonserver
     to run, on the tensorflow backend.
     """
 
-    def __init__(self, model_or_path, custom_objects: dict = None):
+    def __init__(self, model_or_path, custom_objects: dict = None, backend="tensorflow"):
         """
         Instantiate a PredictTensorflow inference operator.
 
@@ -49,21 +51,80 @@ class PredictTensorflow(InferenceOperator):
             Any custom objects that need to be loaded with the model, by default None.
         """
         super().__init__()
+        self._tf_model_name = None
 
-        custom_objects = custom_objects or {}
+        if model_or_path is not None:
+            custom_objects = custom_objects or {}
 
-        if isinstance(model_or_path, (str, os.PathLike)):
-            self.path = model_or_path
-            self.model = tf.keras.models.load_model(self.path, custom_objects=custom_objects)
-        else:
-            self.path = None
-            self.model = model_or_path
+            if isinstance(model_or_path, (str, os.PathLike)):
+                self.path = model_or_path
+                self.model = tf.keras.models.load_model(self.path, custom_objects=custom_objects)
+            else:
+                self.path = None
+                self.model = model_or_path
 
-        self.input_schema, self.output_schema = self._construct_schemas_from_model(self.model)
+            self.input_schema, self.output_schema = self._construct_schemas_from_model(self.model)
 
-    def export(self, path, input_schema, output_schema, node_id=None, version=1):
+    def __getstate__(self):
+        return {k: v for k, v in self.__dict__.items() if k != "model"}
+
+    @property
+    def tf_model_name(self):
+        return self._tf_model_name
+
+    def set_tf_model_name(self, tf_model_name: str):
+        """
+        Set the name of the Triton model to use
+
+        Parameters
+        ----------
+        tf_model_name : str
+            Triton model directory name
+        """
+        self._tf_model_name = tf_model_name
+
+    def transform(self, col_selector: ColumnSelector, transformable: Transformable):
+        # TODO: Validate that the inputs match the schema
+        # TODO: Should we coerce the dtypes to match the schema here?
+        input_tensors = []
+        for col_name in self.input_schema.column_schemas.keys():
+            input_tensors.append(pb_utils.Tensor(col_name, transformable[col_name]))
+
+        inference_request = pb_utils.InferenceRequest(
+            model_name=self.tf_model_name,
+            requested_output_names=self.output_schema.column_names,
+            inputs=input_tensors,
+        )
+        inference_response = inference_request.exec()
+
+        # TODO: Validate that the outputs match the schema
+        outputs_dict = {}
+        for out_col_name in self.output_schema.column_schemas.keys():
+            output_val = pb_utils.get_output_tensor_by_name(
+                inference_response, out_col_name
+            ).as_numpy()
+            outputs_dict[out_col_name] = output_val
+
+        return type(transformable)(outputs_dict)
+
+    @property
+    def exportable_backends(self):
+        return ["ensemble", "executor"]
+
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+        backend: str = "ensemble",
+    ):
         """Create a directory inside supplied path based on our export name"""
-        node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
+        # Export Triton TF back-end directory and config etc
+        export_name = self.__class__.__name__.lower()
+        node_name = f"{node_id}_{export_name}" if node_id is not None else export_name
 
         node_export_path = pathlib.Path(path) / node_name
         node_export_path.mkdir(exist_ok=True)
@@ -79,7 +140,21 @@ class PredictTensorflow(InferenceOperator):
         else:
             self.model.save(tf_model_path, include_optimizer=False)
 
-        return self._export_model_config(node_name, node_export_path)
+        self.set_tf_model_name(node_name)
+        backend_model_config = self._export_model_config(node_name, node_export_path)
+        return backend_model_config
+
+    @property
+    def export_name(self):
+        """
+        Provides a clear common english identifier for this operator.
+
+        Returns
+        -------
+        String
+            Name of the current class as spelled in module.
+        """
+        return self.__class__.__name__.lower()
 
     @classmethod
     def from_path(cls, path, **kwargs):

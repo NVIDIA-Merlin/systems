@@ -21,6 +21,7 @@ import numpy as np
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
+from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops.compat import (
@@ -31,11 +32,7 @@ from merlin.systems.dag.ops.compat import (
     treelite_sklearn,
     xgboost,
 )
-from merlin.systems.dag.ops.operator import (
-    InferenceDataFrame,
-    InferenceOperator,
-    PipelineableInferenceOperator,
-)
+from merlin.systems.dag.ops.operator import InferenceOperator, PipelineableInferenceOperator
 
 
 class PredictForest(PipelineableInferenceOperator):
@@ -90,7 +87,20 @@ class PredictForest(PipelineableInferenceOperator):
         """Return the input schema representing the input columns this operator expects to use."""
         return self.input_schema
 
-    def export(self, path, input_schema, output_schema, params=None, node_id=None, version=1):
+    @property
+    def exportable_backends(self):
+        return ["ensemble", "executor"]
+
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+        backend: str = "ensemble",
+    ):
         """Export the class and related files to the path specified."""
         fil_model_config = self.fil_op.export(
             path,
@@ -100,17 +110,20 @@ class PredictForest(PipelineableInferenceOperator):
             node_id=node_id,
             version=version,
         )
-        params = params or {}
-        params = {**params, "fil_model_name": fil_model_config.name}
-        return super().export(
-            path,
-            input_schema,
-            output_schema,
-            params=params,
-            node_id=node_id,
-            version=version,
-            backend=self.backend,
-        )
+        if backend == "ensemble":
+            params = params or {}
+            params = {**params, "fil_model_name": fil_model_config.name}
+            return super().export(
+                path,
+                input_schema,
+                output_schema,
+                params=params,
+                node_id=node_id,
+                version=version,
+                backend=self.backend,
+            )
+        else:
+            return fil_model_config
 
     @classmethod
     def from_config(cls, config: dict, **kwargs) -> "PredictForest":
@@ -140,19 +153,21 @@ class PredictForest(PipelineableInferenceOperator):
     def set_fil_model_name(self, fil_model_name):
         self._fil_model_name = fil_model_name
 
-    def transform(self, df: InferenceDataFrame) -> InferenceDataFrame:
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
         """Transform the dataframe by applying this FIL operator to the set of input columns.
 
         Parameters
         -----------
-        df: InferenceDataFrame
+        df: DictArray
             A pandas or cudf dataframe that this operator will work on
 
         Returns
         -------
-        InferenceDataFrame
+        DictArray
             Returns a transformed dataframe for this operator"""
-        input0 = np.array([x.ravel() for x in df.tensors.values()]).astype(np.float32).T
+        input0 = np.array([x.ravel() for x in transformable.values()]).astype(np.float32).T
         inference_request = pb_utils.InferenceRequest(
             model_name=self.fil_model_name,
             requested_output_names=["output__0"],
@@ -160,7 +175,12 @@ class PredictForest(PipelineableInferenceOperator):
         )
         inference_response = inference_request.exec()
         output0 = pb_utils.get_output_tensor_by_name(inference_response, "output__0")
-        return InferenceDataFrame({"output__0": output0})
+
+        transformable_type = type(transformable)
+        return_vals = {"output__0": output0}
+        return_dtypes = {"output__0": np.float32}
+
+        return transformable_type(return_vals, return_dtypes)
 
 
 class FIL(InferenceOperator):
@@ -256,6 +276,9 @@ class FIL(InferenceOperator):
         )
         self.fil_model = get_fil_model(model)
         super().__init__()
+
+    def __getstate__(self):
+        return {k: v for k, v in self.__dict__.items() if k != "fil_model"}
 
     def compute_input_schema(
         self,
