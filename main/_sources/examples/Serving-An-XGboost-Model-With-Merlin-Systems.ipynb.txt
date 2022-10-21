@@ -82,6 +82,32 @@
   },
   {
    "cell_type": "code",
+   "execution_count": null,
+   "id": "d0385d38",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from merlin.core.utils import Distributed\n",
+    "from merlin.models.xgb import XGBoost\n",
+    "import nvtabular as nvt\n",
+    "import numpy as np\n",
+    "from merlin.schema.tags import Tags\n",
+    "\n",
+    "from merlin.datasets.entertainment import get_movielens"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f79d5736",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "ensemble_export_path = os.environ.get(\"OUTPUT_DATA_DIR\", \"ensemble\")"
+   ]
+  },
+  {
+   "cell_type": "code",
    "execution_count": 3,
    "id": "0a2d3208",
    "metadata": {},
@@ -117,13 +143,6 @@
     }
    ],
    "source": [
-    "from merlin.core.utils import Distributed\n",
-    "from merlin.models.xgb import XGBoost\n",
-    "import nvtabular as nvt\n",
-    "import numpy as np\n",
-    "from merlin.schema.tags import Tags\n",
-    "\n",
-    "from merlin.datasets.entertainment import get_movielens\n",
     "\n",
     "train, _ = get_movielens(variant='ml-100k')\n",
     "\n",
@@ -218,10 +237,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "export_path = 'ensemble'\n",
-    "\n",
     "ensemble = Ensemble(inf_ops, inf_workflow.input_schema)\n",
-    "ensemble.export(export_path);"
+    "ensemble.export(ensemble_export_path);"
    ]
   },
   {
