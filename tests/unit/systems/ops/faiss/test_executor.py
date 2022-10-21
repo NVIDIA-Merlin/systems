@@ -13,19 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from distutils.spawn import find_executable
+from distutils.spawn import find_executable  # pylint: disable=W0402
 
 import numpy as np
 import pytest
 
 from merlin.core.dispatch import make_df
 from merlin.dag import DictArray
-from merlin.models.loader.tf_utils import configure_tensorflow
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.faiss import QueryFaiss, setup_faiss
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
+pytest.importorskip("merlin.models.loader.tf_utils")
+from merlin.models.loader.tf_utils import configure_tensorflow  # noqa
 
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
