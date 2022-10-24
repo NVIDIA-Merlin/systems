@@ -24,7 +24,7 @@ from merlin.dag import DictArray
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
-from merlin.systems.dag.runtime.triton import TritonEnsembleRuntime, TritonExecutorRuntime
+from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
 TRITON_SERVER_PATH = find_executable("tritonserver")

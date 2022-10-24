@@ -25,7 +25,7 @@ from tritonclient import grpc as grpcclient
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.implicit import PredictImplicit
-from merlin.systems.dag.runtime.triton import TritonExecutorRuntime
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_triton_server
 
 TRITON_SERVER_PATH = find_executable("tritonserver")

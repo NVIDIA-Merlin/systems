@@ -38,7 +38,7 @@ configure_tensorflow()
 import tensorflow as tf  # noqa
 
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
-from merlin.systems.dag.runtime.triton import TritonExecutorRuntime  # noqa
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime  # noqa
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")

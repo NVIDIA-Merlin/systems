@@ -22,7 +22,7 @@ import cloudpickle
 import fsspec
 
 from merlin.dag import Graph
-from merlin.systems.dag.runtime.triton import TritonEnsembleRuntime
+from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime
 
 
 class Ensemble:
