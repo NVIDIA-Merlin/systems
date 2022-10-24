@@ -41,7 +41,7 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
         (TritonExecutorRuntime(), "triton_model", "triton_model"),
     ],
 )
-def test_triton_default_ensemble_model(runtime, model_name, expected_model_name, tmpdir):
+def test_triton_runtime_export_and_run(runtime, model_name, expected_model_name, tmpdir):
     request_schema = Schema(
         [
             ColumnSchema("candidate_ids", dtype=np.int32),
