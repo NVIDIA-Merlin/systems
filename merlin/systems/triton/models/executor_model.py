@@ -61,7 +61,7 @@ class TritonPythonModel:
         repository_path = _parse_model_repository(model_repo)
 
         ensemble_path = (
-            Path(repository_path) / "executor_model" / str(args["model_version"]) / "ensemble"
+            Path(repository_path) / args["model_name"] / str(args["model_version"]) / "ensemble"
         )
 
         self.executor = LocalExecutor()

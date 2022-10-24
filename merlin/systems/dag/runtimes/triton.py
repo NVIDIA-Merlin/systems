@@ -32,7 +32,7 @@ from merlin.systems.dag.ops.operator import add_model_param  # noqa
 class TritonEnsembleRuntime:
     """Runtime for  Triton. Runs each operator in DAG as a separate model in a Triton Ensemble."""
 
-    def export(self, ensemble, path: str, version: int = 1, name: str = "ensemble_model"):
+    def export(self, ensemble, path: str, version: int = 1, name: str = None):
         """
         Exports a merlin triton ensemble to a Triton Ensemble with related configs.
         Every operator is represented as a separate model, loaded individually in
@@ -47,6 +47,7 @@ class TritonEnsembleRuntime:
         version : int, optional
             _description_, by default 1
         """
+        name = name or "ensemble_model"
         # Build node id lookup table
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
         node_id_table, num_nodes = _create_node_table(nodes, "ensemble")
@@ -56,7 +57,7 @@ class TritonEnsembleRuntime:
 
         # Create ensemble config
         ensemble_config = model_config.ModelConfig(
-            name=ensemble.name,
+            name=name,
             platform="ensemble",
             # max_batch_size=configs[0].max_batch_size
         )
@@ -135,7 +136,7 @@ class TritonEnsembleRuntime:
                 ensemble_config.ensemble_scheduling.step.append(config_step)
 
         # Write the ensemble config file
-        ensemble_path = os.path.join(path, ensemble.name)
+        ensemble_path = os.path.join(path, name)
         os.makedirs(ensemble_path, exist_ok=True)
         os.makedirs(os.path.join(ensemble_path, str(version)), exist_ok=True)
 
@@ -166,7 +167,8 @@ class TritonExecutorRuntime:
     Triton models for nodes that use any non-python backends.
     """
 
-    def export(self, ensemble, path: str, version: int = 1, name: str = "executor_model"):
+    def export(self, ensemble, path: str, version: int = 1, name: str = None):
+        name = name or "executor_model"
 
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
         node_id_table, _ = _create_node_table(nodes, "executor")
@@ -182,7 +184,7 @@ class TritonExecutorRuntime:
                 if node_config is not None:
                     node_configs.append(node_config)
 
-        executor_config = self._executor_model_export(path, "executor_model", ensemble)
+        executor_config = self._executor_model_export(path, name, ensemble)
 
         return (executor_config, node_configs)
 

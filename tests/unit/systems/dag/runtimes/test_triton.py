@@ -31,8 +31,17 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize("runtime", [None, TritonEnsembleRuntime(), TritonExecutorRuntime()])
-def test_triton_default_ensemble_model(runtime, tmpdir):
+@pytest.mark.parametrize(
+    ["runtime", "model_name", "expected_model_name"],
+    [
+        (None, None, "ensemble_model"),
+        (TritonEnsembleRuntime(), None, "ensemble_model"),
+        (TritonEnsembleRuntime(), "triton_model", "triton_model"),
+        (TritonExecutorRuntime(), None, "executor_model"),
+        (TritonExecutorRuntime(), "triton_model", "triton_model"),
+    ],
+)
+def test_triton_default_ensemble_model(runtime, model_name, expected_model_name, tmpdir):
     request_schema = Schema(
         [
             ColumnSchema("candidate_ids", dtype=np.int32),
@@ -54,8 +63,9 @@ def test_triton_default_ensemble_model(runtime, tmpdir):
     filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
 
     ensemble = Ensemble(filtering, request_schema)
-    ensemble_config, _ = ensemble.export(tmpdir, runtime=runtime)
+    ensemble_config, _ = ensemble.export(tmpdir, runtime=runtime, name=model_name)
 
+    assert ensemble_config.name == expected_model_name
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
