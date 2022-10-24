@@ -26,6 +26,7 @@ from merlin.io import Dataset
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
+from merlin.systems.dag.runtime.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
@@ -130,7 +131,7 @@ def test_run_dag_on_dataframe_with_dask_executor():
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-def test_triton_executor_model(tmpdir):
+def test_triton_default_ensemble_model(tmpdir):
     request_schema = Schema(
         [
             ColumnSchema("candidate_ids", dtype=np.int32),
@@ -152,7 +153,44 @@ def test_triton_executor_model(tmpdir):
     filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
 
     ensemble = Ensemble(filtering, request_schema)
-    ensemble.export(tmpdir, backend="executor")
+    ensemble.export(tmpdir)
+
+    response = run_ensemble_on_tritonserver(
+        tmpdir,
+        ensemble.input_schema,
+        make_df(request_data.arrays),
+        ensemble.output_schema.column_names,
+        "ensemble_model",
+    )
+    assert response is not None
+    # assert isinstance(response, DictArray)
+    assert len(response["filtered_ids"]) == 80
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_triton_executor_model(tmpdir):
+    request_schema = Schema(
+        [
+            ColumnSchema("candidate_ids", dtype=np.int32),
+            ColumnSchema("movie_ids", dtype=np.int32),
+        ]
+    )
+
+    candidate_ids = np.random.randint(1, 100000, 100).astype(np.int32)
+    movie_ids_1 = np.zeros(100, dtype=np.int32)
+    movie_ids_1[:20] = np.unique(candidate_ids)[:20]
+
+    combined_features = {
+        "candidate_ids": candidate_ids,
+        "movie_ids": movie_ids_1,
+    }
+
+    request_data = DictArray(combined_features)
+
+    filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
+
+    ensemble = Ensemble(filtering, request_schema, name="executor_model")
+    ensemble.export(tmpdir, runtime=TritonExecutorRuntime())
 
     response = run_ensemble_on_tritonserver(
         tmpdir,
