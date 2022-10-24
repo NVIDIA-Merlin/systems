@@ -38,6 +38,7 @@ configure_tensorflow()
 import tensorflow as tf  # noqa
 
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
+from merlin.systems.dag.runtime.triton import TritonExecutorRuntime  # noqa
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
@@ -75,14 +76,14 @@ def test_faiss_in_triton_executor_model(tmpdir):
     filtering = ["user_id"] >> PredictTensorflow(model) >> QueryFaiss(faiss_path)
 
     ensemble = Ensemble(filtering, request_schema)
-    ensemble.export(tmpdir, backend="executor")
+    ensemble_config, _ = ensemble.export(tmpdir, runtime=TritonExecutorRuntime())
 
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
         make_df(request_data.arrays),
         ensemble.output_schema.column_names,
-        "executor_model",
+        ensemble_config.name,
     )
     assert response is not None
     # assert isinstance(response, DictArray)

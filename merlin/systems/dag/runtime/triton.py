@@ -32,12 +32,7 @@ from merlin.systems.dag.ops.operator import add_model_param  # noqa
 class TritonEnsembleRuntime:
     """Runtime for  Triton. Runs each operator in DAG as a separate model in a Triton Ensemble."""
 
-    def export(
-        self,
-        ensemble,
-        path: str,
-        version: int = 1,
-    ):
+    def export(self, ensemble, path: str, version: int = 1, name: str = "ensemble_model"):
         """
         Exports a merlin triton ensemble to a Triton Ensemble with related configs.
         Every operator is represented as a separate model, loaded individually in
@@ -171,12 +166,7 @@ class TritonExecutorRuntime:
     Triton models for nodes that use any non-python backends.
     """
 
-    def export(
-        self,
-        ensemble,
-        path: str,
-        version: int = 1,
-    ):
+    def export(self, ensemble, path: str, version: int = 1, name: str = "executor_model"):
 
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
         node_id_table, _ = _create_node_table(nodes, "executor")

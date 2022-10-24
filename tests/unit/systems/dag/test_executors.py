@@ -153,14 +153,14 @@ def test_triton_default_ensemble_model(tmpdir):
     filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
 
     ensemble = Ensemble(filtering, request_schema)
-    ensemble.export(tmpdir)
+    ensemble_config, _ = ensemble.export(tmpdir)
 
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
         make_df(request_data.arrays),
         ensemble.output_schema.column_names,
-        "ensemble_model",
+        ensemble_config.name,
     )
     assert response is not None
     # assert isinstance(response, DictArray)
@@ -189,15 +189,15 @@ def test_triton_executor_model(tmpdir):
 
     filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
 
-    ensemble = Ensemble(filtering, request_schema, name="executor_model")
-    ensemble.export(tmpdir, runtime=TritonExecutorRuntime())
+    ensemble = Ensemble(filtering, request_schema)
+    ensemble_config, _ = ensemble.export(tmpdir, runtime=TritonExecutorRuntime())
 
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
         make_df(request_data.arrays),
         ensemble.output_schema.column_names,
-        "executor_model",
+        ensemble_config.name,
     )
     assert response is not None
     # assert isinstance(response, DictArray)

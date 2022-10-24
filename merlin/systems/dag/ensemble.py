@@ -125,10 +125,10 @@ class Ensemble:
 
         return ensemble
 
-    def export(self, export_path, version=1, runtime=None):
+    def export(self, export_path, runtime=None, **kwargs):
         """
         Write out an ensemble model configuration directory. The exported
         ensemble is designed for use with Triton Inference Server.
         """
         runtime = runtime or TritonEnsembleRuntime()
-        return runtime.export(self, export_path, version)
+        return runtime.export(self, export_path, **kwargs)

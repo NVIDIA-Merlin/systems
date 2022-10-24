@@ -30,6 +30,7 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
+from merlin.systems.dag.runtime.triton import TritonExecutorRuntime  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 
@@ -46,7 +47,7 @@ def test_implicit_in_triton_executor_model(tmpdir):
     triton_chain = request_schema.column_names >> implicit_op
 
     ensemble = Ensemble(triton_chain, request_schema)
-    ensemble.export(tmpdir, backend="executor")
+    ensemble_config, _ = ensemble.export(tmpdir, runtime=TritonExecutorRuntime())
 
     input_user_id = np.array([0, 1], dtype=np.int64)
 
@@ -55,7 +56,7 @@ def test_implicit_in_triton_executor_model(tmpdir):
         request_schema,
         make_df({"user_id": input_user_id}),
         ensemble.output_schema.column_names,
-        "executor_model",
+        ensemble_config.name,
     )
     assert response is not None
     assert len(response["ids"]) == len(input_user_id)
