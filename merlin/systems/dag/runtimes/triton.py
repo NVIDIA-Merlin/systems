@@ -16,6 +16,7 @@
 import os
 import pathlib
 from shutil import copyfile
+from typing import List, Tuple
 
 from merlin.dag import postorder_iter_nodes
 
@@ -30,22 +31,33 @@ from merlin.systems.dag.ops.operator import add_model_param  # noqa
 
 
 class TritonEnsembleRuntime:
-    """Runtime for  Triton. Runs each operator in DAG as a separate model in a Triton Ensemble."""
+    """Runtime for Triton. Runs each operator in DAG as a separate model in a Triton Ensemble."""
 
-    def export(self, ensemble, path: str, version: int = 1, name: str = None):
-        """
-        Exports a merlin triton ensemble to a Triton Ensemble with related configs.
-        Every operator is represented as a separate model, loaded individually in
-        Triton.
+    def export(
+        self, ensemble, path: str, version: int = 1, name: str = None
+    ) -> Tuple[model_config.ModelConfig, List[model_config.ModelConfig]]:
+        """Exports an 'Ensemble' as a triton model repository.
+
+        Every operator is represented as a separate model,
+        loaded individually in Triton.
+
+        The entry point is the ensemble model with the name `name`, by default "ensemble_model"
 
         Parameters
         ----------
         ensemble : merlin.systems.dag.Ensemble
-            _description_
+            Systems ensemble to export
         path : str
-            _description_
+            Path to directory where Triton model repository will be created.
         version : int, optional
-            _description_, by default 1
+            Version for Triton models created, by default 1
+        name : str, optional
+            The name of the ensemble triton model, by default "ensemble_model"
+
+        Returns
+        -------
+        Tuple[model_config.ModelConfig, List[model_config.ModelConfig]]
+            Tuple of ensemble config and list of non-python backend model configs
         """
         name = name or "ensemble_model"
         # Build node id lookup table
@@ -167,7 +179,32 @@ class TritonExecutorRuntime:
     Triton models for nodes that use any non-python backends.
     """
 
-    def export(self, ensemble, path: str, version: int = 1, name: str = None):
+    def export(
+        self, ensemble, path: str, version: int = 1, name: str = None
+    ) -> Tuple[model_config.ModelConfig, List[model_config.ModelConfig]]:
+        """Exports an 'Ensemble' as a Triton model repository.
+
+        All operators in the ensemble will run in a single python backend model except
+        those that have a non-python Triton backend.
+
+        The entrypoint is the model with name `name`, by default "executor_model"
+
+        Parameters
+        ----------
+        ensemble : merlin.systems.dag.Ensemble
+            Systems ensemble to export
+        path : str
+            Path to directory where Triton model repository will be created.
+        version : int, optional
+            Version for Triton models created, by default 1
+        name : str, optional
+            The name of the ensemble triton model, by default "executor_model"
+
+        Returns
+        -------
+        Tuple[model_config.ModelConfig, List[model_config.ModelConfig]]
+            Tuple of ensemble config and list of non-python backend model configs
+        """
         name = name or "executor_model"
 
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
@@ -196,19 +233,17 @@ class TritonExecutorRuntime:
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-        backend: str = "python",
-    ):
-        """
-        Export the class object as a config and all related files to the user-defined path.
+    ) -> model_config.ModelConfig:
+        """Export the ensemble and all related files to the  path.
 
         Parameters
         ----------
         path : str
             Artifact export path
-        input_schema : Schema
-            A schema with information about the inputs to this operator.
-        output_schema : Schema
-            A schema with information about the outputs of this operator.
+        export_name : str
+            The name for the Triton model to export to.
+        ensemble : merlin.systems.dag.Ensemble
+            The ensemble to export.
         params : dict, optional
             Parameters dictionary of key, value pairs stored in exported config, by default None.
         node_id : int, optional
@@ -218,10 +253,8 @@ class TritonExecutorRuntime:
 
         Returns
         -------
-        Ensemble_config: dict
-            The config for the entire ensemble.
-        Node_configs: list
-            A list of individual configs for each step (operator) in graph.
+        model_config.ModelConfig
+            The config for the ensemble.
         """
 
         params = params or {}
@@ -232,7 +265,7 @@ class TritonExecutorRuntime:
         node_export_path.mkdir(parents=True, exist_ok=True)
 
         config = model_config.ModelConfig(
-            name=node_name, backend=backend, platform="merlin_executor"
+            name=node_name, backend="python", platform="merlin_executor"
         )
 
         input_schema = ensemble.input_schema
