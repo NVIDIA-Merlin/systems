@@ -21,7 +21,9 @@ import warnings
 import cloudpickle
 import fsspec
 
+from merlin.core.protocols import Transformable
 from merlin.dag import Graph
+from merlin.dag.executors import LocalExecutor
 from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime
 
 
@@ -32,7 +34,7 @@ class Ensemble:
     """
 
     def __init__(self, ops, schema, label_columns=None):
-        """_summary_
+        """Construct a systems ensemble.
 
         Parameters
         ----------
@@ -54,6 +56,27 @@ class Ensemble:
     @property
     def output_schema(self):
         return self.graph.output_schema
+
+    def transform(self, transformable: Transformable, executor=None):
+        """Delegate transformation of input data to the executor with
+        the necessary ensemble graph. This will traverse each node of
+        the graph and mutate the input according to the operator in each
+        node.
+
+        Parameters
+        ----------
+        transformable : Transformable
+            Input data to the graph (Dataframe or Dictarray).
+        executor : Executor, optional
+            The graph executor to use to transform the inputs, by default None
+
+        Returns
+        -------
+        Transformable
+            transformed data
+        """
+        executor = executor or LocalExecutor()
+        return executor.transform(transformable, [self.graph.output_node])
 
     def save(self, path):
         """Save this ensemble to disk
