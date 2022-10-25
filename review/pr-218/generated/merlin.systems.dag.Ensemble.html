@@ -118,7 +118,7 @@ run sequentially in tritonserver initiated by an inference request.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.Ensemble.save" title="merlin.systems.dag.Ensemble.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(path)</p></td>
 <td><p>Save this ensemble to disk</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.Ensemble.transform" title="merlin.systems.dag.Ensemble.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(transformable[, executor])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.Ensemble.transform" title="merlin.systems.dag.Ensemble.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(transformable[, runtime])</p></td>
 <td><p>Delegate transformation of input data to the executor with the necessary ensemble graph.</p></td>
 </tr>
 </tbody>
@@ -150,7 +150,7 @@ run sequentially in tritonserver initiated by an inference request.</p>
 
 <dl class="py method">
 <dt id="merlin.systems.dag.Ensemble.transform">
-<code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.core.protocols.Transformable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">executor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ensemble.html#Ensemble.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.Ensemble.transform" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.core.protocols.Transformable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runtime</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ensemble.html#Ensemble.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.Ensemble.transform" title="Permalink to this definition"></a></dt>
 <dd><p>Delegate transformation of input data to the executor with
 the necessary ensemble graph. This will traverse each node of
 the graph and mutate the input according to the operator in each
@@ -158,8 +158,8 @@ node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>transformable</strong> (<em>Transformable</em>) – Input data to the graph (Dataframe or Dictarray).</p></li>
-<li><p><strong>executor</strong> (<em>Executor</em><em>, </em><em>optional</em>) – The graph executor to use to transform the inputs, by default None</p></li>
+<li><p><strong>transformable</strong> (<em>Transformable</em>) – Input data to the graph (DataFrame or DictArray).</p></li>
+<li><p><strong>runtime</strong> (<em>Runtime</em><em>, </em><em>optional</em>) – The graph runtime to use to transform the inputs, by default None</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
