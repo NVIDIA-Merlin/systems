@@ -13,6 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# flake8: noqa
+from merlin.core.protocols import Transformable
+from merlin.dag import Graph
+from merlin.dag.executors import LocalExecutor
 
-from .base_runtime import Runtime
+
+class Runtime:
+    def __init__(self, executor=None):
+        self.executor = executor or LocalExecutor()
+
+    def transform(self, graph: Graph, transformable: Transformable):
+        return self.executor.transform(transformable, [graph.output_node])
+
+    def export(self):
+        raise NotImplementedError

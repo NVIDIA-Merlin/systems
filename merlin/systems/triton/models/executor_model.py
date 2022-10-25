@@ -32,6 +32,7 @@ import triton_python_backend_utils as pb_utils
 
 from merlin.dag import DictArray, postorder_iter_nodes
 from merlin.systems.dag import Ensemble
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 
 
 class TritonPythonModel:
@@ -98,7 +99,9 @@ class TritonPythonModel:
                     for name in self.ensemble.input_schema.column_names
                 }
 
-                return_values = self.ensemble.transform(DictArray(input_tensors))
+                return_values = self.ensemble.transform(
+                    DictArray(input_tensors), runtime=TritonExecutorRuntime()
+                )
 
                 output_tensors = []
                 for name, data in return_values.items():

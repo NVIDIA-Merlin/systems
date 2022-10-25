@@ -26,12 +26,18 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
+from merlin.core.protocols import Transformable  # noqa
+from merlin.dag import Graph  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.dag.ops.operator import add_model_param  # noqa
+from merlin.systems.dag.runtimes import Runtime  # noqa
 
 
-class TritonEnsembleRuntime:
+class TritonEnsembleRuntime(Runtime):
     """Runtime for Triton. Runs each operator in DAG as a separate model in a Triton Ensemble."""
+
+    def transform(self, graph: Graph, transformable: Transformable):
+        raise NotImplementedError("Transform handled by Triton")
 
     def export(
         self, ensemble, path: str, version: int = 1, name: str = None
@@ -173,7 +179,7 @@ class TritonEnsembleRuntime:
             return source_node
 
 
-class TritonExecutorRuntime:
+class TritonExecutorRuntime(Runtime):
     """Runtime for Triton.
     This will run the DAG in a single Triton model and call out to other
     Triton models for nodes that use any non-python backends.

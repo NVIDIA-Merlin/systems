@@ -23,7 +23,6 @@ import fsspec
 
 from merlin.core.protocols import Transformable
 from merlin.dag import Graph
-from merlin.dag.executors import LocalExecutor
 from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime
 
 
@@ -57,7 +56,7 @@ class Ensemble:
     def output_schema(self):
         return self.graph.output_schema
 
-    def transform(self, transformable: Transformable, executor=None):
+    def transform(self, transformable: Transformable, runtime=None):
         """Delegate transformation of input data to the executor with
         the necessary ensemble graph. This will traverse each node of
         the graph and mutate the input according to the operator in each
@@ -66,17 +65,17 @@ class Ensemble:
         Parameters
         ----------
         transformable : Transformable
-            Input data to the graph (Dataframe or Dictarray).
-        executor : Executor, optional
-            The graph executor to use to transform the inputs, by default None
+            Input data to the graph (DataFrame or DictArray).
+        runtime : Runtime, optional
+            The graph runtime to use to transform the inputs, by default None
 
         Returns
         -------
         Transformable
             transformed data
         """
-        executor = executor or LocalExecutor()
-        return executor.transform(transformable, [self.graph.output_node])
+        runtime = runtime or TritonEnsembleRuntime()
+        return runtime.transform(self.graph, transformable)
 
     def save(self, path):
         """Save this ensemble to disk
