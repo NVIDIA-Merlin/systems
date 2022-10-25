@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import random
 from distutils.spawn import find_executable
 
 import numpy as np
@@ -49,7 +50,7 @@ def test_triton_runtime_export_and_run(runtime, model_name, expected_model_name,
         ]
     )
 
-    candidate_ids = np.random.randint(1, 100000, 100).astype(np.int32)
+    candidate_ids = np.array(random.sample(range(100000), 100), dtype=np.int32)
     movie_ids_1 = np.zeros(100, dtype=np.int32)
     movie_ids_1[:20] = np.unique(candidate_ids)[:20]
 
