@@ -24,6 +24,8 @@
       ~PredictTensorflow.from_model_registry
       ~PredictTensorflow.from_path
       ~PredictTensorflow.output_column_names
+      ~PredictTensorflow.transform
+      ~PredictTensorflow.validate_schemas
    
    
 

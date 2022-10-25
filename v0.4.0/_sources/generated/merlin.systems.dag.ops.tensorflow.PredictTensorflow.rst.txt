@@ -22,6 +22,8 @@
       ~PredictTensorflow.create_node
       ~PredictTensorflow.export
       ~PredictTensorflow.output_column_names
+      ~PredictTensorflow.transform
+      ~PredictTensorflow.validate_schemas
    
    
 

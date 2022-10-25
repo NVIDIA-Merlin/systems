@@ -98,19 +98,21 @@
 <span class="kn">import</span> <span class="nn">tritonclient.grpc.model_config_pb2</span> <span class="k">as</span> <span class="nn">model_config</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">google.protobuf</span> <span class="kn">import</span> <span class="n">text_format</span>  <span class="c1"># noqa</span>
 
+<span class="kn">from</span> <span class="nn">merlin.core.protocols</span> <span class="kn">import</span> <span class="n">Transformable</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">ColumnSelector</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">ColumnSchema</span><span class="p">,</span> <span class="n">Schema</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.systems.dag.ops</span> <span class="kn">import</span> <span class="n">compute_dims</span>  <span class="c1"># noqa</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">InferenceOperator</span><span class="p">,</span> <span class="n">add_model_param</span>  <span class="c1"># noqa</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.compat</span> <span class="kn">import</span> <span class="n">pb_utils</span>  <span class="c1"># noqa</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">PipelineableInferenceOperator</span><span class="p">,</span> <span class="n">add_model_param</span>  <span class="c1"># noqa</span>
 
 
-<div class="viewcode-block" id="PredictTensorflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow">[docs]</a><span class="k">class</span> <span class="nc">PredictTensorflow</span><span class="p">(</span><span class="n">InferenceOperator</span><span class="p">):</span>
+<div class="viewcode-block" id="PredictTensorflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow">[docs]</a><span class="k">class</span> <span class="nc">PredictTensorflow</span><span class="p">(</span><span class="n">PipelineableInferenceOperator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This operator takes a tensorflow model and packages it correctly for tritonserver</span>
 <span class="sd">    to run, on the tensorflow backend.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="PredictTensorflow.__init__"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_or_path</span><span class="p">,</span> <span class="n">custom_objects</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="PredictTensorflow.__init__"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_or_path</span><span class="p">,</span> <span class="n">custom_objects</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;tensorflow&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instantiate a PredictTensorflow inference operator.</span>
 
@@ -122,21 +124,80 @@
 <span class="sd">            Any custom objects that need to be loaded with the model, by default None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tf_model_name</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="n">custom_objects</span> <span class="o">=</span> <span class="n">custom_objects</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">model_or_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">custom_objects</span> <span class="o">=</span> <span class="n">custom_objects</span> <span class="ow">or</span> <span class="p">{}</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model_or_path</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">model_or_path</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="n">custom_objects</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model_or_path</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model_or_path</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">model_or_path</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">custom_objects</span><span class="o">=</span><span class="n">custom_objects</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model_or_path</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">input_schema</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_schemas_from_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input_schema</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_schemas_from_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="PredictTensorflow.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="n">output_schema</span><span class="p">,</span> <span class="n">node_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;model&quot;</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">tf_model_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tf_model_name</span>
+
+<div class="viewcode-block" id="PredictTensorflow.set_tf_model_name"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.set_tf_model_name">[docs]</a>    <span class="k">def</span> <span class="nf">set_tf_model_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tf_model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the name of the Triton model to use</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tf_model_name : str</span>
+<span class="sd">            Triton model directory name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tf_model_name</span> <span class="o">=</span> <span class="n">tf_model_name</span></div>
+
+<div class="viewcode-block" id="PredictTensorflow.transform"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">transformable</span><span class="p">:</span> <span class="n">Transformable</span><span class="p">):</span>
+        <span class="c1"># TODO: Validate that the inputs match the schema</span>
+        <span class="c1"># TODO: Should we coerce the dtypes to match the schema here?</span>
+        <span class="n">input_tensors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">input_tensors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pb_utils</span><span class="o">.</span><span class="n">Tensor</span><span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="n">transformable</span><span class="p">[</span><span class="n">col_name</span><span class="p">]))</span>
+
+        <span class="n">inference_request</span> <span class="o">=</span> <span class="n">pb_utils</span><span class="o">.</span><span class="n">InferenceRequest</span><span class="p">(</span>
+            <span class="n">model_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tf_model_name</span><span class="p">,</span>
+            <span class="n">requested_output_names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">input_tensors</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">inference_response</span> <span class="o">=</span> <span class="n">inference_request</span><span class="o">.</span><span class="n">exec</span><span class="p">()</span>
+
+        <span class="c1"># TODO: Validate that the outputs match the schema</span>
+        <span class="n">outputs_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">out_col_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">output_val</span> <span class="o">=</span> <span class="n">pb_utils</span><span class="o">.</span><span class="n">get_output_tensor_by_name</span><span class="p">(</span>
+                <span class="n">inference_response</span><span class="p">,</span> <span class="n">out_col_name</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">()</span>
+            <span class="n">outputs_dict</span><span class="p">[</span><span class="n">out_col_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_val</span>
+
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">transformable</span><span class="p">)(</span><span class="n">outputs_dict</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">exportable_backends</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;ensemble&quot;</span><span class="p">,</span> <span class="s2">&quot;executor&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="PredictTensorflow.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">input_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
+        <span class="n">output_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">node_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a directory inside supplied path based on our export name&quot;&quot;&quot;</span>
-        <span class="n">node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">export_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_name</span>
+        <span class="c1"># Export Triton TF back-end directory and config etc</span>
+        <span class="n">export_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">export_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">export_name</span>
 
         <span class="n">node_export_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">node_name</span>
         <span class="n">node_export_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -152,7 +213,21 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">tf_model_path</span><span class="p">,</span> <span class="n">include_optimizer</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_export_model_config</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">node_export_path</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_tf_model_name</span><span class="p">(</span><span class="n">node_name</span><span class="p">)</span>
+        <span class="n">backend_model_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_export_model_config</span><span class="p">(</span><span class="n">node_name</span><span class="p">,</span> <span class="n">node_export_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">backend_model_config</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">export_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provides a clear common english identifier for this operator.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        String</span>
+<span class="sd">            Name of the current class as spelled in module.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
 <div class="viewcode-block" id="PredictTensorflow.from_path"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_path</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -298,12 +373,12 @@
   <div class="rst-other-versions">
     <dl>
       <dt>Tags</dt>
-      <dd><a href="../../../../../../v0.1.0/index.html">v0.1.0</a></dd>
       <dd><a href="../../../../../../v0.2.0/index.html">v0.2.0</a></dd>
       <dd><a href="../../../../../../v0.3.0/index.html">v0.3.0</a></dd>
       <dd><a href="../../../../../../v0.4.0/index.html">v0.4.0</a></dd>
       <dd><a href="../../../../../../v0.5.0/index.html">v0.5.0</a></dd>
       <dd><a href="../../../../../../v0.6.0/index.html">v0.6.0</a></dd>
+      <dd><a href="../../../../../../v0.7.0/index.html">v0.7.0</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>

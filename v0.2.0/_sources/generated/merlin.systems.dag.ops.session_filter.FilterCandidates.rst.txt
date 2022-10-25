@@ -24,6 +24,7 @@
       ~FilterCandidates.from_config
       ~FilterCandidates.output_column_names
       ~FilterCandidates.transform
+      ~FilterCandidates.validate_schemas
    
    
 

@@ -24,8 +24,10 @@
       ~UnrollFeatures.from_config
       ~UnrollFeatures.from_model_registry
       ~UnrollFeatures.from_path
+      ~UnrollFeatures.load_artifacts
       ~UnrollFeatures.output_column_names
       ~UnrollFeatures.transform
+      ~UnrollFeatures.validate_schemas
    
    
 

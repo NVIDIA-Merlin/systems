@@ -115,7 +115,7 @@ based on the supplied criteria.</p>
 <td><p>_summary_</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">column_mapping</span></code>(col_selector)</p></td>
-<td><p></p></td>
+<td><p>Compute which output columns depend on which input columns</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_column_schema</span></code>(col_name, input_schema)</p></td>
 <td><p></p></td>
@@ -126,8 +126,8 @@ based on the supplied criteria.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.compute_output_schema" title="merlin.systems.dag.ops.session_filter.FilterCandidates.compute_output_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_schema</span></code></a>(input_schema, col_selector)</p></td>
 <td><p>Compute the input schema of this node given the root, parents and dependencies schemas of all ancestor nodes.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_selector</span></code>(input_schema, selector, …)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_selector</span></code>(input_schema, selector[, …])</p></td>
+<td><p>Provides a hook method for sub-classes to override to implement custom column selection logic.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
 <td><p>_summary_</p></td>
@@ -144,13 +144,16 @@ based on the supplied criteria.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code>(path, **kwargs)</p></td>
 <td><p>Loads the InferenceOperator from the path where it was exported after training.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
-<td><p>Given a set of columns names returns the names of the transformed columns this operator will produce :param columns: The columns to apply this operator to :type columns: list of str, or list of list of str</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_artifacts</span></code>(artifact_path)</p></td>
+<td><p>Hook method that provides a way to load saved artifacts for the operator</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.transform" title="merlin.systems.dag.ops.session_filter.FilterCandidates.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(df)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
+<td><p>Given a set of columns names returns the names of the transformed columns this operator will produce</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.transform" title="merlin.systems.dag.ops.session_filter.FilterCandidates.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(col_selector, transformable)</p></td>
 <td><p>Transform input dataframe to output dataframe using function logic.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.validate_schemas" title="merlin.systems.dag.ops.session_filter.FilterCandidates.validate_schemas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schemas</span></code></a>(parents_schema, …[, …])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.validate_schemas" title="merlin.systems.dag.ops.session_filter.FilterCandidates.validate_schemas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schemas</span></code></a>(parents_schema, …[, …])</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -274,24 +277,24 @@ operator</p></li>
 
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.session_filter.FilterCandidates.transform">
-<code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="merlin.systems.dag.ops.operator.InferenceDataFrame.html#merlin.systems.dag.ops.operator.InferenceDataFrame" title="merlin.systems.dag.ops.operator.InferenceDataFrame"><span class="pre">merlin.systems.dag.ops.operator.InferenceDataFrame</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/session_filter.html#FilterCandidates.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.transform" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_selector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.dag.selector.ColumnSelector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.core.protocols.Transformable</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">merlin.core.protocols.Transformable</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/session_filter.html#FilterCandidates.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.transform" title="Permalink to this definition"></a></dt>
 <dd><p>Transform input dataframe to output dataframe using function logic.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>df</strong> (<a class="reference internal" href="merlin.systems.dag.ops.operator.InferenceDataFrame.html#merlin.systems.dag.ops.operator.InferenceDataFrame" title="merlin.systems.dag.ops.operator.InferenceDataFrame"><em>InferenceDataFrame</em></a>) – Input tensor dictionary, data that will be manipulated</p>
+<dd class="field-odd"><p><strong>df</strong> (<em>DictArray</em>) – Input tensor dictionary, data that will be manipulated</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Transformed tensor dictionary</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="merlin.systems.dag.ops.operator.InferenceDataFrame.html#merlin.systems.dag.ops.operator.InferenceDataFrame" title="merlin.systems.dag.ops.operator.InferenceDataFrame">InferenceDataFrame</a></p>
+<dd class="field-odd"><p>DictArray</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.session_filter.FilterCandidates.export">
-<code class="sig-name descname"><span class="pre">export</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.schema.schema.Schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.schema.schema.Schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/session_filter.html#FilterCandidates.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.export" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname"><span class="pre">export</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.schema.schema.Schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.schema.schema.Schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'ensemble'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/session_filter.html#FilterCandidates.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.session_filter.FilterCandidates.export" title="Permalink to this definition"></a></dt>
 <dd><p>Export the class object as a config and all related files to the user defined path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -352,12 +355,12 @@ operator</p></li>
   <div class="rst-other-versions">
     <dl>
       <dt>Tags</dt>
-      <dd><a href="../../v0.1.0/index.html">v0.1.0</a></dd>
       <dd><a href="../../v0.2.0/index.html">v0.2.0</a></dd>
       <dd><a href="../../v0.3.0/index.html">v0.3.0</a></dd>
       <dd><a href="../../v0.4.0/index.html">v0.4.0</a></dd>
       <dd><a href="../../v0.5.0/index.html">v0.5.0</a></dd>
       <dd><a href="../../v0.6.0/index.html">v0.6.0</a></dd>
+      <dd><a href="../../v0.7.0/index.html">v0.7.0</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>

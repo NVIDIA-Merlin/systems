@@ -24,6 +24,8 @@
       ~TransformWorkflow.from_model_registry
       ~TransformWorkflow.from_path
       ~TransformWorkflow.output_column_names
+      ~TransformWorkflow.transform
+      ~TransformWorkflow.validate_schemas
    
    
 

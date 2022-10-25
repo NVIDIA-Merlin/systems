@@ -24,6 +24,7 @@
       ~UnrollFeatures.from_config
       ~UnrollFeatures.output_column_names
       ~UnrollFeatures.transform
+      ~UnrollFeatures.validate_schemas
    
    
 

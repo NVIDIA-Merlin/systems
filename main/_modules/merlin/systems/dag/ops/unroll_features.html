@@ -90,10 +90,11 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">merlin.core.protocols</span> <span class="kn">import</span> <span class="n">Transformable</span>
 <span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">Node</span>
 <span class="kn">from</span> <span class="nn">merlin.dag.selector</span> <span class="kn">import</span> <span class="n">ColumnSelector</span>
 <span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">Schema</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">InferenceDataFrame</span><span class="p">,</span> <span class="n">PipelineableInferenceOperator</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">PipelineableInferenceOperator</span>
 
 
 <div class="viewcode-block" id="UnrollFeatures"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures">[docs]</a><span class="k">class</span> <span class="nc">UnrollFeatures</span><span class="p">(</span><span class="n">PipelineableInferenceOperator</span><span class="p">):</span>
@@ -117,7 +118,16 @@
         <span class="n">unrolled_prefix</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;unrolled_prefix&quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">UnrollFeatures</span><span class="p">(</span><span class="n">candidate_col</span><span class="p">,</span> <span class="n">unroll_cols</span><span class="p">,</span> <span class="n">unrolled_prefix</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="UnrollFeatures.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="n">output_schema</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="UnrollFeatures.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">input_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
+        <span class="n">output_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">node_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Write out a Triton model config directory&quot;&quot;&quot;</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">params</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="n">self_params</span> <span class="o">=</span> <span class="p">{</span>
@@ -144,10 +154,12 @@
 
         <span class="k">return</span> <span class="n">schema</span></div>
 
-<div class="viewcode-block" id="UnrollFeatures.transform"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">InferenceDataFrame</span><span class="p">):</span>
-        <span class="n">num_items</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">item_id_col</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<div class="viewcode-block" id="UnrollFeatures.transform"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">transformable</span><span class="p">:</span> <span class="n">Transformable</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Transformable</span><span class="p">:</span>
+        <span class="n">num_items</span> <span class="o">=</span> <span class="n">transformable</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">item_id_col</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">outputs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">col_value</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">tensors</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">col_name</span><span class="p">,</span> <span class="n">col_value</span> <span class="ow">in</span> <span class="n">transformable</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">outputs</span><span class="p">[</span><span class="n">col_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">col_value</span>
 
         <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unroll_col_names</span><span class="p">:</span>
@@ -155,7 +167,7 @@
             <span class="n">col_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">unrolled_prefix</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">col</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unrolled_prefix</span> <span class="k">else</span> <span class="n">col</span>
             <span class="n">outputs</span><span class="p">[</span><span class="n">col_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">num_items</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">InferenceDataFrame</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">transformable</span><span class="p">)(</span><span class="n">outputs</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_unroll_col_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -195,12 +207,12 @@
   <div class="rst-other-versions">
     <dl>
       <dt>Tags</dt>
-      <dd><a href="../../../../../../v0.1.0/index.html">v0.1.0</a></dd>
       <dd><a href="../../../../../../v0.2.0/index.html">v0.2.0</a></dd>
       <dd><a href="../../../../../../v0.3.0/index.html">v0.3.0</a></dd>
       <dd><a href="../../../../../../v0.4.0/index.html">v0.4.0</a></dd>
       <dd><a href="../../../../../../v0.5.0/index.html">v0.5.0</a></dd>
       <dd><a href="../../../../../../v0.6.0/index.html">v0.6.0</a></dd>
+      <dd><a href="../../../../../../v0.7.0/index.html">v0.7.0</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>

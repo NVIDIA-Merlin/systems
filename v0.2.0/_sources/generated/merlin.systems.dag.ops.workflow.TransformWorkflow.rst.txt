@@ -22,6 +22,8 @@
       ~TransformWorkflow.create_node
       ~TransformWorkflow.export
       ~TransformWorkflow.output_column_names
+      ~TransformWorkflow.transform
+      ~TransformWorkflow.validate_schemas
    
    
 

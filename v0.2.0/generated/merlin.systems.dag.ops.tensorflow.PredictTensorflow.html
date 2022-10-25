@@ -109,7 +109,7 @@ to run, on the tensorflow backend.</p>
 <td><p>Instantiate a PredictTensorflow inference operator.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">column_mapping</span></code>(col_selector)</p></td>
-<td><p></p></td>
+<td><p>Compute which output columns depend on which input columns</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_column_schema</span></code>(col_name, input_schema)</p></td>
 <td><p></p></td>
@@ -120,8 +120,8 @@ to run, on the tensorflow backend.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_output_schema</span></code></a>(input_schema, col_selector)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_selector</span></code>(input_schema, selector, …)</p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_selector</span></code>(input_schema, selector[, …])</p></td>
+<td><p>Provides a hook method for sub-classes to override to implement custom column selection logic.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
 <td><p>_summary_</p></td>
@@ -130,7 +130,13 @@ to run, on the tensorflow backend.</p>
 <td><p>Create a directory inside supplied path based on our export name</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
-<td><p>Given a set of columns names returns the names of the transformed columns this operator will produce :param columns: The columns to apply this operator to :type columns: list of str, or list of list of str</p></td>
+<td><p>Given a set of columns names returns the names of the transformed columns this operator will produce</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code>(col_selector, transformable)</p></td>
+<td><p>Transform the dataframe by applying this operator to the set of input columns</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schemas</span></code>(parents_schema, …[, …])</p></td>
+<td><p>Provides a hook method that sub-classes can override to implement schema validation logic.</p></td>
 </tr>
 </tbody>
 </table>
@@ -221,12 +227,12 @@ to run, on the tensorflow backend.</p>
   <div class="rst-other-versions">
     <dl>
       <dt>Tags</dt>
-      <dd><a href="../../v0.1.0/index.html">v0.1.0</a></dd>
       <dd><a href="merlin.systems.dag.ops.tensorflow.PredictTensorflow.html">v0.2.0</a></dd>
       <dd><a href="../../v0.3.0/index.html">v0.3.0</a></dd>
       <dd><a href="../../v0.4.0/index.html">v0.4.0</a></dd>
       <dd><a href="../../v0.5.0/index.html">v0.5.0</a></dd>
       <dd><a href="../../v0.6.0/index.html">v0.6.0</a></dd>
+      <dd><a href="../../v0.7.0/index.html">v0.7.0</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>

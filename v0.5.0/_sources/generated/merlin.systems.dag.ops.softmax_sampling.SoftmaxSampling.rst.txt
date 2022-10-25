@@ -26,6 +26,7 @@
       ~SoftmaxSampling.from_path
       ~SoftmaxSampling.output_column_names
       ~SoftmaxSampling.transform
+      ~SoftmaxSampling.validate_schemas
    
    
 

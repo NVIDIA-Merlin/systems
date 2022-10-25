@@ -110,8 +110,14 @@ run sequentially in tritonserver initiated by an inference request.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.Ensemble.__init__" title="merlin.systems.dag.Ensemble.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(ops, schema[, name, label_columns])</p></td>
 <td><p>_summary_</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.Ensemble.export" title="merlin.systems.dag.Ensemble.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(export_path[, version])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.Ensemble.export" title="merlin.systems.dag.Ensemble.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(export_path[, version, backend])</p></td>
 <td><p>Write out an ensemble model configuration directory.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.Ensemble.load" title="merlin.systems.dag.Ensemble.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(path)</p></td>
+<td><p>Load up a saved ensemble object from disk</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.Ensemble.save" title="merlin.systems.dag.Ensemble.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(path)</p></td>
+<td><p>Save this ensemble to disk</p></td>
 </tr>
 </tbody>
 </table>
@@ -141,8 +147,36 @@ run sequentially in tritonserver initiated by an inference request.</p>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt id="merlin.systems.dag.Ensemble.save">
+<code class="sig-name descname"><span class="pre">save</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ensemble.html#Ensemble.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.Ensemble.save" title="Permalink to this definition"></a></dt>
+<dd><p>Save this ensemble to disk</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The path to save the ensemble to</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="merlin.systems.dag.Ensemble.load">
+<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">load</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">merlin.systems.dag.ensemble.Ensemble</span><a class="reference internal" href="../_modules/merlin/systems/dag/ensemble.html#Ensemble.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.Ensemble.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load up a saved ensemble object from disk</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The path to load the ensemble from</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The ensemble loaded from disk</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#merlin.systems.dag.Ensemble" title="merlin.systems.dag.Ensemble">Ensemble</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="merlin.systems.dag.Ensemble.export">
-<code class="sig-name descname"><span class="pre">export</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">export_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ensemble.html#Ensemble.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.Ensemble.export" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname"><span class="pre">export</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">export_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ensemble'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ensemble.html#Ensemble.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.Ensemble.export" title="Permalink to this definition"></a></dt>
 <dd><p>Write out an ensemble model configuration directory. The exported
 ensemble is designed for use with Triton Inference Server.</p>
 </dd></dl>
@@ -185,12 +219,12 @@ ensemble is designed for use with Triton Inference Server.</p>
   <div class="rst-other-versions">
     <dl>
       <dt>Tags</dt>
-      <dd><a href="../../v0.1.0/index.html">v0.1.0</a></dd>
       <dd><a href="../../v0.2.0/index.html">v0.2.0</a></dd>
       <dd><a href="../../v0.3.0/index.html">v0.3.0</a></dd>
       <dd><a href="../../v0.4.0/index.html">v0.4.0</a></dd>
       <dd><a href="../../v0.5.0/index.html">v0.5.0</a></dd>
       <dd><a href="../../v0.6.0/index.html">v0.6.0</a></dd>
+      <dd><a href="../../v0.7.0/index.html">v0.7.0</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>

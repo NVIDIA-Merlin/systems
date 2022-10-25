@@ -24,8 +24,10 @@
       ~SoftmaxSampling.from_config
       ~SoftmaxSampling.from_model_registry
       ~SoftmaxSampling.from_path
+      ~SoftmaxSampling.load_artifacts
       ~SoftmaxSampling.output_column_names
       ~SoftmaxSampling.transform
+      ~SoftmaxSampling.validate_schemas
    
    
 

@@ -21,9 +21,14 @@
       ~TransformWorkflow.compute_selector
       ~TransformWorkflow.create_node
       ~TransformWorkflow.export
+      ~TransformWorkflow.from_config
       ~TransformWorkflow.from_model_registry
       ~TransformWorkflow.from_path
+      ~TransformWorkflow.load_artifacts
       ~TransformWorkflow.output_column_names
+      ~TransformWorkflow.set_nvt_model_name
+      ~TransformWorkflow.transform
+      ~TransformWorkflow.validate_schemas
    
    
 
@@ -38,6 +43,7 @@
       ~TransformWorkflow.export_name
       ~TransformWorkflow.exportable_backends
       ~TransformWorkflow.label
+      ~TransformWorkflow.nvt_model_name
       ~TransformWorkflow.output_dtype
       ~TransformWorkflow.output_properties
       ~TransformWorkflow.output_tags
