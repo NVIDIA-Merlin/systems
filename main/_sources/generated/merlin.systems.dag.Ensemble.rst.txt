@@ -17,6 +17,7 @@
       ~Ensemble.export
       ~Ensemble.load
       ~Ensemble.save
+      ~Ensemble.transform
    
    
 

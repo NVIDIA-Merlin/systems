@@ -87,27 +87,16 @@
 <span class="c1"># limitations under the License.</span>
 <span class="c1">#</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">pathlib</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copyfile</span>
 
 <span class="kn">import</span> <span class="nn">cloudpickle</span>
 <span class="kn">import</span> <span class="nn">fsspec</span>
 
-<span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">postorder_iter_nodes</span>
-
-<span class="c1"># this needs to be before any modules that import protobuf</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;python&quot;</span>
-
-<span class="kn">import</span> <span class="nn">tritonclient.grpc.model_config_pb2</span> <span class="k">as</span> <span class="nn">model_config</span>  <span class="c1"># noqa</span>
-<span class="kn">from</span> <span class="nn">google.protobuf</span> <span class="kn">import</span> <span class="n">text_format</span>  <span class="c1"># noqa</span>
-
-<span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">Graph</span>  <span class="c1"># noqa</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops</span> <span class="kn">import</span> <span class="n">compute_dims</span>  <span class="c1"># noqa</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">add_model_param</span>  <span class="c1"># noqa</span>
+<span class="kn">from</span> <span class="nn">merlin.core.protocols</span> <span class="kn">import</span> <span class="n">Transformable</span>
+<span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.runtimes.triton</span> <span class="kn">import</span> <span class="n">TritonEnsembleRuntime</span>
 
 
 <div class="viewcode-block" id="Ensemble"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble">[docs]</a><span class="k">class</span> <span class="nc">Ensemble</span><span class="p">:</span>
@@ -116,8 +105,8 @@
 <span class="sd">    run sequentially in tritonserver initiated by an inference request.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Ensemble.__init__"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ensemble_model&quot;</span><span class="p">,</span> <span class="n">label_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;_summary_</span>
+<div class="viewcode-block" id="Ensemble.__init__"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">label_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Construct a systems ensemble.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -125,14 +114,11 @@
 <span class="sd">            An inference node that represents the chain of operators for the ensemble.</span>
 <span class="sd">        schema : Schema</span>
 <span class="sd">            The schema of the input data.</span>
-<span class="sd">        name : str, optional</span>
-<span class="sd">            Name of the ensemble, by default &quot;ensemble_model&quot;</span>
 <span class="sd">        label_columns : List[str], optional</span>
 <span class="sd">            List of strings representing label columns, by default None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">ops</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">construct_schema</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">label_columns</span> <span class="o">=</span> <span class="n">label_columns</span> <span class="ow">or</span> <span class="p">[]</span></div>
 
     <span class="nd">@property</span>
@@ -142,6 +128,27 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">output_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span>
+
+<div class="viewcode-block" id="Ensemble.transform"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transformable</span><span class="p">:</span> <span class="n">Transformable</span><span class="p">,</span> <span class="n">runtime</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delegate transformation of input data to the executor with</span>
+<span class="sd">        the necessary ensemble graph. This will traverse each node of</span>
+<span class="sd">        the graph and mutate the input according to the operator in each</span>
+<span class="sd">        node.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        transformable : Transformable</span>
+<span class="sd">            Input data to the graph (DataFrame or DictArray).</span>
+<span class="sd">        runtime : Runtime, optional</span>
+<span class="sd">            The graph runtime to use to transform the inputs, by default None</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Transformable</span>
+<span class="sd">            transformed data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">runtime</span> <span class="o">=</span> <span class="n">runtime</span> <span class="ow">or</span> <span class="n">TritonEnsembleRuntime</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">runtime</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">transformable</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Ensemble.save"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Save this ensemble to disk</span>
@@ -210,240 +217,13 @@
 
         <span class="k">return</span> <span class="n">ensemble</span></div>
 
-<div class="viewcode-block" id="Ensemble.export"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;ensemble&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="Ensemble.export"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">,</span> <span class="n">runtime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write out an ensemble model configuration directory. The exported</span>
 <span class="sd">        ensemble is designed for use with Triton Inference Server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">_ensemble_export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;executor&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">_executor_export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown backend provided to `Ensemble.export()`: </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
-
-
-<span class="k">def</span> <span class="nf">_create_node_table</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">backend</span><span class="p">):</span>
-    <span class="n">exportable_node_idx</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">node_id_lookup</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">exportable</span><span class="p">(</span><span class="n">backend</span><span class="p">):</span>
-            <span class="n">node_id_lookup</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">exportable_node_idx</span>
-            <span class="n">exportable_node_idx</span> <span class="o">+=</span> <span class="mi">1</span>
-
-    <span class="k">return</span> <span class="n">node_id_lookup</span><span class="p">,</span> <span class="n">exportable_node_idx</span>
-
-
-<span class="k">def</span> <span class="nf">_ensemble_export</span><span class="p">(</span>
-    <span class="n">ensemble</span><span class="p">:</span> <span class="n">Ensemble</span><span class="p">,</span>
-    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="c1"># Build node id lookup table</span>
-    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">postorder_iter_nodes</span><span class="p">(</span><span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_node</span><span class="p">))</span>
-    <span class="n">node_id_table</span><span class="p">,</span> <span class="n">num_nodes</span> <span class="o">=</span> <span class="n">_create_node_table</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">)</span>
-
-    <span class="n">nodes</span> <span class="o">=</span> <span class="n">nodes</span> <span class="ow">or</span> <span class="p">[]</span>
-    <span class="n">node_id_table</span> <span class="o">=</span> <span class="n">node_id_table</span> <span class="ow">or</span> <span class="p">{}</span>
-
-    <span class="c1"># Create ensemble config</span>
-    <span class="n">ensemble_config</span> <span class="o">=</span> <span class="n">model_config</span><span class="o">.</span><span class="n">ModelConfig</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="n">ensemble</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="n">platform</span><span class="o">=</span><span class="s2">&quot;ensemble&quot;</span><span class="p">,</span>
-        <span class="c1"># max_batch_size=configs[0].max_batch_size</span>
-    <span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">col_schema</span> <span class="ow">in</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">add_model_param</span><span class="p">(</span>
-            <span class="n">ensemble_config</span><span class="o">.</span><span class="n">input</span><span class="p">,</span>
-            <span class="n">model_config</span><span class="o">.</span><span class="n">ModelInput</span><span class="p">,</span>
-            <span class="n">col_schema</span><span class="p">,</span>
-            <span class="n">col_schema</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">compute_dims</span><span class="p">(</span><span class="n">col_schema</span><span class="p">),</span>
-        <span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">col_schema</span> <span class="ow">in</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">add_model_param</span><span class="p">(</span>
-            <span class="n">ensemble_config</span><span class="o">.</span><span class="n">output</span><span class="p">,</span>
-            <span class="n">model_config</span><span class="o">.</span><span class="n">ModelOutput</span><span class="p">,</span>
-            <span class="n">col_schema</span><span class="p">,</span>
-            <span class="n">col_schema</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">compute_dims</span><span class="p">(</span><span class="n">col_schema</span><span class="p">),</span>
-        <span class="p">)</span>
-
-    <span class="n">node_configs</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">exportable</span><span class="p">(</span><span class="s2">&quot;ensemble&quot;</span><span class="p">):</span>
-            <span class="n">node_id</span> <span class="o">=</span> <span class="n">node_id_table</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">export_name</span><span class="si">}</span><span class="s2">&quot;</span>
-
-            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">ensemble_config</span><span class="o">.</span><span class="n">ensemble_scheduling</span><span class="o">.</span><span class="n">step</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">model_name</span> <span class="o">==</span> <span class="n">node_name</span><span class="p">:</span>
-                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">if</span> <span class="n">found</span><span class="p">:</span>
-                <span class="k">continue</span>
-
-            <span class="n">node_config</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">node_id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;ensemble&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">node_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">node_configs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node_config</span><span class="p">)</span>
-
-            <span class="n">config_step</span> <span class="o">=</span> <span class="n">model_config</span><span class="o">.</span><span class="n">ModelEnsembling</span><span class="o">.</span><span class="n">Step</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="n">node_name</span><span class="p">,</span> <span class="n">model_version</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">input_col_name</span><span class="p">,</span> <span class="n">input_col_schema</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">source</span> <span class="o">=</span> <span class="n">_find_column_source</span><span class="p">(</span>
-                    <span class="n">node</span><span class="o">.</span><span class="n">parents_with_dependencies</span><span class="p">,</span> <span class="n">input_col_name</span><span class="p">,</span> <span class="s2">&quot;ensemble&quot;</span>
-                <span class="p">)</span>
-                <span class="n">source_id</span> <span class="o">=</span> <span class="n">node_id_table</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                <span class="n">in_suffix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">source_id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">source_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-
-                <span class="k">if</span> <span class="n">input_col_schema</span><span class="o">.</span><span class="n">is_list</span> <span class="ow">and</span> <span class="n">input_col_schema</span><span class="o">.</span><span class="n">is_ragged</span><span class="p">:</span>
-                    <span class="n">config_step</span><span class="o">.</span><span class="n">input_map</span><span class="p">[</span><span class="n">input_col_name</span> <span class="o">+</span> <span class="s2">&quot;__values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="n">input_col_name</span> <span class="o">+</span> <span class="s2">&quot;__values&quot;</span> <span class="o">+</span> <span class="n">in_suffix</span>
-                    <span class="p">)</span>
-                    <span class="n">config_step</span><span class="o">.</span><span class="n">input_map</span><span class="p">[</span><span class="n">input_col_name</span> <span class="o">+</span> <span class="s2">&quot;__nnzs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="n">input_col_name</span> <span class="o">+</span> <span class="s2">&quot;__nnzs&quot;</span> <span class="o">+</span> <span class="n">in_suffix</span>
-                    <span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">config_step</span><span class="o">.</span><span class="n">input_map</span><span class="p">[</span><span class="n">input_col_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_col_name</span> <span class="o">+</span> <span class="n">in_suffix</span>
-
-            <span class="k">for</span> <span class="n">output_col_name</span><span class="p">,</span> <span class="n">output_col_schema</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">out_suffix</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">node_id</span> <span class="o">&lt;</span> <span class="n">num_nodes</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-                <span class="p">)</span>
-
-                <span class="k">if</span> <span class="n">output_col_schema</span><span class="o">.</span><span class="n">is_list</span> <span class="ow">and</span> <span class="n">output_col_schema</span><span class="o">.</span><span class="n">is_ragged</span><span class="p">:</span>
-                    <span class="n">config_step</span><span class="o">.</span><span class="n">output_map</span><span class="p">[</span><span class="n">output_col_name</span> <span class="o">+</span> <span class="s2">&quot;__values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="n">output_col_name</span> <span class="o">+</span> <span class="s2">&quot;__values&quot;</span> <span class="o">+</span> <span class="n">out_suffix</span>
-                    <span class="p">)</span>
-                    <span class="n">config_step</span><span class="o">.</span><span class="n">output_map</span><span class="p">[</span><span class="n">output_col_name</span> <span class="o">+</span> <span class="s2">&quot;__nnzs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="n">output_col_name</span> <span class="o">+</span> <span class="s2">&quot;__nnzs&quot;</span> <span class="o">+</span> <span class="n">out_suffix</span>
-                    <span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">config_step</span><span class="o">.</span><span class="n">output_map</span><span class="p">[</span><span class="n">output_col_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_col_name</span> <span class="o">+</span> <span class="n">out_suffix</span>
-
-            <span class="n">ensemble_config</span><span class="o">.</span><span class="n">ensemble_scheduling</span><span class="o">.</span><span class="n">step</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">config_step</span><span class="p">)</span>
-
-    <span class="c1"># Write the ensemble config file</span>
-    <span class="n">ensemble_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">)),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="n">config_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ensemble_path</span><span class="p">,</span> <span class="s2">&quot;config.pbtxt&quot;</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span>
-        <span class="n">text_format</span><span class="o">.</span><span class="n">PrintMessage</span><span class="p">(</span><span class="n">ensemble_config</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="p">(</span><span class="n">ensemble_config</span><span class="p">,</span> <span class="n">node_configs</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_executor_export</span><span class="p">(</span>
-    <span class="n">ensemble</span><span class="p">:</span> <span class="n">Ensemble</span><span class="p">,</span>
-    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="p">):</span>
-
-    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">postorder_iter_nodes</span><span class="p">(</span><span class="n">ensemble</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_node</span><span class="p">))</span>
-    <span class="n">node_id_table</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_create_node_table</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="s2">&quot;executor&quot;</span><span class="p">)</span>
-
-    <span class="n">node_configs</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">exportable</span><span class="p">(</span><span class="s2">&quot;executor&quot;</span><span class="p">):</span>
-            <span class="n">node_id</span> <span class="o">=</span> <span class="n">node_id_table</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-
-            <span class="n">node_config</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">node_id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;executor&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">node_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">node_configs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node_config</span><span class="p">)</span>
-
-    <span class="n">executor_config</span> <span class="o">=</span> <span class="n">_executor_model_export</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;executor_model&quot;</span><span class="p">,</span> <span class="n">ensemble</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="p">(</span><span class="n">executor_config</span><span class="p">,</span> <span class="n">node_configs</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_executor_model_export</span><span class="p">(</span>
-    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">export_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">ensemble</span><span class="p">:</span> <span class="n">Ensemble</span><span class="p">,</span>
-    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">node_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Export the class object as a config and all related files to the user-defined path.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    path : str</span>
-<span class="sd">        Artifact export path</span>
-<span class="sd">    input_schema : Schema</span>
-<span class="sd">        A schema with information about the inputs to this operator.</span>
-<span class="sd">    output_schema : Schema</span>
-<span class="sd">        A schema with information about the outputs of this operator.</span>
-<span class="sd">    params : dict, optional</span>
-<span class="sd">        Parameters dictionary of key, value pairs stored in exported config, by default None.</span>
-<span class="sd">    node_id : int, optional</span>
-<span class="sd">        The placement of the node in the graph (starts at 1), by default None.</span>
-<span class="sd">    version : int, optional</span>
-<span class="sd">        The version of the model, by default 1.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Ensemble_config: dict</span>
-<span class="sd">        The config for the entire ensemble.</span>
-<span class="sd">    Node_configs: list</span>
-<span class="sd">        A list of individual configs for each step (operator) in graph.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">params</span> <span class="o">=</span> <span class="n">params</span> <span class="ow">or</span> <span class="p">{}</span>
-
-    <span class="n">node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">export_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">export_name</span>
-
-    <span class="n">node_export_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">node_name</span>
-    <span class="n">node_export_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="n">config</span> <span class="o">=</span> <span class="n">model_config</span><span class="o">.</span><span class="n">ModelConfig</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">node_name</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="s2">&quot;merlin_executor&quot;</span><span class="p">)</span>
-
-    <span class="n">input_schema</span> <span class="o">=</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">input_schema</span>
-    <span class="n">output_schema</span> <span class="o">=</span> <span class="n">ensemble</span><span class="o">.</span><span class="n">output_schema</span>
-
-    <span class="k">for</span> <span class="n">col_schema</span> <span class="ow">in</span> <span class="n">input_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-        <span class="n">col_dims</span> <span class="o">=</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">compute_dims</span><span class="p">(</span><span class="n">col_schema</span><span class="p">)</span>
-        <span class="n">add_model_param</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="n">model_config</span><span class="o">.</span><span class="n">ModelInput</span><span class="p">,</span> <span class="n">col_schema</span><span class="p">,</span> <span class="n">col_dims</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">col_schema</span> <span class="ow">in</span> <span class="n">output_schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-        <span class="n">col_dims</span> <span class="o">=</span> <span class="n">col_schema</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;shape&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">compute_dims</span><span class="p">(</span><span class="n">col_schema</span><span class="p">)</span>
-        <span class="n">add_model_param</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">model_config</span><span class="o">.</span><span class="n">ModelOutput</span><span class="p">,</span> <span class="n">col_schema</span><span class="p">,</span> <span class="n">col_dims</span><span class="p">)</span>
-
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="s2">&quot;config.pbtxt&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">o</span><span class="p">:</span>
-        <span class="n">text_format</span><span class="o">.</span><span class="n">PrintMessage</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">o</span><span class="p">)</span>
-
-    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">)),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">copyfile</span><span class="p">(</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span>
-            <span class="s2">&quot;..&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;triton&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;models&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;executor_model.py&quot;</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">),</span> <span class="s2">&quot;model.py&quot;</span><span class="p">),</span>
-    <span class="p">)</span>
-
-    <span class="n">ensemble</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">node_export_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">),</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">config</span>
-
-
-<span class="k">def</span> <span class="nf">_find_column_source</span><span class="p">(</span><span class="n">upstream_nodes</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">backend</span><span class="p">):</span>
-    <span class="n">source_node</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">upstream_node</span> <span class="ow">in</span> <span class="n">upstream_nodes</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">column_name</span> <span class="ow">in</span> <span class="n">upstream_node</span><span class="o">.</span><span class="n">output_columns</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
-            <span class="n">source_node</span> <span class="o">=</span> <span class="n">upstream_node</span>
-            <span class="k">break</span>
-
-    <span class="k">if</span> <span class="n">source_node</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">source_node</span><span class="o">.</span><span class="n">exportable</span><span class="p">(</span><span class="n">backend</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_find_column_source</span><span class="p">(</span><span class="n">source_node</span><span class="o">.</span><span class="n">parents_with_dependencies</span><span class="p">,</span> <span class="n">column_name</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">source_node</span>
+        <span class="n">runtime</span> <span class="o">=</span> <span class="n">runtime</span> <span class="ow">or</span> <span class="n">TritonEnsembleRuntime</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">runtime</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
