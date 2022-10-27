@@ -55,7 +55,7 @@ def test_tf_op_exports_own_config(tmpdir):
     output_schema = Schema([ColumnSchema("output", dtype=np.float32)])
 
     # Triton
-    triton_op = tf_op.PredictTensorflow(model)
+    triton_op = tf_op.PredictTensorflowTriton(model)
     triton_op.export(tmpdir, input_schema, output_schema)
 
     # Export creates directory
@@ -145,9 +145,8 @@ def test_tf_op_infers_schema_for_input_tuples():
         metrics=[tf.metrics.SparseCategoricalAccuracy()],
     )
 
-    # Triton
-    triton_op = tf_op.PredictTensorflow(model)
-    assert triton_op.input_schema == Schema(
+    op = tf_op.PredictTensorflow(model)
+    assert op.input_schema == Schema(
         [
             ColumnSchema(
                 name="input_1",
@@ -166,6 +165,6 @@ def test_tf_op_infers_schema_for_input_tuples():
             ),
         ]
     )
-    assert triton_op.output_schema == Schema(
+    assert op.output_schema == Schema(
         [ColumnSchema("dot", dtype=np.float32, is_list=False, is_ragged=False)]
     )
