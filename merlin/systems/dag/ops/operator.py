@@ -1,3 +1,4 @@
+import importlib.resources
 import json
 import os
 import pathlib
@@ -289,12 +290,13 @@ class PipelineableInferenceOperator(InferenceOperator):
 
         os.makedirs(node_export_path, exist_ok=True)
         os.makedirs(os.path.join(node_export_path, str(version)), exist_ok=True)
-        copyfile(
-            os.path.join(
-                os.path.dirname(__file__), "..", "..", "triton", "models", "oprunner_model.py"
-            ),
-            os.path.join(node_export_path, str(version), "model.py"),
-        )
+        with importlib.resources.path(
+            "merlin.systems.triton.models", "oprunner_model.py"
+        ) as oprunner_model:
+            copyfile(
+                oprunner_model,
+                os.path.join(node_export_path, str(version), "model.py"),
+            )
 
         return config
 
