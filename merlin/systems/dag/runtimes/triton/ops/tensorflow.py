@@ -16,7 +16,6 @@
 import os
 import pathlib
 from shutil import copytree
-from typing import List
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -30,47 +29,20 @@ from merlin.schema import Schema  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.dag.ops.compat import pb_utils  # noqa
 from merlin.systems.dag.ops.operator import add_model_param  # noqa
-
-
-class TritonOperator:
-    def __init__(self, base_op):
-        self.op = base_op
-        self.input_schema = self.op.input_schema
-        self.output_schema = self.op.output_schema
-
-    @property
-    def export_name(self):
-        """
-        Provides a clear common english identifier for this operator.
-
-        Returns
-        -------
-        String
-            Name of the current class as spelled in module.
-        """
-        return self.__class__.__name__.lower()
-
-    @property
-    def exportable_backends(self) -> List[str]:
-        """Returns list of supported backends.
-
-        Returns
-        -------
-        List[str]
-            List of supported backends
-        """
-        return ["ensemble"]
+from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
 
 
 class PredictTensorflowTriton(TritonOperator):
     """TensorFlow Model Prediction Operator for running inside Triton."""
 
-    def __init__(self, base_op):
-        super().__init__(base_op)
+    def __init__(self, op):
+        super().__init__(op)
 
-        self.path = self.op.path
-        self.model = self.op.model
-        self.scalar_shape = self.op.scalar_shape
+        self.input_schema = op.input_schema
+        self.output_schema = op.output_schema
+        self.path = op.path
+        self.model = op.model
+        self.scalar_shape = op.scalar_shape
 
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
         """Run transform of operator callling TensorFlow model with a Triton InferenceRequest.
