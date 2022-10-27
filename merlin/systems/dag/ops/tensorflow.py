@@ -29,10 +29,7 @@ from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 
 
 class PredictTensorflow(InferenceOperator):
-    """
-    This operator takes a tensorflow model and packages it correctly for tritonserver
-    to run, on the tensorflow backend.
-    """
+    """TensorFlow Model Prediction Operator."""
 
     def __init__(self, model_or_path, custom_objects: dict = None, backend="tensorflow"):
         """
@@ -59,19 +56,38 @@ class PredictTensorflow(InferenceOperator):
 
             self.input_schema, self.output_schema = self._construct_schemas_from_model(self.model)
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
+        """Return state of instance when pickled.
+
+        Returns
+        -------
+        dict
+            Returns object state excluding model attribute.
+        """
         return {k: v for k, v in self.__dict__.items() if k != "model"}
 
-    def transform(self, col_selector: ColumnSelector, transformable: Transformable):
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
+        """Run model inference. Returning predictions.
+
+        Parameters
+        ----------
+        col_selector : ColumnSelector
+            Unused ColumunSelector input
+        transformable : Transformable
+            Input features to model
+
+        Returns
+        -------
+        Transformable
+            Model Predictions
+        """
         # TODO: Validate that the inputs match the schema
         # TODO: Should we coerce the dtypes to match the schema here?
         output = self.model(transformable)
         # TODO: map output schema names to outputs produced by prediction
         return type(transformable)({"output": output})
-
-    @property
-    def exportable_backends(self):
-        return ["executor"]
 
     @property
     def export_name(self):
