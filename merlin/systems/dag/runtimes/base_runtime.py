@@ -33,6 +33,7 @@ class Runtime:
             The Graph Executor to use to use for the transform, by default None
         """
         self.executor = executor or LocalExecutor()
+        self.op_table = {}
 
     def transform(self, graph: Graph, transformable: Transformable):
         """Run the graph with the input data.
