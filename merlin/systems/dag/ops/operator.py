@@ -113,6 +113,7 @@ class InferenceOperator(BaseOperator):
         Node_configs: list
             A list of individual configs for each step (operator) in graph.
         """
+        raise NotImplementedError
 
     def create_node(self, selector: ColumnSelector) -> InferenceNode:
         """_summary_
