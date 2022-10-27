@@ -44,6 +44,8 @@ class PredictTensorflowTriton(TritonOperator):
         self.model = op.model
         self.scalar_shape = op.scalar_shape
 
+        self._tf_model_name = None
+
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
         """Run transform of operator callling TensorFlow model with a Triton InferenceRequest.
 

@@ -46,7 +46,6 @@ class PredictTensorflow(InferenceOperator):
             Any custom objects that need to be loaded with the model, by default None.
         """
         super().__init__()
-        self._tf_model_name = None
 
         if model_or_path is not None:
             custom_objects = custom_objects or {}
