@@ -15,9 +15,20 @@
 #
 from typing import List
 
+from merlin.systems.dag.ops.operator import InferenceOperator
+
 
 class TritonOperator:
-    def __init__(self, base_op):
+    """Base class for Triton operators."""
+
+    def __init__(self, base_op: InferenceOperator):
+        """Construct TritonOperator from a base operator.
+
+        Parameters
+        ----------
+        base_op : merlin.systems.dag.ops.operator.InfereneOperator
+            Base operator used to construct this Triton op.
+        """
         self.op = base_op
 
     @property
@@ -41,4 +52,4 @@ class TritonOperator:
         List[str]
             List of supported backends
         """
-        return ["ensemble"]
+        return ["ensemble", "executor"]
