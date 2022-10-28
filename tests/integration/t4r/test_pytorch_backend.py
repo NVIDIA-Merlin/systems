@@ -13,7 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import numpy as np
+import logging
+
 import pytest
 
 torch = pytest.importorskip("torch")
@@ -27,10 +28,12 @@ tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
 from merlin.core.dispatch import make_df  # noqa
-from merlin.schema import ColumnSchema, Schema  # noqa
+from merlin.schema import ColumnSchema  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
+
+log = logging.getLogger(__name__)
 
 
 class ServingAdapter(torch.nn.Module):
@@ -56,49 +59,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
         max_session_length=max_session_len,
         device="cuda",
     )
-
-    # ===========================================
-    # Translate T4R schema to Merlin schema
-    # ===========================================
-
-    # TODO: This should be a Merlin schema. For now, let's convert it across
-    # in this test, but ultimately we should rework T4R to use Merlin Schemas.
-
     t4r_yoochoose_schema = t4r.data.tabular_sequence_testing_data.schema
-
-    merlin_yoochoose_schema = Schema()
-    for column in t4r_yoochoose_schema:
-        name = column.name
-
-        # The feature types in the T4R schemas are a bit hard to work with:
-        # https://github.com/NVIDIA-Merlin/Transformers4Rec/blob/538fc54bb8f2e3dc79224e497bebee15b00e4ab7/merlin_standard_lib/proto/schema_bp.py#L43-L53
-        dtype = {0: np.float32, 2: np.int64, 3: np.float32}[column.type]
-        tags = column.tags
-        is_list = column.value_count.max > 0
-        value_count = (
-            {"min": max_session_len, "max": max_session_len} if is_list else {"min": 1, "max": 1}
-        )
-        is_ragged = is_list and value_count.get("min", 0) != value_count.get("max", 0)
-        int_domain = {"min": column.int_domain.min, "max": column.int_domain.max}
-        properties = {"value_count": value_count, "int_domain": int_domain}
-        col_schema = ColumnSchema(
-            name,
-            dtype=dtype,
-            tags=tags,
-            properties=properties,
-            is_list=is_list,
-            is_ragged=is_ragged,
-        )
-        merlin_yoochoose_schema[name] = col_schema
-
-    # Check that the translated schema types match the actual types of the values
-    non_matching_dtypes = {}
-    for key, value in torch_yoochoose_like.items():
-        dtypes = (value.cpu().numpy().dtype, merlin_yoochoose_schema[key].dtype)
-        if dtypes[0] != dtypes[1]:
-            non_matching_dtypes[key] = dtypes
-
-    assert len(non_matching_dtypes) == 0
 
     # ===========================================
     # Build, train, test, and JIT the model
@@ -134,13 +95,39 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # Build a simple Ensemble graph
     # ===========================================
 
-    output_schema = Schema([ColumnSchema("output", dtype=np.float32)])
+    input_schema = model.input_schema(max_session_len)
+    output_schema = model.output_schema()
 
-    torch_op = merlin_yoochoose_schema.column_names >> PredictPyTorch(
-        traced_model, merlin_yoochoose_schema, output_schema
+    # add batch dim to int shapes
+    for col_schema in input_schema:
+        shape = col_schema.properties.get("shape")
+        if shape and isinstance(shape, int):
+            input_schema[col_schema.name] = col_schema.with_properties({"shape": [-1, shape]})
+
+    # add batch dim to int shapes
+    for col_schema in output_schema:
+        shape = col_schema.properties.get("shape")
+        if shape and isinstance(shape, int):
+            col_schema = col_schema.with_properties({"shape": [-1, shape]})
+            if shape > 1:
+                col_schema = ColumnSchema(
+                    col_schema.name,
+                    dtype=col_schema.dtype,
+                    properties={
+                        **col_schema.properties,
+                        "value_count": {"min": shape, "max": shape},
+                    },
+                    tags=col_schema.tags,
+                    is_list=True,
+                    is_ragged=False,
+                )
+            output_schema[col_schema.name] = col_schema
+
+    torch_op = input_schema.column_names >> PredictPyTorch(
+        traced_model, input_schema, output_schema
     )
 
-    ensemble = Ensemble(torch_op, merlin_yoochoose_schema)
+    ensemble = Ensemble(torch_op, input_schema)
     ens_config, node_configs = ensemble.export(str(tmpdir))
 
     # ===========================================
@@ -148,19 +135,29 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # ===========================================
 
     df_cols = {}
+    missing_cols = []
     for name, tensor in torch_yoochoose_like.items():
-        df_cols[name] = tensor.cpu().numpy().astype(merlin_yoochoose_schema[name].dtype)
+        if name not in input_schema.column_names:
+            missing_cols.append(name)
+            dtype = tensor.cpu().numpy().dtype
+        else:
+            dtype = input_schema[name].dtype
+
+        df_cols[name] = tensor.cpu().numpy().astype(dtype)
         if len(tensor.shape) > 1:
             df_cols[name] = list(df_cols[name])
 
-    df = make_df(df_cols)[merlin_yoochoose_schema.column_names]
+    # check that we're not missing any columns from input schema
+    # assert missing_cols == []
+
+    df = make_df(df_cols)[input_schema.column_names]
 
     # ===========================================
     # Send request to Triton and check response
     # ===========================================
 
     response = run_ensemble_on_tritonserver(
-        tmpdir, merlin_yoochoose_schema, df, output_schema.column_names, "ensemble_model"
+        tmpdir, input_schema, df, output_schema.column_names, "ensemble_model"
     )
 
     assert response
