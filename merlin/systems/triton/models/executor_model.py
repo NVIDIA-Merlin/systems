@@ -31,8 +31,8 @@ from pathlib import Path
 import triton_python_backend_utils as pb_utils
 
 from merlin.dag import DictArray, postorder_iter_nodes
-from merlin.dag.executors import LocalExecutor
 from merlin.systems.dag import Ensemble
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 
 
 class TritonPythonModel:
@@ -61,10 +61,9 @@ class TritonPythonModel:
         repository_path = _parse_model_repository(model_repo)
 
         ensemble_path = (
-            Path(repository_path) / "executor_model" / str(args["model_version"]) / "ensemble"
+            Path(repository_path) / args["model_name"] / str(args["model_version"]) / "ensemble"
         )
 
-        self.executor = LocalExecutor()
         self.ensemble = Ensemble.load(str(ensemble_path))
 
         for node in list(postorder_iter_nodes(self.ensemble.graph.output_node)):
@@ -100,9 +99,8 @@ class TritonPythonModel:
                     for name in self.ensemble.input_schema.column_names
                 }
 
-                return_values = self.executor.transform(
-                    DictArray(input_tensors),
-                    [self.ensemble.graph.output_node],
+                return_values = self.ensemble.transform(
+                    DictArray(input_tensors), runtime=TritonExecutorRuntime()
                 )
 
                 output_tensors = []

@@ -30,11 +30,13 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
+from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-def test_implicit_in_triton_executor_model(tmpdir):
+@pytest.mark.parametrize("runtime", [None, TritonEnsembleRuntime(), TritonExecutorRuntime()])
+def test_implicit_in_triton_executor_model(tmpdir, runtime):
     model = implicit.bpr.BayesianPersonalizedRanking()
     n = 100
     user_items = csr_matrix(np.random.choice([0, 1], size=n * n, p=[0.9, 0.1]).reshape(n, n))
@@ -46,7 +48,7 @@ def test_implicit_in_triton_executor_model(tmpdir):
     triton_chain = request_schema.column_names >> implicit_op
 
     ensemble = Ensemble(triton_chain, request_schema)
-    ensemble.export(tmpdir, backend="executor")
+    ensemble_config, _ = ensemble.export(tmpdir, runtime=runtime)
 
     input_user_id = np.array([0, 1], dtype=np.int64)
 
@@ -55,7 +57,7 @@ def test_implicit_in_triton_executor_model(tmpdir):
         request_schema,
         make_df({"user_id": input_user_id}),
         ensemble.output_schema.column_names,
-        "executor_model",
+        ensemble_config.name,
     )
     assert response is not None
     assert len(response["ids"]) == len(input_user_id)

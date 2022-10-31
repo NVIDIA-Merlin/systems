@@ -25,6 +25,7 @@ from tritonclient import grpc as grpcclient
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.implicit import PredictImplicit
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_triton_server
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
@@ -75,7 +76,7 @@ def test_reload_from_config(model_cls, tmpdir):
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize("backend", ["ensemble", "executor"])
+@pytest.mark.parametrize("runtime", [None, TritonExecutorRuntime()])
 @pytest.mark.parametrize(
     "model_cls",
     [
@@ -84,7 +85,7 @@ def test_reload_from_config(model_cls, tmpdir):
         implicit.lmf.LogisticMatrixFactorization,
     ],
 )
-def test_ensemble(model_cls, backend, tmpdir):
+def test_ensemble(model_cls, runtime, tmpdir):
     model = model_cls()
     n = 100
     user_items = csr_matrix(np.random.choice([0, 1], size=n * n, p=[0.9, 0.1]).reshape(n, n))
@@ -103,10 +104,9 @@ def test_ensemble(model_cls, backend, tmpdir):
 
     triton_chain = input_schema.column_names >> implicit_op
 
-    triton_ens = Ensemble(triton_chain, input_schema, name=f"{backend}_model")
-    triton_ens.export(tmpdir, backend=backend)
+    triton_ens = Ensemble(triton_chain, input_schema)
+    ensemble_config, _ = triton_ens.export(tmpdir, runtime=runtime)
 
-    model_name = triton_ens.name
     input_user_id = np.array([[0], [1]], dtype=np.int64)
     inputs = [
         grpcclient.InferInput(
@@ -119,7 +119,7 @@ def test_ensemble(model_cls, backend, tmpdir):
     response = None
 
     with run_triton_server(tmpdir) as client:
-        response = client.infer(model_name, inputs, outputs=outputs)
+        response = client.infer(ensemble_config.name, inputs, outputs=outputs)
 
     response_ids = response.as_numpy("ids")
     response_scores = response.as_numpy("scores")
