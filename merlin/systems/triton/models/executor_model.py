@@ -119,7 +119,8 @@ class TritonPythonModel:
                 tb_string = repr(traceback.extract_tb(exc_traceback))
                 responses.append(
                     pb_utils.InferenceResponse(
-                        tensors=[], error=f"{exc_type}, {exc_value}, {tb_string}"
+                        output_tensors=[],
+                        error=pb_utils.TritonError(f"{exc_type}, {exc_value}, {tb_string}"),
                     )
                 )
 

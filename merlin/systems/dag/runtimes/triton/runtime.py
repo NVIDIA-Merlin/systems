@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import importlib.resources
 import os
 import pathlib
 from shutil import copyfile
@@ -31,10 +32,27 @@ from merlin.dag import Graph  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.dag.ops.operator import add_model_param  # noqa
 from merlin.systems.dag.runtimes import Runtime  # noqa
+from merlin.systems.dag.runtimes.triton.ops.tensorflow import PredictTensorflowTriton  # noqa
+
+tensorflow = None
+try:
+    import tensorflow
+except ImportError:
+    ...
+
+TRITON_OP_TABLE = {}
+if tensorflow:
+    from merlin.systems.dag.ops.tensorflow import PredictTensorflow
+
+    TRITON_OP_TABLE[PredictTensorflow] = PredictTensorflowTriton
 
 
 class TritonEnsembleRuntime(Runtime):
     """Runtime for Triton. Runs each operator in DAG as a separate model in a Triton Ensemble."""
+
+    def __init__(self):
+        super().__init__()
+        self.op_table = TRITON_OP_TABLE
 
     def transform(self, graph: Graph, transformable: Transformable):
         raise NotImplementedError("Transform handled by Triton")
@@ -67,7 +85,13 @@ class TritonEnsembleRuntime(Runtime):
         """
         name = name or "ensemble_model"
         # Build node id lookup table
+
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
+
+        for node in nodes:
+            if type(node.op) in self.op_table:
+                node.op = self.op_table[type(node.op)](node.op)
+
         node_id_table, num_nodes = _create_node_table(nodes, "ensemble")
 
         nodes = nodes or []
@@ -185,6 +209,10 @@ class TritonExecutorRuntime(Runtime):
     Triton models for nodes that use any non-python backends.
     """
 
+    def __init__(self):
+        super().__init__()
+        self.op_table = TRITON_OP_TABLE
+
     def export(
         self, ensemble, path: str, version: int = 1, name: str = None
     ) -> Tuple[model_config.ModelConfig, List[model_config.ModelConfig]]:
@@ -214,6 +242,11 @@ class TritonExecutorRuntime(Runtime):
         name = name or "executor_model"
 
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
+
+        for node in nodes:
+            if type(node.op) in self.op_table:
+                node.op = self.op_table[type(node.op)](node.op)
+
         node_id_table, _ = _create_node_table(nodes, "executor")
 
         node_configs = []
@@ -290,17 +323,13 @@ class TritonExecutorRuntime(Runtime):
 
         os.makedirs(node_export_path, exist_ok=True)
         os.makedirs(os.path.join(node_export_path, str(version)), exist_ok=True)
-        copyfile(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "..",
-                "triton",
-                "models",
-                "executor_model.py",
-            ),
-            os.path.join(node_export_path, str(version), "model.py"),
-        )
+        with importlib.resources.path(
+            "merlin.systems.triton.models", "executor_model.py"
+        ) as executor_model:
+            copyfile(
+                executor_model,
+                os.path.join(node_export_path, str(version), "model.py"),
+            )
 
         ensemble.save(os.path.join(node_export_path, str(version), "ensemble"))
 

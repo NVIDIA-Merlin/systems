@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import importlib.resources
 import json
 import os
 import warnings
@@ -317,7 +317,7 @@ def _generate_ensemble_config(name, output_path, nvt_config, nn_config, name_ext
     config.ensemble_scheduling.step.append(nvt_step)
     config.ensemble_scheduling.step.append(tf_step)
 
-    with open(os.path.join(output_path, "config.pbtxt"), "w") as o:
+    with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
         text_format.PrintMessage(config, o)
     return config
 
@@ -359,10 +359,13 @@ def generate_nvtabular_model(
 
     # copy the model file over. note that this isn't necessary with the c++ backend, but
     # does provide us to use the python backend with just changing the 'backend' parameter
-    copyfile(
-        os.path.join(os.path.dirname(__file__), "models", "workflow_model.py"),
-        os.path.join(output_path, str(version), "model.py"),
-    )
+    with importlib.resources.path(
+        "merlin.systems.triton.models", "workflow_model.py"
+    ) as workflow_model:
+        copyfile(
+            workflow_model,
+            os.path.join(output_path, str(version), "model.py"),
+        )
 
     return config
 
@@ -456,7 +459,7 @@ def _generate_nvtabular_config(
             else:
                 _add_model_param(col_schema, model_config.ModelOutput, config.output)
 
-    with open(os.path.join(output_path, "config.pbtxt"), "w") as o:
+    with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
         text_format.PrintMessage(config, o)
     return config
 
@@ -514,7 +517,7 @@ def export_tensorflow_model(model, name, output_path, version=1):
             )
         )
 
-    with open(os.path.join(output_path, "config.pbtxt"), "w") as o:
+    with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
         text_format.PrintMessage(config, o)
     return config
 
@@ -576,13 +579,15 @@ def export_pytorch_model(
     )
 
     if sparse_max:
-        with open(os.path.join(output_path, str(version), "model_info.json"), "w") as o:
-            model_info = dict()
+        with open(
+            os.path.join(output_path, str(version), "model_info.json"), "w", encoding="utf-8"
+        ) as o:
+            model_info = {}
             model_info["sparse_max"] = sparse_max
             model_info["use_fix_dtypes"] = use_fix_dtypes
             json.dump(model_info, o)
 
-    with open(os.path.join(output_path, "config.pbtxt"), "w") as o:
+    with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
         text_format.PrintMessage(config, o)
     return config
 
@@ -604,7 +609,7 @@ def _generate_pytorch_config(model, name, output_path, max_batch_size=None):
             )
         )
 
-    with open(os.path.join(output_path, "config.pbtxt"), "w") as o:
+    with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
         text_format.PrintMessage(config, o)
     return config
 
@@ -675,7 +680,7 @@ def _generate_hugectr_config(name, output_path, hugectr_params, max_batch_size=N
     embeddingkey_long_type = model_config.ModelParameter(string_value=embeddingkey_long_type_val)
     config.parameters["embeddingkey_long_type"].CopyFrom(embeddingkey_long_type)
 
-    with open(os.path.join(output_path, "config.pbtxt"), "w") as o:
+    with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
         text_format.PrintMessage(config, o)
     return config
 
