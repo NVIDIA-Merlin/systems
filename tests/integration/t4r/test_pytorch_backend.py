@@ -43,12 +43,13 @@ class ServingAdapter(torch.nn.Module):
 
 
 def test_serve_t4r_with_torchscript(tmpdir):
-    min_session_len = 5
-    max_session_len = 20
 
     # ===========================================
     # Generate training data
     # ===========================================
+
+    min_session_len = 5
+    max_session_len = 20
     torch_yoochoose_like = tr.data.tabular_sequence_testing_data.torch_synthetic_data(
         num_rows=100,
         min_session_length=min_session_len,
@@ -102,11 +103,18 @@ def test_serve_t4r_with_torchscript(tmpdir):
     ens_config, node_configs = ensemble.export(str(tmpdir))
 
     # ===========================================
-    # Convert training data to Triton format
+    # Create Request Data
     # ===========================================
 
+    request_data = tr.data.tabular_sequence_testing_data.torch_synthetic_data(
+        num_rows=40,
+        min_session_length=4,
+        max_session_length=10,
+        device="cuda",
+    )
+
     df_cols = {}
-    for name, tensor in torch_yoochoose_like.items():
+    for name, tensor in request_data.items():
         if name in input_schema.column_names:
             dtype = input_schema[name].dtype
 
