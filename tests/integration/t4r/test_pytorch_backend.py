@@ -28,7 +28,6 @@ tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
 from merlin.core.dispatch import make_df  # noqa
-from merlin.schema import ColumnSchema  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
@@ -98,31 +97,6 @@ def test_serve_t4r_with_torchscript(tmpdir):
     input_schema = model.input_schema(max_session_len)
     output_schema = model.output_schema()
 
-    # add batch dim to int shapes
-    for col_schema in input_schema:
-        shape = col_schema.properties.get("shape")
-        if shape and isinstance(shape, int):
-            input_schema[col_schema.name] = col_schema.with_properties({"shape": [-1, shape]})
-
-    # add batch dim to int shapes
-    for col_schema in output_schema:
-        shape = col_schema.properties.get("shape")
-        if shape and isinstance(shape, int):
-            col_schema = col_schema.with_properties({"shape": [-1, shape]})
-            if shape > 1:
-                col_schema = ColumnSchema(
-                    col_schema.name,
-                    dtype=col_schema.dtype,
-                    properties={
-                        **col_schema.properties,
-                        "value_count": {"min": shape, "max": shape},
-                    },
-                    tags=col_schema.tags,
-                    is_list=True,
-                    is_ragged=False,
-                )
-            output_schema[col_schema.name] = col_schema
-
     torch_op = input_schema.column_names >> PredictPyTorch(
         traced_model, input_schema, output_schema
     )
@@ -135,27 +109,19 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # ===========================================
 
     df_cols = {}
-    missing_cols = []
     for name, tensor in torch_yoochoose_like.items():
-        if name not in input_schema.column_names:
-            missing_cols.append(name)
-            dtype = tensor.cpu().numpy().dtype
-        else:
+        if name in input_schema.column_names:
             dtype = input_schema[name].dtype
 
-        df_cols[name] = tensor.cpu().numpy().astype(dtype)
-        if len(tensor.shape) > 1:
-            df_cols[name] = list(df_cols[name])
+            df_cols[name] = tensor.cpu().numpy().astype(dtype)
+            if len(tensor.shape) > 1:
+                df_cols[name] = list(df_cols[name])
 
-    # check that we're not missing any columns from input schema
-    # assert missing_cols == []
-
-    df = make_df(df_cols)[input_schema.column_names]
+    df = make_df(df_cols)
 
     # ===========================================
     # Send request to Triton and check response
     # ===========================================
-
     response = run_ensemble_on_tritonserver(
         tmpdir, input_schema, df, output_schema.column_names, "ensemble_model"
     )
