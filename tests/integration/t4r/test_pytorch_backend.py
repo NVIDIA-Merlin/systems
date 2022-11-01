@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import logging
 
 import pytest
 
@@ -31,8 +30,6 @@ from merlin.core.dispatch import make_df  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
-
-log = logging.getLogger(__name__)
 
 
 class ServingAdapter(torch.nn.Module):
