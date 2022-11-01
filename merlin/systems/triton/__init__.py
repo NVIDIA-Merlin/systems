@@ -67,6 +67,7 @@ def _convert_df_to_dict(schema, batch, dtype="int32"):
     for col_name, col_schema in schema.column_schemas.items():
         col = batch[col_name]
         shape = col_schema.properties.get("shape", None) or [-1, 1]
+        shape[0] = len(col)
 
         if col_schema.is_list:
             if isinstance(col, pd.Series):
