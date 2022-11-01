@@ -91,8 +91,8 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # Build a simple Ensemble graph
     # ===========================================
 
-    input_schema = model.input_schema(max_session_len)
-    output_schema = model.output_schema()
+    input_schema = model.input_schema
+    output_schema = model.output_schema
 
     torch_op = input_schema.column_names >> PredictPyTorch(
         traced_model, input_schema, output_schema
