@@ -21,12 +21,10 @@
       ~PredictTensorflow.compute_selector
       ~PredictTensorflow.create_node
       ~PredictTensorflow.export
-      ~PredictTensorflow.from_config
       ~PredictTensorflow.from_model_registry
       ~PredictTensorflow.from_path
       ~PredictTensorflow.load_artifacts
       ~PredictTensorflow.output_column_names
-      ~PredictTensorflow.set_tf_model_name
       ~PredictTensorflow.transform
       ~PredictTensorflow.validate_schemas
    
@@ -48,6 +46,5 @@
       ~PredictTensorflow.output_tags
       ~PredictTensorflow.scalar_shape
       ~PredictTensorflow.supports
-      ~PredictTensorflow.tf_model_name
    
    
