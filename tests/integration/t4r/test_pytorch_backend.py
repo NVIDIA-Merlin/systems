@@ -32,16 +32,6 @@ from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 
-class ServingAdapter(torch.nn.Module):
-    def __init__(self, model):
-        super(ServingAdapter, self).__init__()
-
-        self.model = model
-
-    def forward(self, batch):
-        return self.model(batch)["predictions"]
-
-
 def test_serve_t4r_with_torchscript(tmpdir):
 
     # ===========================================
@@ -78,13 +68,14 @@ def test_serve_t4r_with_torchscript(tmpdir):
     _ = model(torch_yoochoose_like, training=False)
 
     model.eval()
+    # set hf_format property to ensure model outputs tensor of predictions and not the dict
+    # expected by hugging face
+    model.hf_format = False
 
-    adapted_model = ServingAdapter(model)
-
-    traced_model = torch.jit.trace(adapted_model, torch_yoochoose_like, strict=True)
+    traced_model = torch.jit.trace(model, torch_yoochoose_like, strict=True)
     assert isinstance(traced_model, torch.jit.TopLevelTracedModule)
     assert torch.allclose(
-        model(torch_yoochoose_like)["predictions"],
+        model(torch_yoochoose_like),
         traced_model(torch_yoochoose_like),
     )
 
