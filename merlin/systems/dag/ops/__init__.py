@@ -32,7 +32,10 @@ def compute_dims(col_schema, scalar_shape=None):
         Triton dimensions for the column
     """
     batch_dim = [-1]
-    column_dims = scalar_shape if scalar_shape is not None else [1]
+
+    default_scalar_shape = col_schema.properties.get("triton_scalar_shape", [1])
+    column_dims = scalar_shape if scalar_shape is not None else default_scalar_shape
+    assert isinstance(column_dims, list)
 
     if col_schema.is_list:
         value_count = col_schema.properties.get("value_count", None)

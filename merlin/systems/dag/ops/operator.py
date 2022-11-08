@@ -278,11 +278,11 @@ class PipelineableInferenceOperator(InferenceOperator):
         )
 
         for col_schema in input_schema.column_schemas.values():
-            col_dims = col_schema.properties.get("shape", None) or compute_dims(col_schema)
+            col_dims = compute_dims(col_schema)
             add_model_param(config.input, model_config.ModelInput, col_schema, col_dims)
 
         for col_schema in output_schema.column_schemas.values():
-            col_dims = col_schema.properties.get("shape", None) or compute_dims(col_schema)
+            col_dims = compute_dims(col_schema)
             add_model_param(config.output, model_config.ModelOutput, col_schema, col_dims)
 
         with open(os.path.join(node_export_path, "config.pbtxt"), "w", encoding="utf-8") as o:
