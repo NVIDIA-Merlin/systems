@@ -19,8 +19,8 @@ import numpy as np
 import pytest
 
 from merlin.core.dispatch import make_df
-from merlin.dag import DictArray
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.faiss import QueryFaiss, setup_faiss
 

@@ -31,7 +31,7 @@ import traceback
 
 import triton_python_backend_utils as pb_utils
 
-from merlin.dag import DictArray
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.op_runner import OperatorRunner
 
 

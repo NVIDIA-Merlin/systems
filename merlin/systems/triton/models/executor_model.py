@@ -30,8 +30,8 @@ from pathlib import Path
 
 import triton_python_backend_utils as pb_utils
 
-from merlin.dag import DictArray, postorder_iter_nodes
-from merlin.systems.dag import Ensemble
+from merlin.dag import postorder_iter_nodes
+from merlin.systems.dag import DictArray, Ensemble
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 
 

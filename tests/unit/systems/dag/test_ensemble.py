@@ -15,9 +15,9 @@
 #
 import numpy as np
 
-from merlin.dag import DictArray
 from merlin.dag.executors import LocalExecutor
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 

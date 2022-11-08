@@ -24,8 +24,9 @@ from google.protobuf.json_format import MessageToDict
 
 import nvtabular as nvt
 import nvtabular.ops as wf_ops
-from merlin.dag import DictArray, Graph
+from merlin.dag import Graph
 from merlin.schema import Tags
+from merlin.systems.dag import DictArray
 from tests.unit.systems.utils.ops import PlusTwoOp
 
 op_runner = pytest.importorskip("merlin.systems.dag.op_runner")
