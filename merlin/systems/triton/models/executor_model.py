@@ -104,12 +104,13 @@ class TritonPythonModel:
                 )
 
                 output_tensors = []
-                for name, data in return_values.items():
+                for name, column in return_values.items():
+                    data = column.values
                     if isinstance(data, pb_utils.Tensor):
                         output_tensors.append(data)
                         continue
-                    data = data.get() if hasattr(data, "get") else data
-                    tensor = pb_utils.Tensor(name, data)
+                    values = data.get() if hasattr(data, "get") else data
+                    tensor = pb_utils.Tensor(name, values)
                     output_tensors.append(tensor)
 
                 responses.append(pb_utils.InferenceResponse(output_tensors))

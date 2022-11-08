@@ -25,17 +25,27 @@ class Column(SeriesLike):
     A simple wrapper around an array of values
     """
 
-    def __init__(self, values, dtype=None):
+    def __init__(self, values):
         super().__init__()
 
+        if isinstance(values, Column):
+            raise TypeError("doubly nested columns")
+
         self.values = values
-        self.dtype = dtype or values.dtype
+        self.dtype = values.dtype
 
     def __getitem__(self, index):
         return self.values[index]
 
     def __eq__(self, other):
         return all(self.values == other.values) and self.dtype == other.dtype
+
+    def __len__(self):
+        return len(self.values)
+
+    @property
+    def shape(self):
+        return self.values.shape
 
 
 class DictArray(Transformable):
@@ -48,11 +58,11 @@ class DictArray(Transformable):
 
         values = values or {}
 
-        array_values = {}
+        columns = {}
         for key, value in values.items():
-            array_values[key] = np.array(value) if isinstance(value, list) else value
+            columns[key] = _make_column(value)
 
-        self.arrays = array_values
+        self.arrays = columns
         self.dtypes = dtypes or self._dtypes_from_values(self.arrays)
 
     @property
@@ -69,7 +79,7 @@ class DictArray(Transformable):
         return self.arrays == other.values and self.dtypes == other.dtypes
 
     def __setitem__(self, key, value):
-        self.arrays[key] = value
+        self.arrays[key] = _make_column(value)
         self.dtypes[key] = value.dtype
 
     def __getitem__(self, key):
@@ -121,3 +131,9 @@ class DictArray(Transformable):
 
     def _dtypes_from_values(self, values):
         return {key: value.dtype for key, value in values.items()}
+
+
+def _make_column(value):
+    value = np.array(value) if isinstance(value, list) else value
+    column = Column(value) if not isinstance(value, Column) else value
+    return column

@@ -53,4 +53,4 @@ def test_ensemble_save_load(tmpdir):
 
     loaded_response = executor.transform(request_data, [loaded_ensemble.graph.output_node])
 
-    assert all(loaded_response.arrays["filtered_ids"] == response.arrays["filtered_ids"])
+    assert loaded_response.arrays["filtered_ids"] == response.arrays["filtered_ids"]

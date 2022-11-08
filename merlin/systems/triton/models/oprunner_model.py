@@ -29,10 +29,17 @@ import pathlib
 import sys
 import traceback
 
+import numpy as np
 import triton_python_backend_utils as pb_utils
 
+from merlin.core.dispatch import HAS_GPU
 from merlin.systems.dag import DictArray
 from merlin.systems.dag.op_runner import OperatorRunner
+
+if HAS_GPU:
+    import cupy
+else:
+    cupy = None
 
 
 class TritonPythonModel:
@@ -110,7 +117,10 @@ class TritonPythonModel:
                         output_tensors.append(data)
                         continue
                     data = data.get() if hasattr(data, "get") else data
-                    tensor = pb_utils.Tensor(name, data)
+                    if not isinstance(data.values, np.ndarray):
+                        tensor = pb_utils.Tensor(name, cupy.asnumpy(data.values))
+                    else:
+                        tensor = pb_utils.Tensor(name, data.values)
                     output_tensors.append(tensor)
 
                 responses.append(pb_utils.InferenceResponse(output_tensors))

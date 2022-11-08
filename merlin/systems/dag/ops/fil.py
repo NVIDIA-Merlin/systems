@@ -21,6 +21,7 @@ import numpy as np
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
+from merlin.core.dispatch import HAS_GPU  # noqa
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
@@ -33,6 +34,11 @@ from merlin.systems.dag.ops.compat import (
     xgboost,
 )
 from merlin.systems.dag.ops.operator import InferenceOperator, PipelineableInferenceOperator
+
+if HAS_GPU:
+    import cupy  # noqa
+else:
+    cupy = None
 
 
 class PredictForest(PipelineableInferenceOperator):
@@ -167,7 +173,11 @@ class PredictForest(PipelineableInferenceOperator):
         -------
         DictArray
             Returns a transformed dataframe for this operator"""
-        input0 = np.array([x.ravel() for x in transformable.values()]).astype(np.float32).T
+        input0 = (
+            np.array([column.values.ravel() for column in transformable.values()])
+            .astype(np.float32)
+            .T
+        )
         inference_request = pb_utils.InferenceRequest(
             model_name=self.fil_model_name,
             requested_output_names=["output__0"],
@@ -177,6 +187,11 @@ class PredictForest(PipelineableInferenceOperator):
         output0 = pb_utils.get_output_tensor_by_name(inference_response, "output__0")
 
         transformable_type = type(transformable)
+        if output0.is_cpu():
+            output0 = output0.as_numpy()
+        elif cupy:
+            output0 = cupy.fromDlpack(output0.to_dlpack())
+
         return_vals = {"output__0": output0}
         return_dtypes = {"output__0": np.float32}
 

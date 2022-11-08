@@ -171,7 +171,7 @@ class PredictImplicit(PipelineableInferenceOperator):
         -------
         DictArray
             Returns a transformed dataframe for this operator"""
-        user_id = transformable["user_id"].ravel()
+        user_id = transformable["user_id"].values.ravel()
         user_items = None
         ids, scores = self.model.recommend(
             user_id, user_items, N=self.num_to_recommend, filter_already_liked_items=False

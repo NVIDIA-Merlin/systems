@@ -181,7 +181,7 @@ class QueryFaiss(PipelineableInferenceOperator):
         # TODO: Verify we got this line right
         user_vector = list(transformable.values())[0]
 
-        _, indices = self._index.search(user_vector, self.topk)
+        _, indices = self._index.search(user_vector.values, self.topk)
         # distances, indices = self.index.search(user_vector, self.topk)
 
         candidate_ids = np.array(indices).T.astype(np.int32)

@@ -106,9 +106,8 @@ class SoftmaxSampling(PipelineableInferenceOperator):
     ) -> Transformable:
         """Transform the dataframe by applying this operator to the set of input columns"""
         # Extract parameters from the request
-        candidate_ids = transformable[self._input_col_name].reshape(-1)
-
-        predicted_scores = transformable[self._relevance_col_name].reshape(-1)
+        candidate_ids = transformable[self._input_col_name].values.reshape(-1)
+        predicted_scores = transformable[self._relevance_col_name].values.reshape(-1)
 
         # Exponential sort trick for sampling from a distribution without replacement from:
 

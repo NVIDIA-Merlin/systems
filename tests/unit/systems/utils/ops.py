@@ -17,7 +17,8 @@
 import pytest
 
 from merlin.core.protocols import Transformable
-from merlin.dag import ColumnSelector, DictArray
+from merlin.dag import ColumnSelector
+from merlin.systems.dag import DictArray
 
 inf_op = pytest.importorskip("merlin.systems.dag.ops.operator")
 
@@ -26,14 +27,12 @@ class PlusTwoOp(inf_op.PipelineableInferenceOperator):
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
     ) -> Transformable:
-        focus_df = transformable
-        # TODO: Give the init params on DictArray default values
-        new_df = DictArray({}, {})
+        result = DictArray()
 
-        for name, data in focus_df.items():
-            new_df[f"{name}_plus_2"] = data + 2
+        for name, column in transformable.items():
+            result[f"{name}_plus_2"] = column.values + 2
 
-        return new_df
+        return result
 
     def column_mapping(self, col_selector):
         column_mapping = {}

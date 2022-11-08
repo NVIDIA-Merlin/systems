@@ -58,7 +58,7 @@ class PredictTensorflowTriton(TritonOperator):
         # TODO: Should we coerce the dtypes to match the schema here?
         input_tensors = []
         for col_name in self.input_schema.column_schemas.keys():
-            input_tensors.append(pb_utils.Tensor(col_name, transformable[col_name]))
+            input_tensors.append(pb_utils.Tensor(col_name, transformable[col_name].values))
 
         inference_request = pb_utils.InferenceRequest(
             model_name=self.tf_model_name,
