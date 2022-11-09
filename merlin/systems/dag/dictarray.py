@@ -63,7 +63,7 @@ class DictArray(Transformable):
     def columns(self):
         return list(self._columns.keys())
 
-    @property
+    # TODO: Make this a property once the underlying Transformable protocol has been adjusted
     def dtypes(self):
         return {key: value.dtype for key, value in self._columns.items()}
 
@@ -74,7 +74,7 @@ class DictArray(Transformable):
         return iter(self._columns)
 
     def __eq__(self, other):
-        return self._columns == other.values and self.dtypes == other.dtypes
+        return self.values() == other.values() and self.dtypes() == other.dtypes()
 
     def __setitem__(self, key, value):
         self._columns[key] = _make_column(value)
