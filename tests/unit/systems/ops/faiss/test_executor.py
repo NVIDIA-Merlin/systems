@@ -81,7 +81,7 @@ def test_faiss_in_triton_executor_model(tmpdir):
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
-        make_df(request_data.arrays),
+        make_df(request_data._columns),
         ensemble.output_schema.column_names,
         ensemble_config.name,
     )

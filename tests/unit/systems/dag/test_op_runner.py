@@ -196,11 +196,11 @@ def test_op_runner_single_node_export(mock_from_config, tmpdir, dataset, engine)
         model_name=config.name,
         model_version="1",
     )
-    inputs = DictArray({"x": np.array([1]), "y": np.array([5])}, {"x": np.int32, "y": np.int32})
+    inputs = DictArray({"x": np.array([1], dtype=np.int32), "y": np.array([5], dtype=np.int32)})
     outputs = runner.execute(inputs)
 
-    assert outputs["x_plus_2"] == Column(np.array([3]))
-    assert outputs["y_plus_2"] == Column(np.array([7]))
+    assert outputs["x_plus_2"] == Column(np.array([3], dtype=np.int32))
+    assert outputs["y_plus_2"] == Column(np.array([7], dtype=np.int32))
 
     assert mock_from_config.call_count == 1
     assert mock_from_config.call_args.kwargs == {

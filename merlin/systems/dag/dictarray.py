@@ -53,84 +53,70 @@ class DictArray(Transformable):
     A simple dataframe-like wrapper around a dictionary of values
     """
 
-    def __init__(self, values: Optional[Dict] = None, dtypes: Optional[Dict] = None):
+    def __init__(self, values: Optional[Dict] = None):
         super().__init__()
-
         values = values or {}
 
-        columns = {}
-        for key, value in values.items():
-            columns[key] = _make_column(value)
-
-        self.arrays = columns
-        self.dtypes = dtypes or self._dtypes_from_values(self.arrays)
+        self._columns = {key: _make_column(value) for key, value in values.items()}
 
     @property
     def columns(self):
-        return list(self.arrays.keys())
+        return list(self._columns.keys())
+
+    @property
+    def dtypes(self):
+        return {key: value.dtype for key, value in self._columns.items()}
 
     def __len__(self):
-        return len(self.arrays)
+        return len(self._columns)
 
     def __iter__(self):
-        return iter(self.arrays)
+        return iter(self._columns)
 
     def __eq__(self, other):
-        return self.arrays == other.values and self.dtypes == other.dtypes
+        return self._columns == other.values and self.dtypes == other.dtypes
 
     def __setitem__(self, key, value):
-        self.arrays[key] = _make_column(value)
-        self.dtypes[key] = value.dtype
+        self._columns[key] = _make_column(value)
 
     def __getitem__(self, key):
         if isinstance(key, list):
-            return DictArray(
-                values={k: self.arrays[k] for k in key},
-                dtypes={k: self.dtypes[k] for k in key},
-            )
+            return DictArray({k: self._columns[k] for k in key})
         else:
-            return self.arrays[key]
+            return self._columns[key]
 
     def __delitem__(self, key):
-        del self.arrays[key]
-        del self.dtypes[key]
-
-    def _grab_keys(self, source, keys):
-        return {k: source[k] for k in keys}
+        del self._columns[key]
 
     def keys(self):
         """
         Shortcut to get the dictionary keys
         """
-        return self.arrays.keys()
+        return self._columns.keys()
 
     def items(self):
         """
         Shortcut to get the dictionary items
         """
-        return self.arrays.items()
+        return self._columns.items()
 
     def values(self):
         """
         Shortcut to get the dictionary values
         """
-        return self.arrays.values()
+        return self._columns.values()
 
     def update(self, other):
         """
         Shortcut to update the dictionary items
         """
-        self.arrays.update(other)
-        self.dtypes = self._dtypes_from_values(self.arrays)
+        self._columns.update(other)
 
     def copy(self):
         """
         Create a new DictArray with the same data and dtypes
         """
-        return DictArray(self.arrays.copy(), self.dtypes.copy())
-
-    def _dtypes_from_values(self, values):
-        return {key: value.dtype for key, value in values.items()}
+        return DictArray(self._columns.copy())
 
 
 def _make_column(value):

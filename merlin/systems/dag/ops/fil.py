@@ -192,10 +192,7 @@ class PredictForest(PipelineableInferenceOperator):
         elif cupy:
             output0 = cupy.fromDlpack(output0.to_dlpack())
 
-        return_vals = {"output__0": output0}
-        return_dtypes = {"output__0": np.float32}
-
-        return transformable_type(return_vals, return_dtypes)
+        return transformable_type({"output__0": output0})
 
 
 class FIL(InferenceOperator):
