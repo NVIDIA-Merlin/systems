@@ -21,8 +21,8 @@ import numpy as np
 import pytest
 
 from merlin.core.dispatch import make_df
-from merlin.dag import DictArray
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
@@ -70,7 +70,7 @@ def test_triton_runtime_export_and_run(runtime, model_name, expected_model_name,
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
-        make_df(request_data.arrays),
+        make_df(request_data._columns),
         ensemble.output_schema.column_names,
         ensemble_config.name,
     )

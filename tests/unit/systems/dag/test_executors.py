@@ -20,10 +20,10 @@ import pandas as pd
 import pytest
 
 from merlin.core.dispatch import HAS_GPU, make_df
-from merlin.dag import DictArray
 from merlin.dag.executors import DaskExecutor, LocalExecutor
 from merlin.io import Dataset
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 

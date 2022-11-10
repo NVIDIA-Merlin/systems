@@ -37,6 +37,60 @@ import pandas as pd
 
 from merlin.core.dispatch import build_cudf_list_column, is_list_dtype
 from merlin.dag import Supports
+from merlin.systems.dag import DictArray
+from merlin.systems.dag.ops.compat import pb_utils
+
+
+def triton_request_to_dict_array(request, column_names):
+    input_tensors = {
+        name: pb_utils.get_input_tensor_by_name(request, name).as_numpy() for name in column_names
+    }
+    return DictArray(input_tensors)
+
+
+def dict_array_to_triton_response(dictarray):
+    output_tensors = []
+    for name, data in dictarray.items():
+        if isinstance(data, pb_utils.Tensor):
+            output_tensors.append(data)
+            continue
+        # The .get() here handles variations across Numpy versions, some of which
+        # require .get() to be used here and some of which don't.
+        data = data.get() if hasattr(data, "get") else data
+        if not isinstance(data.values, np.ndarray):
+            tensor = pb_utils.Tensor(name, cp.asnumpy(data.values))
+        else:
+            tensor = pb_utils.Tensor(name, data.values)
+        output_tensors.append(tensor)
+
+    return pb_utils.InferenceResponse(output_tensors)
+
+
+def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_col_names):
+    input_tensors = []
+    for col_name in input_col_names:
+        input_tensors.append(pb_utils.Tensor(col_name, dictarray[col_name].values))
+
+    return pb_utils.InferenceRequest(
+        model_name=model_name,
+        requested_output_names=output_col_names,
+        inputs=input_tensors,
+    )
+
+
+def triton_response_to_dict_array(inference_response, transformable_type, output_column_names):
+    outputs_dict = {}
+    for out_col_name in output_column_names:
+        output_val = pb_utils.get_output_tensor_by_name(inference_response, out_col_name)
+
+        if output_val.is_cpu():
+            output_val = output_val.as_numpy()
+        elif cp:
+            output_val = cp.fromDlpack(output_val.to_dlpack())
+
+        outputs_dict[out_col_name] = output_val
+
+    return transformable_type(outputs_dict)
 
 
 def convert_format(tensors, kind, target_kind):

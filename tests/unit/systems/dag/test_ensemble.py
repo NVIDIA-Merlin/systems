@@ -15,9 +15,9 @@
 #
 import numpy as np
 
-from merlin.dag import DictArray
 from merlin.dag.executors import LocalExecutor
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 
@@ -53,4 +53,4 @@ def test_ensemble_save_load(tmpdir):
 
     loaded_response = executor.transform(request_data, [loaded_ensemble.graph.output_node])
 
-    assert all(loaded_response.arrays["filtered_ids"] == response.arrays["filtered_ids"])
+    assert loaded_response["filtered_ids"] == response["filtered_ids"]

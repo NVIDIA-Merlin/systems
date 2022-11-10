@@ -31,8 +31,11 @@ import traceback
 
 import triton_python_backend_utils as pb_utils
 
-from merlin.dag import DictArray
 from merlin.systems.dag.op_runner import OperatorRunner
+from merlin.systems.triton.conversions import (
+    dict_array_to_triton_response,
+    triton_request_to_dict_array,
+)
 
 
 class TritonPythonModel:
@@ -94,26 +97,10 @@ class TritonPythonModel:
 
         for request in requests:
             try:
-                # transform the triton tensors to a dict of name:numpy tensor
-                input_tensors = {
-                    name: pb_utils.get_input_tensor_by_name(request, name).as_numpy()
-                    for name in input_column_names
-                }
-
-                inf_df = DictArray(input_tensors)
-
-                return_values = self.runner.execute(inf_df)
-
-                output_tensors = []
-                for name, data in return_values.items():
-                    if isinstance(data, pb_utils.Tensor):
-                        output_tensors.append(data)
-                        continue
-                    data = data.get() if hasattr(data, "get") else data
-                    tensor = pb_utils.Tensor(name, data)
-                    output_tensors.append(tensor)
-
-                responses.append(pb_utils.InferenceResponse(output_tensors))
+                inputs = triton_request_to_dict_array(request, input_column_names)
+                outputs = self.runner.execute(inputs)
+                output_tensors = dict_array_to_triton_response(outputs)
+                responses.append(output_tensors)
 
             except Exception:  # pylint: disable=broad-except
                 exc_type, exc_value, exc_traceback = sys.exc_info()

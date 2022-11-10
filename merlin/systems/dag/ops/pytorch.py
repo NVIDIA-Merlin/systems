@@ -29,8 +29,11 @@ from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
-from merlin.systems.dag.ops.compat import pb_utils  # noqa
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator, add_model_param  # noqa
+from merlin.systems.triton.conversions import (  # noqa
+    dict_array_to_triton_request,
+    triton_response_to_dict_array,
+)
 
 
 class PredictPyTorch(PipelineableInferenceOperator):
@@ -99,28 +102,18 @@ class PredictPyTorch(PipelineableInferenceOperator):
         self._torch_model_name = torch_model_name
 
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
-        # TODO: Validate that the inputs match the schema
-        # TODO: Should we coerce the dtypes to match the schema here?
-        input_tensors = []
-        for col_name in self.input_schema.column_schemas.keys():
-            input_tensors.append(pb_utils.Tensor(col_name, transformable[col_name]))
-
-        inference_request = pb_utils.InferenceRequest(
-            model_name=self.torch_model_name,
-            requested_output_names=self.output_schema.column_names,
-            inputs=input_tensors,
+        inference_request = dict_array_to_triton_request(
+            self.torch_model_name,
+            transformable,
+            self.input_schema.column_names,
+            self.output_schema.column_names,
         )
+
         inference_response = inference_request.exec()
 
-        # TODO: Validate that the outputs match the schema
-        outputs_dict = {}
-        for out_col_name in self.output_schema.column_schemas.keys():
-            output_val = pb_utils.get_output_tensor_by_name(
-                inference_response, out_col_name
-            ).to_dlpack()
-            outputs_dict[out_col_name] = torch.from_dlpack(output_val).cpu().numpy()
-
-        return type(transformable)(outputs_dict)
+        return triton_response_to_dict_array(
+            inference_response, type(transformable), self.output_schema.column_names
+        )
 
     def compute_input_schema(
         self,
