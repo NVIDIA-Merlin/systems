@@ -91,22 +91,13 @@ class QueryFeast(PipelineableInferenceOperator):
 
             if is_list:
                 mh_features.append(feature.name)
-
-                values_name = cls._prefixed_name(output_prefix, f"{feature.name}_{suffix_int}")
-                nnzs_name = cls._prefixed_name(output_prefix, f"{feature.name}_{suffix_int+1}")
-                output_schema[values_name] = ColumnSchema(
-                    values_name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
-                )
-                output_schema[nnzs_name] = ColumnSchema(
-                    nnzs_name, dtype=np.int32, is_list=True, is_ragged=False
-                )
             else:
                 features.append(feature.name)
 
-                name = cls._prefixed_name(output_prefix, feature.name)
-                output_schema[name] = ColumnSchema(
-                    name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
-                )
+            name = cls._prefixed_name(output_prefix, feature.name)
+            output_schema[name] = ColumnSchema(
+                name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
+            )
 
         if include_id:
             output_schema[entity_id] = ColumnSchema(
@@ -298,6 +289,7 @@ class QueryFeast(PipelineableInferenceOperator):
             Transformed tensor dictionary
         """
         entity_ids = transformable[self.entity_column]
+        array_lib = entity_ids._array_lib
 
         if len(entity_ids) < 1:
             raise ValueError(
@@ -325,7 +317,7 @@ class QueryFeast(PipelineableInferenceOperator):
             prefixed_name = self.__class__._prefixed_name(self.output_prefix, feature_name)
 
             feature_value = feast_response[feature_name]
-            feature_array = np.array([feature_value]).T.astype(
+            feature_array = array_lib.array([feature_value]).T.astype(
                 self.output_schema[prefixed_name].dtype
             )
             output_tensors[prefixed_name] = feature_array
@@ -333,32 +325,35 @@ class QueryFeast(PipelineableInferenceOperator):
         # Multi-hot categorical
         for feature_name in self.mh_features:
             feature_value = feast_response[feature_name]
-
             prefixed_name = self.__class__._prefixed_name(self.output_prefix, feature_name)
-            feature_out_name = f"{prefixed_name}_{self.suffix_int}"
 
-            nnzs = None
-            if (
-                isinstance(feature_value[0], list)
-                and self.output_schema[feature_out_name].is_ragged
-            ):
+            row_lengths = None
+            if isinstance(feature_value[0], list) and self.output_schema[prefixed_name].is_ragged:
+                # concatenate lists we got back from Feast
                 flattened_value = []
                 for val in feature_value:
                     flattened_value.extend(val)
 
-                nnzs = [len(vals) for vals in feature_value]
+                # get the lengths of the lists
+                row_lengths = [len(vals) for vals in feature_value]
+
+                # wrap the flattened values with a list to get the shape right
                 feature_value = [flattened_value]
 
-            feature_array = np.array(feature_value).T.astype(
-                self.output_schema[feature_out_name].dtype
+            # create a numpy array
+            feature_array = array_lib.array(feature_value).T.astype(
+                self.output_schema[prefixed_name].dtype
             )
-            if not nnzs:
-                nnzs = [len(feature_array)]
-            feature_out_nnz = f"{prefixed_name}_{self.suffix_int+1}"
-            feature_nnzs = np.array([nnzs], dtype=self.output_schema[feature_out_nnz].dtype).T
 
-            output_tensors[feature_out_name] = feature_array
-            output_tensors[feature_out_nnz] = feature_nnzs
+            # if we're a list but not ragged, construct row lengths
+            if not row_lengths:
+                row_lengths = [len(feature_array)]
+
+            feature_row_lengths = array_lib.array(
+                [row_lengths], dtype=self.output_schema[prefixed_name].dtype
+            ).T
+
+            output_tensors[prefixed_name] = (feature_array, feature_row_lengths)
 
         return type(transformable)(output_tensors)
 

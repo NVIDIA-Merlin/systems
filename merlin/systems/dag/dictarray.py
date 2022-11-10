@@ -13,39 +13,127 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from enum import Enum
 from typing import Dict, Optional
 
 import numpy as np
 
+from merlin.core.dispatch import HAS_GPU
 from merlin.core.protocols import SeriesLike, Transformable
+
+if HAS_GPU:
+    import cupy
+else:
+    cupy = None
+
+
+class Device(Enum):
+    CPU = 0
+    GPU = 1
 
 
 class Column(SeriesLike):
     """
-    A simple wrapper around an array of values
+    A simple wrapper around an array of values. This has an API that's just similar enough to
+    Pandas and cuDF series to be relatively interchangeable from the perspective of the Merlin DAG,
+    but no more. As more methods get added to this class, it gets closer and closer to actually
+    *being* a Pandas/cuDF Series (at which point there's no advantage to using this.) So: keep
+    this class as small as possible.
     """
 
-    def __init__(self, values):
+    def __init__(self, values, row_lengths=None):
         super().__init__()
 
         if isinstance(values, Column):
             raise TypeError("doubly nested columns")
 
         self.values = values
+        self.row_lengths = row_lengths
         self.dtype = values.dtype
 
+        if isinstance(values, np.ndarray):
+            self._device = Device.CPU
+        elif HAS_GPU and cupy and isinstance(values, cupy.ndarray):
+            self._device = Device.GPU
+        else:
+            raise TypeError("type of values argument is not supported")
+
+    def cpu(self):
+        self.device = Device.CPU
+        return self
+
+    def gpu(self):
+        self.device = Device.GPU
+        return self
+
+    @property
+    def device(self):
+        return self._device
+
+    @device.setter
+    def device(self, device):
+        if device == "cpu":
+            device = Device.CPU
+        elif device == "gpu":
+            device = Device.GPU
+
+        # CPU to GPU
+        if self._device == Device.CPU and device == Device.GPU:
+            self._device_move(cupy.asarray)
+        # GPU to CPU
+        elif self._device == Device.GPU and device == Device.CPU:
+            self._device_move(cupy.asnumpy)
+        # Nothing to do
+        else:
+            return self
+
+    def _device_move(self, fn):
+        if not cupy:
+            raise ValueError("Unable to move data across devices without a GPU")
+        self.values = fn(self.values)
+        if self.row_lengths:
+            self.row_lengths = fn(self.row_lengths)
+
     def __getitem__(self, index):
-        return self.values[index]
+        if self.is_list:
+            start = self._array_lib.cumsum(self.row_lengths[:index])
+            end = start + self.row_lengths[index] - 1
+            return self.values[start:end]
+        else:
+            return self.values[index]
 
     def __eq__(self, other):
-        return all(self.values == other.values) and self.dtype == other.dtype
+        values_eq = all(self.values == other.values) and self.dtype == other.dtype
+        if self.is_list:
+            return values_eq and all(self.row_lengths == other.row_lengths)
+        else:
+            return values_eq
 
     def __len__(self):
-        return len(self.values)
+        if self.is_list:
+            return len(self.row_lengths)
+        else:
+            return len(self.values)
 
     @property
     def shape(self):
-        return self.values.shape
+        if self.is_list:
+            dim = self.row_lengths[0] if self.is_ragged else None
+            return (len(self), dim)
+        else:
+            return self.values.shape
+
+    @property
+    def is_list(self):
+        return self.row_lengths is not None
+
+    @property
+    def is_ragged(self):
+        return self.row_lengths and all(self.row_lengths == self.row_lengths[0])
+
+    @property
+    def _array_lib(self):
+        return cupy if HAS_GPU and self.device == Device.GPU else np
 
 
 class DictArray(Transformable):
@@ -119,7 +207,22 @@ class DictArray(Transformable):
         return DictArray(self._columns.copy())
 
 
+def _array_lib():
+    """Dispatch to the appropriate library (cupy or numpy) for the current environment"""
+    return cupy if HAS_GPU else np
+
+
 def _make_column(value):
-    value = np.array(value) if isinstance(value, list) else value
-    column = Column(value) if not isinstance(value, Column) else value
-    return column
+    if isinstance(value, tuple):
+        values, row_lengths = value
+        values = _make_array(values)
+        row_lengths = _make_array(row_lengths)
+        return Column(values, row_lengths=row_lengths)
+    else:
+        value = _make_array(value)
+        column = Column(value) if not isinstance(value, Column) else value
+        return column
+
+
+def _make_array(value):
+    return _array_lib().array(value) if isinstance(value, list) else value

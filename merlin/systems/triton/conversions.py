@@ -42,31 +42,98 @@ from merlin.systems.dag.ops.compat import pb_utils
 
 
 def triton_request_to_dict_array(request, column_names):
-    input_tensors = {
-        name: pb_utils.get_input_tensor_by_name(request, name).as_numpy() for name in column_names
-    }
-    return DictArray(input_tensors)
+    """
+    Turns a Triton request into a DictArray by extracting individual tensors
+    from the request using pb_utils.
+
+    Parameters
+    ----------
+    request : TritonInferenceRequest
+        The incoming request for predictions
+    column_names : List[str]
+        List of the input columns to extract from the request
+
+    Returns
+    -------
+    DictArray
+        Dictionary-like representation of the input columns
+    """
+    dict_inputs = {}
+    for name in column_names:
+        try:
+            values = _get_triton_tensor(request, f"{name}__values")
+            lengths = _get_triton_tensor(request, f"{name}__lengths")
+            dict_inputs[name] = (values, lengths)
+        except AttributeError:
+            dict_inputs[name] = _get_triton_tensor(request, name)
+
+    return DictArray(dict_inputs)
+
+
+def _get_triton_tensor(request, name):
+    return pb_utils.get_input_tensor_by_name(request, name).as_numpy()
 
 
 def dict_array_to_triton_response(dictarray):
+    """
+    Turns a DictArray into a Triton response that can be returned
+    to resolve an incoming request.
+
+    Parameters
+    ----------
+    dictarray : DictArray
+        Dictionary-like representation of the output columns
+
+    Returns
+    -------
+    response : TritonInferenceResponse
+        The output response for predictions
+    """
     output_tensors = []
-    for name, data in dictarray.items():
-        if isinstance(data, pb_utils.Tensor):
-            output_tensors.append(data)
-            continue
-        # The .get() here handles variations across Numpy versions, some of which
-        # require .get() to be used here and some of which don't.
-        data = data.get() if hasattr(data, "get") else data
-        if not isinstance(data.values, np.ndarray):
-            tensor = pb_utils.Tensor(name, cp.asnumpy(data.values))
+    for name, column in dictarray.items():
+        if column.is_list:
+            values = _make_triton_tensor(f"{name}__values", column.values)
+            lengths = _make_triton_tensor(f"{name}__lengths", column.row_lengths)
+            output_tensors.extend([values, lengths])
         else:
-            tensor = pb_utils.Tensor(name, data.values)
-        output_tensors.append(tensor)
+            col_tensor = _make_triton_tensor(name, column.values)
+            output_tensors.append(col_tensor)
 
     return pb_utils.InferenceResponse(output_tensors)
 
 
+def _make_triton_tensor(name, array):
+    # The .get() here handles variations across Numpy versions, some of which
+    # require .get() to be used here and some of which don't.
+    array = array.get() if hasattr(array, "get") else array
+    if not isinstance(array, np.ndarray):
+        tensor = pb_utils.Tensor(name, cp.asnumpy(array))
+    else:
+        tensor = pb_utils.Tensor(name, array)
+    return tensor
+
+
 def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_col_names):
+    """
+    Turns a DictArray into a Triton request that can, for example, be used to make a
+    Business Logic Scripting call to a Triton model on the same Triton instance.
+
+    Parameters
+    ----------
+    model_name : String
+        Name of model registered in triton
+    dictarray : DictArray
+        Dictionary-like representation of the output columns
+    input_col_names : List[str]
+        List of the input columns to create triton request
+    output_col_names : List[str]
+        List of the output columns to extract from the response
+
+    Returns
+    -------
+    TritonInferenceRequest
+        The DictArray reformatted as a Triton request
+    """
     input_tensors = []
     for col_name in input_col_names:
         input_tensors.append(pb_utils.Tensor(col_name, dictarray[col_name].values))
@@ -79,6 +146,24 @@ def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_
 
 
 def triton_response_to_dict_array(inference_response, transformable_type, output_column_names):
+    """
+    Turns a Triton response into a DictArray by extracting individual tensors
+    from the request using pb_utils.
+
+    Parameters
+    ----------
+    inference_response : pb_utils.InferenceResponse
+        Response received from triton containing prediction
+    transformable_type : Union[pd.DataFrame, cudf.DataFrame, DictArray]
+        The specific type of object matching the Transformable protocol to create
+    output_col_names : List[str]
+        List of the output columns to extract from the response
+
+    Returns
+    -------
+    Transformable
+        A DictArray or DataFrame representing the response columns from a Triton request
+    """
     outputs_dict = {}
     for out_col_name in output_column_names:
         output_val = pb_utils.get_output_tensor_by_name(inference_response, out_col_name)

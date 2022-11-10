@@ -5,8 +5,9 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from merlin.dag import ColumnSelector, DictArray
+from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag import DictArray
 
 feast = pytest.importorskip("feast")  # noqa
 
@@ -105,28 +106,16 @@ def test_feast_from_feature_view(tmpdir, suffix_int):
                 ColumnSchema(name="prefix_int_feature", dtype=np.int32),
                 ColumnSchema(name="prefix_float_feature", dtype=np.float32),
                 ColumnSchema(
-                    name=f"prefix_int_list_feature_{suffix_int}",
+                    name="prefix_int_list_feature",
                     dtype=np.int32,
                     is_list=True,
                     is_ragged=True,
                 ),
                 ColumnSchema(
-                    name=f"prefix_int_list_feature_{suffix_int+1}",
-                    dtype=np.int32,
-                    is_list=True,
-                    is_ragged=False,
-                ),
-                ColumnSchema(
-                    name=f"prefix_float_list_feature_{suffix_int}",
+                    name="prefix_float_list_feature",
                     dtype=np.float32,
                     is_list=True,
                     is_ragged=True,
-                ),
-                ColumnSchema(
-                    name=f"prefix_float_list_feature_{suffix_int+1}",
-                    dtype=np.int32,
-                    is_list=True,
-                    is_ragged=False,
                 ),
                 ColumnSchema(name="item_id", dtype=np.int32),
             ]
@@ -186,8 +175,7 @@ def test_feast_transform(prefix, is_ragged):
 
         # names of the features with prefix/suffix
         feature_name = f"{prefix}_feature" if prefix else "feature"
-        feature_mh_1 = f"{prefix}_mh_feature_1" if prefix else "mh_feature_1"
-        feature_mh_2 = f"{prefix}_mh_feature_2" if prefix else "mh_feature_2"
+        feature_mh = f"{prefix}_mh_feature" if prefix else "mh_feature"
 
         input_schema = Schema(
             [ColumnSchema("feature"), ColumnSchema("mh_feature", is_list=True, is_ragged=True)]
@@ -195,8 +183,7 @@ def test_feast_transform(prefix, is_ragged):
         output_schema = Schema(
             [
                 ColumnSchema(feature_name),
-                ColumnSchema(feature_mh_1, is_list=True, is_ragged=is_ragged),
-                ColumnSchema(feature_mh_2, is_list=True, is_ragged=is_ragged),
+                ColumnSchema(feature_mh, is_list=True, is_ragged=is_ragged),
             ]
         )
 
@@ -215,7 +202,9 @@ def test_feast_transform(prefix, is_ragged):
 
         df = DictArray({"entity_id": [1]})
         resp = feast_op.transform(ColumnSelector("*"), df)
-        assert resp["entity_id"] == [1]
-        assert resp[feature_name] == np.array([[1.0]])
-        assert np.all(resp[feature_mh_1] == np.array([[1.0], [2.0], [3.0]]))
-        assert resp[feature_mh_2] == np.array([[3.0]])
+
+        array_lib = resp["entity_id"]._array_lib
+        assert resp["entity_id"].values == array_lib.array([1])  # pylint: disable=W0143
+        assert resp[feature_name].values == array_lib.array([[1.0]])
+        assert np.all(resp[feature_mh].values == array_lib.array([[1.0], [2.0], [3.0]]))
+        assert resp[feature_mh].row_lengths == array_lib.array([[3.0]])
