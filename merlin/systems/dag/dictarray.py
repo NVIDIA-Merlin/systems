@@ -19,7 +19,7 @@ from typing import Dict, Optional
 import numpy as np
 
 from merlin.core.dispatch import HAS_GPU
-from merlin.core.protocols import SeriesLike, Transformable
+from merlin.core.protocols import SeriesLike
 
 if HAS_GPU:
     import cupy
@@ -59,10 +59,26 @@ class Column(SeriesLike):
             raise TypeError("type of values argument is not supported")
 
     def cpu(self):
+        """
+        Move the data for this column to host (CPU) memory
+
+        Returns
+        -------
+        Column
+            Same column, same data but now definitely in CPU memory
+        """
         self.device = Device.CPU
         return self
 
     def gpu(self):
+        """
+        Move the data for this column to device (GPU) memory
+
+        Returns
+        -------
+        Column
+            Same column, same data but now definitely in GPU memory
+        """
         self.device = Device.GPU
         return self
 
@@ -136,9 +152,10 @@ class Column(SeriesLike):
         return cupy if HAS_GPU and self.device == Device.GPU else np
 
 
-class DictArray(Transformable):
+class DictArray:
     """
-    A simple dataframe-like wrapper around a dictionary of values
+    A simple dataframe-like wrapper around a dictionary of values. Matches the Transformable
+    protocol for (limited) interchangeability with actual dataframes in Merlin DAGs.
     """
 
     def __init__(self, values: Optional[Dict] = None):
