@@ -179,9 +179,8 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Transformable</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Transform the dataframe by applying this operator to the set of input columns&quot;&quot;&quot;</span>
         <span class="c1"># Extract parameters from the request</span>
-        <span class="n">candidate_ids</span> <span class="o">=</span> <span class="n">transformable</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_col_name</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">predicted_scores</span> <span class="o">=</span> <span class="n">transformable</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_relevance_col_name</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">candidate_ids</span> <span class="o">=</span> <span class="n">transformable</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_col_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">predicted_scores</span> <span class="o">=</span> <span class="n">transformable</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_relevance_col_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># Exponential sort trick for sampling from a distribution without replacement from:</span>
 
