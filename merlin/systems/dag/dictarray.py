@@ -45,11 +45,11 @@ class Column(SeriesLike):
 
         self.values = _make_array(values)
         self.row_lengths = _make_array(row_lengths)
-        self.dtype = values.dtype
+        self.dtype = self.values.dtype
 
-        if isinstance(values, np.ndarray):
+        if isinstance(self.values, np.ndarray):
             self._device = Device.CPU
-        elif cupy and isinstance(values, cupy.ndarray):
+        elif cupy and isinstance(self.values, cupy.ndarray):
             self._device = Device.GPU
         else:
             raise TypeError(
