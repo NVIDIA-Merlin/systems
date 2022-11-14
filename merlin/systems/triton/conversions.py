@@ -61,17 +61,13 @@ def triton_request_to_dict_array(request, column_names):
     dict_inputs = {}
     for name in column_names:
         try:
-            values = _get_triton_tensor(request, f"{name}__values")
-            lengths = _get_triton_tensor(request, f"{name}__lengths")
+            values = _array_from_triton_tensor(request, f"{name}__values")
+            lengths = _array_from_triton_tensor(request, f"{name}__lengths")
             dict_inputs[name] = (values, lengths)
         except AttributeError:
-            dict_inputs[name] = _get_triton_tensor(request, name)
+            dict_inputs[name] = _array_from_triton_tensor(request, name)
 
     return DictArray(dict_inputs)
-
-
-def _get_triton_tensor(request, name):
-    return pb_utils.get_input_tensor_by_name(request, name).as_numpy()
 
 
 def dict_array_to_triton_response(dictarray):
@@ -91,26 +87,15 @@ def dict_array_to_triton_response(dictarray):
     """
     output_tensors = []
     for name, column in dictarray.items():
-        if column.is_list:
-            values = _make_triton_tensor(f"{name}__values", column.values)
-            lengths = _make_triton_tensor(f"{name}__lengths", column.row_lengths)
+        if column.row_lengths:
+            values = _triton_tensor_from_array(f"{name}__values", column.values)
+            lengths = _triton_tensor_from_array(f"{name}__lengths", column.row_lengths)
             output_tensors.extend([values, lengths])
         else:
-            col_tensor = _make_triton_tensor(name, column.values)
+            col_tensor = _triton_tensor_from_array(name, column.values)
             output_tensors.append(col_tensor)
 
     return pb_utils.InferenceResponse(output_tensors)
-
-
-def _make_triton_tensor(name, array):
-    # The .get() here handles variations across Numpy versions, some of which
-    # require .get() to be used here and some of which don't.
-    array = array.get() if hasattr(array, "get") else array
-    if not isinstance(array, np.ndarray):
-        tensor = pb_utils.Tensor(name, cp.asnumpy(array))
-    else:
-        tensor = pb_utils.Tensor(name, array)
-    return tensor
 
 
 def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_col_names):
@@ -135,8 +120,16 @@ def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_
         The DictArray reformatted as a Triton request
     """
     input_tensors = []
-    for col_name in input_col_names:
-        input_tensors.append(pb_utils.Tensor(col_name, dictarray[col_name].values))
+    for name, column in dictarray.items():
+        if name in input_col_names:
+            if column.row_lengths:
+                values = _triton_tensor_from_array(f"{name}__values", column.values)
+                lengths = _triton_tensor_from_array(f"{name}__lengths", column.row_lengths)
+                input_tensors.extend([values, lengths])
+            else:
+                col_tensor = _triton_tensor_from_array(name, column.values)
+                input_tensors.append(col_tensor)
+            input_tensors.append(pb_utils.Tensor(name, dictarray[name].values))
 
     return pb_utils.InferenceRequest(
         model_name=model_name,
@@ -145,14 +138,14 @@ def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_
     )
 
 
-def triton_response_to_dict_array(inference_response, transformable_type, output_column_names):
+def triton_response_to_dict_array(response, transformable_type, output_column_names):
     """
     Turns a Triton response into a DictArray by extracting individual tensors
     from the request using pb_utils.
 
     Parameters
     ----------
-    inference_response : pb_utils.InferenceResponse
+    response : pb_utils.InferenceResponse
         Response received from triton containing prediction
     transformable_type : Union[pd.DataFrame, cudf.DataFrame, DictArray]
         The specific type of object matching the Transformable protocol to create
@@ -165,17 +158,44 @@ def triton_response_to_dict_array(inference_response, transformable_type, output
         A DictArray or DataFrame representing the response columns from a Triton request
     """
     outputs_dict = {}
-    for out_col_name in output_column_names:
-        output_val = pb_utils.get_output_tensor_by_name(inference_response, out_col_name)
-
-        if output_val.is_cpu():
-            output_val = output_val.as_numpy()
-        elif cp:
-            output_val = cp.fromDlpack(output_val.to_dlpack())
-
-        outputs_dict[out_col_name] = output_val
+    for col_name in output_column_names:
+        try:
+            values = _array_from_triton_tensor(response, f"{col_name}__values")
+            lengths = _array_from_triton_tensor(response, f"{col_name}__lengths")
+            outputs_dict[col_name] = (values, lengths)
+        except AttributeError:
+            outputs_dict[col_name] = _array_from_triton_tensor(response, col_name)
 
     return transformable_type(outputs_dict)
+
+
+def _triton_tensor_from_array(name, array):
+    # The .get() here handles variations across Numpy versions, some of which
+    # require .get() to be used here and some of which don't.
+    array = array.get() if hasattr(array, "get") else array
+    if not isinstance(array, np.ndarray):
+        # TODO: Find a way to keep GPU arrays on the GPU instead of forcing a move to CPU here
+        # This move is a workaround for CuPy and Triton dlpack implementations not working together
+        tensor = pb_utils.Tensor(name, cp.asnumpy(array))
+    else:
+        tensor = pb_utils.Tensor(name, array)
+    return tensor
+
+
+def _array_from_triton_tensor(request, name):
+    return _to_array_lib(pb_utils.get_input_tensor_by_name(request, name))
+
+
+def _to_array_lib(triton_tensor):
+    if triton_tensor.is_cpu():
+        return triton_tensor.as_numpy()
+    elif cp:
+        return cp.fromDlpack(triton_tensor.to_dlpack())
+    else:
+        raise TypeError(
+            "Can't convert Triton GPU tensors to CuPy tensors without CuPy available. "
+            "Is it installed?"
+        )
 
 
 def convert_format(tensors, kind, target_kind):
