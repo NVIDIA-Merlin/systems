@@ -18,12 +18,11 @@ from typing import Dict, Optional
 
 import numpy as np
 
-from merlin.core.dispatch import HAS_GPU
 from merlin.core.protocols import SeriesLike
 
-if HAS_GPU:
+try:
     import cupy
-else:
+except ImportError:
     cupy = None
 
 
@@ -53,7 +52,7 @@ class Column(SeriesLike):
 
         if isinstance(values, np.ndarray):
             self._device = Device.CPU
-        elif HAS_GPU and cupy and isinstance(values, cupy.ndarray):
+        elif cupy and isinstance(values, cupy.ndarray):
             self._device = Device.GPU
         else:
             raise TypeError("type of values argument is not supported")
@@ -149,7 +148,7 @@ class Column(SeriesLike):
 
     @property
     def _array_lib(self):
-        return cupy if HAS_GPU and self.device == Device.GPU else np
+        return cupy if cupy and self.device == Device.GPU else np
 
 
 class DictArray:
@@ -226,7 +225,7 @@ class DictArray:
 
 def _array_lib():
     """Dispatch to the appropriate library (cupy or numpy) for the current environment"""
-    return cupy if HAS_GPU else np
+    return cupy if cupy else np
 
 
 def _make_column(value):
