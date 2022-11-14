@@ -47,7 +47,6 @@ def test_feast_config_round_trip(tmpdir):
             output_schema,
             True,  # include_id
             "prefix",  # output_prefix
-            1,  # suffix_int
         ]
         feast_op = QueryFeast(*args)
 
@@ -59,8 +58,7 @@ def test_feast_config_round_trip(tmpdir):
         qf_init.assert_called_with(*args)
 
 
-@pytest.mark.parametrize("suffix_int", [1, 2])
-def test_feast_from_feature_view(tmpdir, suffix_int):
+def test_feast_from_feature_view(tmpdir):
 
     with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)), patch(
         "feast.feature_store.Registry.__init__", MagicMock(return_value=None)
@@ -127,7 +125,6 @@ def test_feast_from_feature_view(tmpdir, suffix_int):
             "item_id",
             output_prefix="prefix",
             include_id=True,
-            suffix_int=suffix_int,
         )
 
         assert feast_op.input_schema == expected_input_schema
@@ -143,7 +140,7 @@ def test_feast_from_feature_view(tmpdir, suffix_int):
             expected_input_schema,
             expected_output_schema,
         ]
-        kwargs = {"include_id": True, "output_prefix": "prefix", "suffix_int": suffix_int}
+        kwargs = {"include_id": True, "output_prefix": "prefix"}
         qf_init.assert_called_with(*args, **kwargs)
 
 
@@ -173,7 +170,7 @@ def test_feast_transform(prefix, is_ragged):
         "feast.FeatureStore.get_online_features", MagicMock(return_value=mocked_resp)
     ):
 
-        # names of the features with prefix/suffix
+        # names of the features with prefix
         feature_name = f"{prefix}_feature" if prefix else "feature"
         feature_mh = f"{prefix}_mh_feature" if prefix else "mh_feature"
 
