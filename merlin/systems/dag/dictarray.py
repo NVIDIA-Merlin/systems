@@ -43,8 +43,8 @@ class Column(SeriesLike):
     def __init__(self, values, row_lengths=None):
         super().__init__()
 
-        self.values = values
-        self.row_lengths = row_lengths
+        self.values = _make_array(values)
+        self.row_lengths = _make_array(row_lengths)
         self.dtype = values.dtype
 
         if isinstance(values, np.ndarray):
@@ -234,11 +234,8 @@ def _array_lib():
 def _make_column(value):
     if isinstance(value, tuple):
         values, row_lengths = value
-        values = _make_array(values)
-        row_lengths = _make_array(row_lengths)
         return Column(values, row_lengths=row_lengths)
     else:
-        value = _make_array(value)
         column = Column(value) if not isinstance(value, Column) else value
         return column
 
