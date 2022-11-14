@@ -55,7 +55,10 @@ class Column(SeriesLike):
         elif cupy and isinstance(values, cupy.ndarray):
             self._device = Device.GPU
         else:
-            raise TypeError("type of values argument is not supported")
+            raise TypeError(
+                "Column only supports values of type numpy.ndarray or cupy.ndarray. "
+                f"To use another type (like {type(values)}), convert to one of these types first."
+            )
 
     def cpu(self):
         """
@@ -87,6 +90,11 @@ class Column(SeriesLike):
 
     @device.setter
     def device(self, device):
+        if not cupy:
+            raise ValueError(
+                "Unable to move Column data between CPU and GPU without Cupy installed."
+            )
+
         if device == "cpu":
             device = Device.CPU
         elif device == "gpu":
@@ -103,8 +111,6 @@ class Column(SeriesLike):
             return self
 
     def _device_move(self, fn):
-        if not cupy:
-            raise ValueError("Unable to move data across devices without a GPU")
         self.values = fn(self.values)
         if self.row_lengths:
             self.row_lengths = fn(self.row_lengths)
