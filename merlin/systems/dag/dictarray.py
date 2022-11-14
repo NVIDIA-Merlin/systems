@@ -116,7 +116,7 @@ class Column(SeriesLike):
             self.row_lengths = fn(self.row_lengths)
 
     def __getitem__(self, index):
-        if self.is_list:
+        if self.row_lengths:
             start = self._array_lib.cumsum(self.row_lengths[:index])
             end = start + self.row_lengths[index] - 1
             return self.values[start:end]
@@ -125,20 +125,20 @@ class Column(SeriesLike):
 
     def __eq__(self, other):
         values_eq = all(self.values == other.values) and self.dtype == other.dtype
-        if self.is_list:
+        if self.row_lengths:
             return values_eq and all(self.row_lengths == other.row_lengths)
         else:
             return values_eq
 
     def __len__(self):
-        if self.is_list:
+        if self.row_lengths:
             return len(self.row_lengths)
         else:
             return len(self.values)
 
     @property
     def shape(self):
-        if self.is_list:
+        if self.row_lengths:
             dim = self.row_lengths[0] if self.is_ragged else None
             return (len(self), dim)
         else:
@@ -146,11 +146,11 @@ class Column(SeriesLike):
 
     @property
     def is_list(self):
-        return self.row_lengths is not None
+        return len(self.values.shape) > 1 or self.row_lengths is not None
 
     @property
     def is_ragged(self):
-        return self.row_lengths and all(self.row_lengths == self.row_lengths[0])
+        return self.row_lengths and any(self.row_lengths != self.row_lengths[0])
 
     @property
     def _array_lib(self):
