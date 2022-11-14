@@ -22,7 +22,7 @@ disable=fixme,
     # we'll probably never enable these checks
     invalid-name,
     import-error,
-    no-self-use,
+    # no-self-use,
 
     # disable code-complexity checks for now
     # TODO: should we configure the thresholds for these rather than just disable?
