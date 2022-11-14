@@ -43,9 +43,6 @@ class Column(SeriesLike):
     def __init__(self, values, row_lengths=None):
         super().__init__()
 
-        if isinstance(values, Column):
-            raise TypeError("doubly nested columns")
-
         self.values = values
         self.row_lengths = row_lengths
         self.dtype = values.dtype
