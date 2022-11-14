@@ -64,7 +64,7 @@ def triton_request_to_dict_array(request, column_names):
             values = _array_from_triton_tensor(request, f"{name}__values")
             lengths = _array_from_triton_tensor(request, f"{name}__lengths")
             dict_inputs[name] = (values, lengths)
-        except AttributeError:
+        except (AttributeError, ValueError):
             dict_inputs[name] = _array_from_triton_tensor(request, name)
 
     return DictArray(dict_inputs)
@@ -120,16 +120,11 @@ def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_
         The DictArray reformatted as a Triton request
     """
     input_tensors = []
+
     for name, column in dictarray.items():
         if name in input_col_names:
-            if column.row_lengths:
-                values = _triton_tensor_from_array(f"{name}__values", column.values)
-                lengths = _triton_tensor_from_array(f"{name}__lengths", column.row_lengths)
-                input_tensors.extend([values, lengths])
-            else:
-                col_tensor = _triton_tensor_from_array(name, column.values)
-                input_tensors.append(col_tensor)
-            input_tensors.append(pb_utils.Tensor(name, dictarray[name].values))
+            col_tensor = _triton_tensor_from_array(name, column.values)
+            input_tensors.append(col_tensor)
 
     return pb_utils.InferenceRequest(
         model_name=model_name,
@@ -158,13 +153,10 @@ def triton_response_to_dict_array(response, transformable_type, output_column_na
         A DictArray or DataFrame representing the response columns from a Triton request
     """
     outputs_dict = {}
-    for col_name in output_column_names:
-        try:
-            values = _array_from_triton_tensor(response, f"{col_name}__values")
-            lengths = _array_from_triton_tensor(response, f"{col_name}__lengths")
-            outputs_dict[col_name] = (values, lengths)
-        except AttributeError:
-            outputs_dict[col_name] = _array_from_triton_tensor(response, col_name)
+
+    for out_col_name in output_column_names:
+        output_val = _array_from_triton_tensor(response, out_col_name)
+        outputs_dict[out_col_name] = output_val
 
     return transformable_type(outputs_dict)
 
@@ -182,8 +174,21 @@ def _triton_tensor_from_array(name, array):
     return tensor
 
 
-def _array_from_triton_tensor(request, name):
-    return _to_array_lib(pb_utils.get_input_tensor_by_name(request, name))
+def _array_from_triton_tensor(triton_obj, name):
+    if isinstance(triton_obj, pb_utils.InferenceRequest):
+        tensor = pb_utils.get_input_tensor_by_name(triton_obj, name)
+    elif isinstance(triton_obj, pb_utils.InferenceResponse):
+        tensor = pb_utils.get_output_tensor_by_name(triton_obj, name)
+    else:
+        raise TypeError(
+            "Can only convert Triton tensors from InferenceRequest and "
+            f"InferenceResponse to Numpy/CuPy arrays, but found type {type(triton_obj)}"
+        )
+
+    if tensor is None:
+        raise ValueError(f"Column {name} not found in {type(triton_obj)}")
+
+    return _to_array_lib(tensor)
 
 
 def _to_array_lib(triton_tensor):
