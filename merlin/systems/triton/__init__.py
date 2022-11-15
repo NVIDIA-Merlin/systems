@@ -48,7 +48,7 @@ def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput,
     input_class : Triton input class, optional
         The Triton input class to use, by default grpcclient.InferInput
     dtype : str, optional
-        The dtype for nnzs/offsets values, by default "int32"
+        The dtype for lengths/offsets values, by default "int32"
 
     Returns
     -------
