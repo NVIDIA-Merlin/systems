@@ -61,10 +61,9 @@ class PredictForestTriton(TritonOperator):
         if op is not None:
             self.fil_op = FILTriton(op.fil_op)
             self.backend = op.backend
+            self.input_schema = op.input_schema
         if input_schema is not None:
             self.input_schema = input_schema
-        elif op is not None:
-            self.input_schema = op.input_schema
         self._fil_model_name = None
 
     def compute_output_schema(
