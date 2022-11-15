@@ -37,7 +37,7 @@ from nvtabular.inference.triton import _convert_string2pytorch_dtype, _convert_t
 LOG = logging.getLogger("nvtabular")
 
 sparse_value_marker = "__values"
-sparse_nnzs_marker = "__nnzs"
+sparse_nnzs_marker = "__lengths"
 
 
 class TritonPythonModel:
@@ -56,7 +56,8 @@ class TritonPythonModel:
         model_path = repository_path / model_version / "model.pkl"
 
         # Load the pickled PyTorch model
-        self.model = cloudpickle.load(open(str(model_path), "rb"))
+        with open(str(model_path), "rb") as model_file:
+            self.model = cloudpickle.load(model_file)
 
         # Load the state dict of the PyTorch model
         model_path = repository_path / model_version / "model.pth"
@@ -85,7 +86,7 @@ class TritonPythonModel:
             name = val["name"]
 
             # NVTabular adds this specific marker "__values" into the name of the sparse inputs
-            # The ones that has the marker "__nnzs" are for the sparse values
+            # The ones that has the marker "__lengths" are for the sparse values
             # Hence, dense and sparse inputs are identified based on these markers
             if len(name) > len_svm:
                 if name[-len_svm:] == sparse_value_marker:
@@ -128,7 +129,7 @@ class TritonPythonModel:
                 # Sparse inputs have a special format
                 for name, dtype in self.sparse_inputs.items():
 
-                    # Get __values and __nnzs
+                    # Get __values and __lengths
                     input_val = _convert_tensor(
                         pb_utils.get_input_tensor_by_name(request, name + sparse_value_marker)
                     )
@@ -200,7 +201,7 @@ def _get_sparse_tensor(values, indices, num_rows, seq_limit, sparse_as_dense, de
 
 
 def _build_sparse_tensor(values, nnzs, seq_limit, sparse_as_dense, device="cuda"):
-    """Builds PyTorch sparse_coo_tensor by converting the __values and __nnzs inputs"""
+    """Builds PyTorch sparse_coo_tensor by converting the __values and __lengths inputs"""
     indices = _get_indices(nnzs, device)
     num_rows = len(nnzs)
     return _get_sparse_tensor(values, indices, num_rows, seq_limit, sparse_as_dense, device)
