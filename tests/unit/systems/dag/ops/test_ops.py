@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import random
 from distutils.spawn import find_executable
 
 import numpy as np
@@ -38,7 +39,7 @@ def test_softmax_sampling(tmpdir):
     )
 
     combined_features = {
-        "movie_ids": np.random.randint(0, 10000, 100).astype(np.int32),
+        "movie_ids": np.array(random.sample(range(10000), 100), dtype=np.int32),
         "output_1": np.random.random(100).astype(np.float32),
     }
 
@@ -65,7 +66,7 @@ def test_filter_candidates_with_triton(tmpdir):
         ]
     )
 
-    candidate_ids = np.random.randint(1, 100000, 100).astype(np.int32)
+    candidate_ids = np.array(random.sample(range(100000), 100), dtype=np.int32)
     movie_ids_1 = np.zeros(100, dtype=np.int32)
     movie_ids_1[:20] = np.unique(candidate_ids)[:20]
 
