@@ -13,44 +13,151 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from enum import Enum
 from typing import Dict, Optional
 
 import numpy as np
 
-from merlin.core.protocols import SeriesLike, Transformable
+from merlin.core.protocols import SeriesLike
+
+try:
+    import cupy
+except ImportError:
+    cupy = None
+
+
+class Device(Enum):
+    CPU = 0
+    GPU = 1
 
 
 class Column(SeriesLike):
     """
-    A simple wrapper around an array of values
+    A simple wrapper around an array of values. This has an API that's just similar enough to
+    Pandas and cuDF series to be relatively interchangeable from the perspective of the Merlin DAG,
+    but no more. As more methods get added to this class, it gets closer and closer to actually
+    *being* a Pandas/cuDF Series (at which point there's no advantage to using this.) So: keep
+    this class as small as possible.
     """
 
-    def __init__(self, values):
+    def __init__(self, values, row_lengths=None):
         super().__init__()
 
-        if isinstance(values, Column):
-            raise TypeError("doubly nested columns")
+        self.values = _make_array(values)
+        self.row_lengths = _make_array(row_lengths)
+        self.dtype = self.values.dtype
 
-        self.values = values
-        self.dtype = values.dtype
+        if isinstance(self.values, np.ndarray):
+            self._device = Device.CPU
+        elif cupy and isinstance(self.values, cupy.ndarray):
+            self._device = Device.GPU
+        else:
+            raise TypeError(
+                "Column only supports values of type numpy.ndarray or cupy.ndarray. "
+                f"To use another type (like {type(values)}), convert to one of these types first."
+            )
+
+    def cpu(self):
+        """
+        Move the data for this column to host (CPU) memory
+
+        Returns
+        -------
+        Column
+            Same column, same data but now definitely in CPU memory
+        """
+        self.device = Device.CPU
+        return self
+
+    def gpu(self):
+        """
+        Move the data for this column to device (GPU) memory
+
+        Returns
+        -------
+        Column
+            Same column, same data but now definitely in GPU memory
+        """
+        self.device = Device.GPU
+        return self
+
+    @property
+    def device(self):
+        return self._device
+
+    @device.setter
+    def device(self, device):
+        if not cupy:
+            raise ValueError(
+                "Unable to move Column data between CPU and GPU without Cupy installed."
+            )
+
+        if device == "cpu":
+            device = Device.CPU
+        elif device == "gpu":
+            device = Device.GPU
+
+        # CPU to GPU
+        if self._device == Device.CPU and device == Device.GPU:
+            self._device_move(cupy.asarray)
+        # GPU to CPU
+        elif self._device == Device.GPU and device == Device.CPU:
+            self._device_move(cupy.asnumpy)
+        # Nothing to do
+        else:
+            return self
+
+    def _device_move(self, fn):
+        self.values = fn(self.values)
+        if self.row_lengths:
+            self.row_lengths = fn(self.row_lengths)
 
     def __getitem__(self, index):
-        return self.values[index]
+        if self.row_lengths:
+            start = self._array_lib.cumsum(self.row_lengths[:index])
+            end = start + self.row_lengths[index] - 1
+            return self.values[start:end]
+        else:
+            return self.values[index]
 
     def __eq__(self, other):
-        return all(self.values == other.values) and self.dtype == other.dtype
+        values_eq = all(self.values == other.values) and self.dtype == other.dtype
+        if self.row_lengths:
+            return values_eq and all(self.row_lengths == other.row_lengths)
+        else:
+            return values_eq
 
     def __len__(self):
-        return len(self.values)
+        if self.row_lengths:
+            return len(self.row_lengths)
+        else:
+            return len(self.values)
 
     @property
     def shape(self):
-        return self.values.shape
+        if self.row_lengths:
+            dim = self.row_lengths[0] if self.is_ragged else None
+            return (len(self), dim)
+        else:
+            return self.values.shape
+
+    @property
+    def is_list(self):
+        return len(self.values.shape) > 1 or self.row_lengths is not None
+
+    @property
+    def is_ragged(self):
+        return self.row_lengths and any(self.row_lengths != self.row_lengths[0])
+
+    @property
+    def _array_lib(self):
+        return cupy if cupy and self.device == Device.GPU else np
 
 
-class DictArray(Transformable):
+class DictArray:
     """
-    A simple dataframe-like wrapper around a dictionary of values
+    A simple dataframe-like wrapper around a dictionary of values. Matches the Transformable
+    protocol for (limited) interchangeability with actual dataframes in Merlin DAGs.
     """
 
     def __init__(self, values: Optional[Dict] = None):
@@ -119,7 +226,19 @@ class DictArray(Transformable):
         return DictArray(self._columns.copy())
 
 
+def _array_lib():
+    """Dispatch to the appropriate library (cupy or numpy) for the current environment"""
+    return cupy if cupy else np
+
+
 def _make_column(value):
-    value = np.array(value) if isinstance(value, list) else value
-    column = Column(value) if not isinstance(value, Column) else value
-    return column
+    if isinstance(value, tuple):
+        values, row_lengths = value
+        return Column(values, row_lengths=row_lengths)
+    else:
+        column = Column(value) if not isinstance(value, Column) else value
+        return column
+
+
+def _make_array(value):
+    return _array_lib().array(value) if isinstance(value, list) else value
