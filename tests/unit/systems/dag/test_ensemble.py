@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import random
+
 import numpy as np
 
 from merlin.dag.executors import LocalExecutor
@@ -30,7 +32,7 @@ def test_ensemble_save_load(tmpdir):
         ]
     )
 
-    candidate_ids = np.random.randint(1, 100000, 100).astype(np.int32)
+    candidate_ids = np.array(random.sample(range(100000), 100), dtype=np.int32)
     movie_ids_1 = np.zeros(100, dtype=np.int32)
     movie_ids_1[:20] = np.unique(candidate_ids)[:20]
 
