@@ -26,6 +26,7 @@ from google.protobuf import text_format  # noqa
 from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
+from merlin.systems.dag.dictarray import flatten_dictarray, unflatten_dictarray  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.dag.ops.operator import add_model_param  # noqa
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
@@ -58,19 +59,32 @@ class PredictTensorflowTriton(TritonOperator):
             TensorFlow Model Outputs
         """
         # TODO: Validate that the inputs match the schema
-        # TODO: Should we coerce the dtypes to match the schema here?
+
+        # Flatten out the columns to a list of tensors
+        tf_transformable = flatten_dictarray(transformable, "_1", "_2")
+
+        # Create the request
         inference_request = dict_array_to_triton_request(
             self.tf_model_name,
-            transformable,
+            tf_transformable,
             self.input_schema.column_names,
             self.output_schema.column_names,
         )
+
+        # Execute the request
         inference_response = inference_request.exec()
 
-        # TODO: Validate that the outputs match the schema
-        return triton_response_to_dict_array(
+        # Process the response
+        transformable = triton_response_to_dict_array(
             inference_response, type(transformable), self.output_schema.column_names
         )
+
+        # Unflatten the returned tensors to columns
+        results = unflatten_dictarray(transformable, "_1", "_2")
+
+        # TODO: Validate that the outputs match the schema
+
+        return results
 
     def export(
         self,

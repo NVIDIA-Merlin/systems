@@ -226,6 +226,32 @@ class DictArray:
         return DictArray(self._columns.copy())
 
 
+def unflatten_dictarray(dictarray, values_suffix, lengths_suffix):
+    unflat_cols = {}
+    for col_name in dictarray.columns():
+        try:
+            values = dictarray[f"{col_name}{values_suffix}"]
+            lengths = dictarray[f"{col_name}{lengths_suffix}"]
+            unflat_cols[col_name] = (values, lengths)
+        except KeyError:
+            unflat_cols[col_name] = dictarray[col_name]
+
+    return type(dictarray)(unflat_cols)
+
+
+def flatten_dictarray(dictarray, values_suffix, lengths_suffix):
+    flat_cols = {}
+    for col_name in dictarray.columns():
+        col = dictarray[col_name]
+        if col.is_ragged:
+            flat_cols[f"{col_name}{values_suffix}"] = col.values
+            flat_cols[f"{col_name}{lengths_suffix}"] = col.row_lengths
+        else:
+            flat_cols[f"{col_name}"] = col.values
+
+    return type(dictarray)(flat_cols)
+
+
 def _array_lib():
     """Dispatch to the appropriate library (cupy or numpy) for the current environment"""
     return cupy if cupy else np

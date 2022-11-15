@@ -31,7 +31,14 @@ from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 class PredictTensorflow(InferenceOperator):
     """TensorFlow Model Prediction Operator."""
 
-    def __init__(self, model_or_path, custom_objects: dict = None, backend="tensorflow"):
+    def __init__(
+        self,
+        model_or_path,
+        input_schema=None,
+        output_schema=None,
+        custom_objects: dict = None,
+        backend="tensorflow",
+    ):
         """
         Instantiate a PredictTensorflow inference operator.
 
@@ -55,6 +62,12 @@ class PredictTensorflow(InferenceOperator):
                 self.model = model_or_path
 
             self.input_schema, self.output_schema = self._construct_schemas_from_model(self.model)
+
+        if input_schema:
+            self.input_schema = input_schema
+
+        if output_schema:
+            self.output_schema = output_schema
 
     def __getstate__(self) -> dict:
         """Return state of instance when pickled.
