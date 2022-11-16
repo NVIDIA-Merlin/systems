@@ -19,11 +19,11 @@ jobs:
         os: [ubuntu-latest]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install Ubuntu packages
@@ -43,7 +43,7 @@ jobs:
       run: |
         python setup.py sdist
     - name: Upload artifacts to github
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: dist
         path: dist
@@ -51,7 +51,7 @@ jobs:
       run: |
         tox -e docs
     - name: Upload HTML
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: html-build-artifact
         path: docs/build/html
@@ -64,7 +64,7 @@ jobs:
         echo ${{ github.event.pull_request.merged }} > ./pr/merged.txt
         echo ${{ github.event.action }}              > ./pr/action.txt
     - name: Upload PR information
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pr
         path: pr/
