@@ -245,7 +245,7 @@ class FILTriton(TritonOperator):
         """
         self.max_batch_size = op.max_batch_size
         self.parameters = dict(**op.parameters)
-        self.fil_model = op.fil_model
+        self.fil_model_class = op.fil_model_class
         super().__init__(op)
 
     def __getstate__(self):
@@ -285,13 +285,13 @@ class FILTriton(TritonOperator):
         version_path = node_export_path / str(version)
         version_path.mkdir(parents=True, exist_ok=True)
 
-        self.fil_model.save(version_path)
+        self.fil_model_class.save(version_path)
 
         config = fil_config(
             node_name,
-            self.fil_model.model_type,
-            self.fil_model.num_features,
-            self.fil_model.num_classes,
+            self.fil_model_class.model_type,
+            self.fil_model_class.num_features,
+            self.fil_model_class.num_classes,
             max_batch_size=self.max_batch_size,
             **self.parameters,
         )

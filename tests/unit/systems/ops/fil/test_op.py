@@ -23,9 +23,10 @@ import sklearn.datasets
 import sklearn.ensemble
 import xgboost
 
+import merlin.systems.dag.ops.fil as fil_op
 from merlin.dag import ColumnSelector, Graph
 from merlin.schema import Schema
-from merlin.systems.dag.ops import fil as fil_op
+from merlin.systems.dag.runtimes.triton.ops.fil import FILTriton
 
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -142,7 +143,7 @@ def sklearn_forest_regressor(X, y, **params):
 def test_binary_classifier_default(get_model_fn, get_model_params, tmpdir):
     X, y = get_classification_data(classes=2)
     model = get_model_fn(X, y, **get_model_params)
-    triton_op = fil_op.FIL(model)
+    triton_op = FILTriton(fil_op.FIL(model))
     config = export_op(tmpdir, triton_op)
     assert config.parameters["output_class"].string_value == "false"
     assert config.parameters["predict_proba"].string_value == "false"
@@ -162,7 +163,7 @@ def test_binary_classifier_default(get_model_fn, get_model_params, tmpdir):
 def test_binary_classifier_with_proba(get_model_fn, get_model_params, tmpdir):
     X, y = get_classification_data(classes=2)
     model = get_model_fn(X, y, **get_model_params)
-    triton_op = fil_op.FIL(model, predict_proba=True, output_class=True)
+    triton_op = FILTriton(fil_op.FIL(model, predict_proba=True, output_class=True))
     config = export_op(tmpdir, triton_op)
     assert config.parameters["output_class"].string_value == "true"
     assert config.parameters["predict_proba"].string_value == "true"
@@ -182,7 +183,7 @@ def test_binary_classifier_with_proba(get_model_fn, get_model_params, tmpdir):
 def test_multi_classifier(get_model_fn, get_model_params, tmpdir):
     X, y = get_classification_data(classes=8)
     model = get_model_fn(X, y, **get_model_params)
-    triton_op = fil_op.FIL(model, predict_proba=True, output_class=True)
+    triton_op = FILTriton(fil_op.FIL(model, predict_proba=True, output_class=True))
     config = export_op(tmpdir, triton_op)
     assert config.parameters["output_class"].string_value == "true"
     assert config.parameters["predict_proba"].string_value == "true"
@@ -202,7 +203,7 @@ def test_multi_classifier(get_model_fn, get_model_params, tmpdir):
 def test_regressor(get_model_fn, get_model_params, tmpdir):
     X, y = get_regression_data()
     model = get_model_fn(X, y, **get_model_params)
-    triton_op = fil_op.FIL(model)
+    triton_op = FILTriton(fil_op.FIL(model))
     config = export_op(tmpdir, triton_op)
     assert config.parameters["output_class"].string_value == "false"
     assert config.parameters["predict_proba"].string_value == "false"
@@ -220,9 +221,9 @@ def test_regressor(get_model_fn, get_model_params, tmpdir):
 def test_model_file(get_model_fn, expected_model_filename, tmpdir):
     X, y = get_regression_data()
     model = get_model_fn(X, y)
-    triton_op = fil_op.FIL(model)
+    triton_op = FILTriton(fil_op.FIL(model))
     _ = export_op(tmpdir, triton_op)
-    model_path = pathlib.Path(tmpdir) / "fil" / "1" / expected_model_filename
+    model_path = pathlib.Path(tmpdir) / "filtriton" / "1" / expected_model_filename
     assert model_path.is_file()
 
 
@@ -231,7 +232,7 @@ def test_fil_op_exports_own_config(tmpdir):
     model = xgboost_train(X, y, objective="reg:squarederror")
 
     # Triton
-    triton_op = fil_op.FIL(model)
+    triton_op = FILTriton(fil_op.FIL(model))
     config = export_op(tmpdir, triton_op)
 
     assert config.name == triton_op.export_name
@@ -247,7 +248,7 @@ def test_fil_op_compute_schema():
     model = xgboost_train(X, y, objective="reg:squarederror")
 
     # Triton
-    triton_op = fil_op.FIL(model)
+    triton_op = FILTriton(fil_op.FIL(model))
 
     out_schema = triton_op.compute_output_schema(
         Schema(["input__0"]), ColumnSelector(["input__0"]), None
