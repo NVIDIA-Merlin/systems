@@ -13,11 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import random
+
 import numpy as np
 
-from merlin.dag import DictArray
 from merlin.dag.executors import LocalExecutor
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 
@@ -30,7 +32,7 @@ def test_ensemble_save_load(tmpdir):
         ]
     )
 
-    candidate_ids = np.random.randint(1, 100000, 100).astype(np.int32)
+    candidate_ids = np.array(random.sample(range(100000), 100), dtype=np.int32)
     movie_ids_1 = np.zeros(100, dtype=np.int32)
     movie_ids_1[:20] = np.unique(candidate_ids)[:20]
 
@@ -53,4 +55,4 @@ def test_ensemble_save_load(tmpdir):
 
     loaded_response = executor.transform(request_data, [loaded_ensemble.graph.output_node])
 
-    assert all(loaded_response.arrays["filtered_ids"] == response.arrays["filtered_ids"])
+    assert loaded_response["filtered_ids"] == response["filtered_ids"]

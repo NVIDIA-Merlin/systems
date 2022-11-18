@@ -109,7 +109,7 @@ class TritonEnsembleRuntime(Runtime):
                 ensemble_config.input,
                 model_config.ModelInput,
                 col_schema,
-                col_schema.properties.get("shape", None) or compute_dims(col_schema),
+                compute_dims(col_schema),
             )
 
         for _, col_schema in ensemble.graph.output_schema.column_schemas.items():
@@ -117,7 +117,7 @@ class TritonEnsembleRuntime(Runtime):
                 ensemble_config.output,
                 model_config.ModelOutput,
                 col_schema,
-                col_schema.properties.get("shape", None) or compute_dims(col_schema),
+                compute_dims(col_schema),
             )
 
         node_configs = []
@@ -154,8 +154,8 @@ class TritonEnsembleRuntime(Runtime):
                         config_step.input_map[input_col_name + "__values"] = (
                             input_col_name + "__values" + in_suffix
                         )
-                        config_step.input_map[input_col_name + "__nnzs"] = (
-                            input_col_name + "__nnzs" + in_suffix
+                        config_step.input_map[input_col_name + "__lengths"] = (
+                            input_col_name + "__lengths" + in_suffix
                         )
                     else:
                         config_step.input_map[input_col_name] = input_col_name + in_suffix
@@ -169,8 +169,8 @@ class TritonEnsembleRuntime(Runtime):
                         config_step.output_map[output_col_name + "__values"] = (
                             output_col_name + "__values" + out_suffix
                         )
-                        config_step.output_map[output_col_name + "__nnzs"] = (
-                            output_col_name + "__nnzs" + out_suffix
+                        config_step.output_map[output_col_name + "__lengths"] = (
+                            output_col_name + "__lengths" + out_suffix
                         )
                     else:
                         config_step.output_map[output_col_name] = output_col_name + out_suffix
@@ -311,11 +311,11 @@ class TritonExecutorRuntime(Runtime):
         output_schema = ensemble.output_schema
 
         for col_schema in input_schema.column_schemas.values():
-            col_dims = col_schema.properties.get("shape", None) or compute_dims(col_schema)
+            col_dims = compute_dims(col_schema)
             add_model_param(config.input, model_config.ModelInput, col_schema, col_dims)
 
         for col_schema in output_schema.column_schemas.values():
-            col_dims = col_schema.properties.get("shape", None) or compute_dims(col_schema)
+            col_dims = compute_dims(col_schema)
             add_model_param(config.output, model_config.ModelOutput, col_schema, col_dims)
 
         with open(os.path.join(node_export_path, "config.pbtxt"), "w", encoding="utf-8") as o:

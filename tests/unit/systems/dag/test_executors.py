@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import random
 from distutils.spawn import find_executable
 
 import numpy as np
@@ -20,10 +21,10 @@ import pandas as pd
 import pytest
 
 from merlin.core.dispatch import HAS_GPU, make_df
-from merlin.dag import DictArray
 from merlin.dag.executors import DaskExecutor, LocalExecutor
 from merlin.io import Dataset
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 
@@ -38,7 +39,7 @@ def test_run_dag_on_dictarray_with_local_executor():
         ]
     )
 
-    candidate_ids = np.random.randint(1, 100000, 100).astype(np.int32)
+    candidate_ids = np.array(random.sample(range(100000), 100), dtype=np.int32)
     movie_ids_1 = np.zeros(100, dtype=np.int32)
     movie_ids_1[:20] = np.unique(candidate_ids)[:20]
 
@@ -72,7 +73,7 @@ def test_run_dag_on_dataframe_with_local_executor():
         ]
     )
 
-    candidate_ids = np.random.randint(1, 100000, 100).astype(np.int32)
+    candidate_ids = np.array(random.sample(range(100000), 100), dtype=np.int32)
     movie_ids_1 = np.zeros(100, dtype=np.int32)
     movie_ids_1[:20] = np.unique(candidate_ids)[:20]
 
@@ -105,7 +106,7 @@ def test_run_dag_on_dataframe_with_dask_executor():
         ]
     )
 
-    candidate_ids = np.random.randint(1, 100000, 100).astype(np.int32)
+    candidate_ids = np.array(random.sample(range(100000), 100), dtype=np.int32)
     movie_ids_1 = np.zeros(100, dtype=np.int32)
     movie_ids_1[:20] = np.unique(candidate_ids)[:20]
 

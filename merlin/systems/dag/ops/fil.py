@@ -24,15 +24,19 @@ from google.protobuf import text_format  # noqa
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.ops.compat import (
     cuml_ensemble,
     lightgbm,
-    pb_utils,
     sklearn_ensemble,
     treelite_sklearn,
     xgboost,
 )
 from merlin.systems.dag.ops.operator import InferenceOperator, PipelineableInferenceOperator
+from merlin.systems.triton.conversions import (
+    dict_array_to_triton_request,
+    triton_response_to_dict_array,
+)
 
 
 class PredictForest(PipelineableInferenceOperator):
@@ -167,20 +171,20 @@ class PredictForest(PipelineableInferenceOperator):
         -------
         DictArray
             Returns a transformed dataframe for this operator"""
-        input0 = np.array([x.ravel() for x in transformable.values()]).astype(np.float32).T
-        inference_request = pb_utils.InferenceRequest(
-            model_name=self.fil_model_name,
-            requested_output_names=["output__0"],
-            inputs=[pb_utils.Tensor("input__0", input0)],
+
+        input0 = (
+            np.array([column.values.ravel() for column in transformable.values()])
+            .astype(np.float32)
+            .T
+        )
+
+        inputs = DictArray({"input__0": input0})
+
+        inference_request = dict_array_to_triton_request(
+            self.fil_model_name, inputs, ["input__0"], ["output__0"]
         )
         inference_response = inference_request.exec()
-        output0 = pb_utils.get_output_tensor_by_name(inference_response, "output__0")
-
-        transformable_type = type(transformable)
-        return_vals = {"output__0": output0}
-        return_dtypes = {"output__0": np.float32}
-
-        return transformable_type(return_vals, return_dtypes)
+        return triton_response_to_dict_array(inference_response, type(inputs), ["output__0"])
 
 
 class FIL(InferenceOperator):

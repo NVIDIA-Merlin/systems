@@ -20,8 +20,11 @@ from typing import List
 from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.compat import pb_utils  # noqa
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator  # noqa
+from merlin.systems.triton.conversions import (
+    dict_array_to_triton_request,
+    triton_response_to_dict_array,
+)
 from merlin.systems.triton.export import generate_nvtabular_model
 
 
@@ -80,28 +83,18 @@ class TransformWorkflow(PipelineableInferenceOperator):
             self.output_schema = workflow.output_schema
 
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
-        # TODO: Validate that the inputs match the schema
-        # TODO: Should we coerce the dtypes to match the schema here?
-        input_tensors = []
-        for col_name in self.input_schema.column_schemas.keys():
-            input_tensors.append(pb_utils.Tensor(col_name, transformable[col_name]))
-
-        inference_request = pb_utils.InferenceRequest(
-            model_name=self.nvt_model_name,
-            requested_output_names=self.output_schema.column_names,
-            inputs=input_tensors,
+        inference_request = dict_array_to_triton_request(
+            self._nvt_model_name,
+            transformable,
+            self.input_schema.column_names,
+            self.output_schema.column_names,
         )
+
         inference_response = inference_request.exec()
 
-        # TODO: Validate that the outputs match the schema
-        outputs_dict = {}
-        for out_col_name in self.output_schema.column_schemas.keys():
-            output_val = pb_utils.get_output_tensor_by_name(
-                inference_response, out_col_name
-            ).as_numpy()
-            outputs_dict[out_col_name] = output_val
-
-        return type(transformable)(outputs_dict)
+        return triton_response_to_dict_array(
+            inference_response, type(transformable), self.output_schema.column_names
+        )
 
     @classmethod
     def from_config(cls, config: dict, **kwargs) -> "TransformWorkflow":
