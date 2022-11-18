@@ -83,7 +83,7 @@ def export_tensorflow_ensemble(
     # in dtypes between tf inputs and nvt outputs)
     for column in tf_config.input:
         tf_dtype = _triton_datatype_to_dtype(column.data_type)
-        nvt_col_name = column.name.replace("__values", "").replace("__nnzs", "")
+        nvt_col_name = column.name.replace("__values", "").replace("__lengths", "")
         col_schema = workflow.output_schema[nvt_col_name]
         if col_schema.dtype and col_schema.dtype != tf_dtype:
             warnings.warn(
@@ -697,7 +697,7 @@ def _add_model_param(col_schema, paramclass, params, dims=None):
         )
         params.append(
             paramclass(
-                name=col_schema.name + "__nnzs", data_type=model_config.TYPE_INT64, dims=dims
+                name=col_schema.name + "__lengths", data_type=model_config.TYPE_INT64, dims=dims
             )
         )
     else:

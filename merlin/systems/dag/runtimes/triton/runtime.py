@@ -165,8 +165,8 @@ class TritonEnsembleRuntime(Runtime):
                         config_step.input_map[input_col_name + "__values"] = (
                             input_col_name + "__values" + in_suffix
                         )
-                        config_step.input_map[input_col_name + "__nnzs"] = (
-                            input_col_name + "__nnzs" + in_suffix
+                        config_step.input_map[input_col_name + "__lengths"] = (
+                            input_col_name + "__lengths" + in_suffix
                         )
                     else:
                         config_step.input_map[input_col_name] = input_col_name + in_suffix
@@ -180,8 +180,8 @@ class TritonEnsembleRuntime(Runtime):
                         config_step.output_map[output_col_name + "__values"] = (
                             output_col_name + "__values" + out_suffix
                         )
-                        config_step.output_map[output_col_name + "__nnzs"] = (
-                            output_col_name + "__nnzs" + out_suffix
+                        config_step.output_map[output_col_name + "__lengths"] = (
+                            output_col_name + "__lengths" + out_suffix
                         )
                     else:
                         config_step.output_map[output_col_name] = output_col_name + out_suffix

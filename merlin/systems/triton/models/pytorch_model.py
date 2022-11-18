@@ -37,7 +37,7 @@ from nvtabular.inference.triton import _convert_string2pytorch_dtype, _convert_t
 LOG = logging.getLogger("nvtabular")
 
 sparse_value_marker = "__values"
-sparse_nnzs_marker = "__nnzs"
+sparse_lengths_marker = "__lengths"
 
 
 class TritonPythonModel:
@@ -56,7 +56,8 @@ class TritonPythonModel:
         model_path = repository_path / model_version / "model.pkl"
 
         # Load the pickled PyTorch model
-        self.model = cloudpickle.load(open(str(model_path), "rb"))
+        with open(str(model_path), "rb") as model_file:
+            self.model = cloudpickle.load(model_file)
 
         # Load the state dict of the PyTorch model
         model_path = repository_path / model_version / "model.pth"
@@ -79,24 +80,24 @@ class TritonPythonModel:
         self.sparse_inputs = {}
         self.outputs = {}
         len_svm = len(sparse_value_marker)
-        len_snm = len(sparse_nnzs_marker)
+        len_snm = len(sparse_lengths_marker)
 
         for val in self.model_config["input"]:
             name = val["name"]
 
             # NVTabular adds this specific marker "__values" into the name of the sparse inputs
-            # The ones that has the marker "__nnzs" are for the sparse values
+            # The ones that has the marker "__lengths" are for the sparse values
             # Hence, dense and sparse inputs are identified based on these markers
             if len(name) > len_svm:
                 if name[-len_svm:] == sparse_value_marker:
                     self.sparse_inputs[
                         name[0 : (len(name) - len_svm)]
                     ] = _convert_string2pytorch_dtype(val["data_type"])
-                elif name[-len_snm:] != sparse_nnzs_marker:
+                elif name[-len_snm:] != sparse_lengths_marker:
                     self.inputs[name] = _convert_string2pytorch_dtype(val["data_type"])
             else:
                 if len(name) > len_snm:
-                    if name[-len_snm:] != sparse_nnzs_marker:
+                    if name[-len_snm:] != sparse_lengths_marker:
                         self.inputs[name] = _convert_string2pytorch_dtype(val["data_type"])
                 else:
                     self.inputs[name] = _convert_string2pytorch_dtype(val["data_type"])
@@ -128,14 +129,14 @@ class TritonPythonModel:
                 # Sparse inputs have a special format
                 for name, dtype in self.sparse_inputs.items():
 
-                    # Get __values and __nnzs
+                    # Get __values and __lengths
                     input_val = _convert_tensor(
                         pb_utils.get_input_tensor_by_name(request, name + sparse_value_marker)
                     )
-                    input_nnzs = _convert_tensor(
-                        pb_utils.get_input_tensor_by_name(request, name + sparse_nnzs_marker)
+                    input_lengths = _convert_tensor(
+                        pb_utils.get_input_tensor_by_name(request, name + sparse_lengths_marker)
                     )
-                    input_nnzs = torch.tensor(input_nnzs, dtype=torch.int64)
+                    input_lengths = torch.tensor(input_lengths, dtype=torch.int64)
                     input_values = torch.tensor(input_val, dtype=dtype)
 
                     # Get the PyTorch sparse_coo_tensor
@@ -147,10 +148,10 @@ class TritonPythonModel:
                             seq_limit = self.model_info["sparse_max"][name]
 
                     if seq_limit == 0:
-                        seq_limit = int(input_nnzs.max())
+                        seq_limit = int(input_lengths.max())
 
                     input_dict[name] = _build_sparse_tensor(
-                        input_values, input_nnzs, seq_limit, sparse_to_dense
+                        input_values, input_lengths, seq_limit, sparse_to_dense
                     )
 
                 # Call forward function to get the predictions
@@ -177,13 +178,13 @@ class TritonPythonModel:
         return responses
 
 
-def _get_indices(nnzs, device="cuda"):
+def _get_indices(lengths, device="cuda"):
     """Calculate indices for the PyTorch sparse_coo_tensor"""
-    offsets = torch.cat((torch.tensor([1]), nnzs), 0)
+    offsets = torch.cat((torch.tensor([1]), lengths), 0)
     offsets = offsets.cumsum(0)
     row_ids = torch.arange(len(offsets) - 1)
-    row_ids_repeated = torch.repeat_interleave(row_ids, nnzs)
-    row_offset_repeated = torch.repeat_interleave(offsets[:-1], nnzs)
+    row_ids_repeated = torch.repeat_interleave(row_ids, lengths)
+    row_offset_repeated = torch.repeat_interleave(offsets[:-1], lengths)
     col_ids = torch.arange(len(row_offset_repeated)) - row_offset_repeated + 1
     indices = torch.cat([row_ids_repeated.unsqueeze(-1), col_ids.unsqueeze(-1)], axis=1)
     return indices.T
@@ -199,10 +200,10 @@ def _get_sparse_tensor(values, indices, num_rows, seq_limit, sparse_as_dense, de
     return sparse_tensor
 
 
-def _build_sparse_tensor(values, nnzs, seq_limit, sparse_as_dense, device="cuda"):
-    """Builds PyTorch sparse_coo_tensor by converting the __values and __nnzs inputs"""
-    indices = _get_indices(nnzs, device)
-    num_rows = len(nnzs)
+def _build_sparse_tensor(values, lengths, seq_limit, sparse_as_dense, device="cuda"):
+    """Builds PyTorch sparse_coo_tensor by converting the __values and __lengths inputs"""
+    indices = _get_indices(lengths, device)
+    num_rows = len(lengths)
     return _get_sparse_tensor(values, indices, num_rows, seq_limit, sparse_as_dense, device)
 
 

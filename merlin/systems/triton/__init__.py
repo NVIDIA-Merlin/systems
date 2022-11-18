@@ -48,7 +48,7 @@ def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput,
     input_class : Triton input class, optional
         The Triton input class to use, by default grpcclient.InferInput
     dtype : str, optional
-        The dtype for nnzs/offsets values, by default "int32"
+        The dtype for lengths/offsets values, by default "int32"
 
     Returns
     -------
@@ -78,7 +78,7 @@ def _convert_df_to_dict(schema, batch, dtype="int32"):
                 df_dict[col_name + "__values"] = col.list.leaves.values_host.astype(
                     col_schema.dtype
                 )
-                df_dict[col_name + "__nnzs"] = col._column.offsets.values_host.astype(dtype)
+                df_dict[col_name + "__lengths"] = col._column.offsets.values_host.astype(dtype)
             else:
                 values = col.list.leaves.values_host
                 values = values.reshape(*shape).astype(col_schema.dtype)
