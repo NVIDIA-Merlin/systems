@@ -1,3 +1,6 @@
 merlin-core>=0.2.0
 nvtabular>=1.0.0
 requests>=2.10,<3
+# regardless of whether in GPU/CPU environment must support sklearn which is CPU only.
+treelite==2.3.0
+treelite_runtime==2.3.0

@@ -140,7 +140,7 @@ class PredictForest(PipelineableInferenceOperator):
             .astype(np.float32)
             .T
         )
-        predictions = self.fil_op.predict(input0)
+        predictions = self.fil_op.predict(input0).astype(np.float32)
 
         outputs = {"output__0": predictions}
 
