@@ -45,7 +45,6 @@ class PredictTensorflowTriton(TritonOperator):
         self.output_schema = op.output_schema
         self.path = op.path
         self.model = op.model
-        self.scalar_shape = op.scalar_shape
 
         self._tf_model_name = None
 
