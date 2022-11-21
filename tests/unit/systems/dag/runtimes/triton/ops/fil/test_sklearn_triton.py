@@ -6,8 +6,10 @@ import pytest
 
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.fil import PredictForest
+from merlin.systems.dag.runtimes.base_runtime import Runtime
 from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
@@ -23,8 +25,9 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 @pytest.mark.parametrize(
     ["runtime", "model_name", "expected_model_name"],
     [
-        (TritonEnsembleRuntime(), None, "ensemble_model"),
-        (TritonExecutorRuntime(), None, "executor_model"),
+        # (TritonEnsembleRuntime(), None, "ensemble_model"),
+        # (TritonExecutorRuntime(), None, "executor_model"),
+        (Runtime(), None, "executor_model"),
     ],
 )
 def test_sklearn_regressor_forest_inference(runtime, model_name, expected_model_name, tmpdir):
@@ -54,13 +57,21 @@ def test_sklearn_regressor_forest_inference(runtime, model_name, expected_model_
     ensemble = Ensemble(triton_chain, input_schema)
 
     request_df = df[:5]
-    ensemble_config, _ = ensemble.export(tmpdir, runtime=runtime, name=model_name)
 
-    assert ensemble_config.name == expected_model_name
+    response = None
+    if isinstance(runtime, (TritonEnsembleRuntime, TritonExecutorRuntime)):
+        ensemble_config, _ = ensemble.export(tmpdir, runtime=runtime, name=model_name)
+        assert ensemble_config.name == expected_model_name
 
-    response = run_ensemble_on_tritonserver(
-        str(tmpdir), input_schema, request_df, ["output__0"], ensemble_config.name
-    )
+        response = run_ensemble_on_tritonserver(
+            str(tmpdir), input_schema, request_df, ["output__0"], ensemble_config.name
+        )
+    else:
+        array_dict = {}
+        for col in request_df.columns:
+            array_dict[col] = request_df[col].to_numpy().astype("float32")
+        dict_array = DictArray(array_dict)
+        response = ensemble.transform(dict_array, runtime=runtime)
     assert response["output__0"].shape == (5,)
 
 
