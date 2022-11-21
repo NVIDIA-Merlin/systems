@@ -88,6 +88,11 @@ def test_serve_tf_with_libtensorflow(tmpdir):
     model.compile(metrics={})
     model.fit(loader, epochs=1, pre=predict_last)
 
+    query_encoder.save(
+        f"{tmpdir}/query_encoder"
+    )  # saves Merlin input / output schema to a metadata directory
+    # saved_model_cli show --tag_set serve --signature_def serving_default --dir /tmp/query_encoder
+
     # ===========================================
     # Build a simple Ensemble graph
     # ===========================================
