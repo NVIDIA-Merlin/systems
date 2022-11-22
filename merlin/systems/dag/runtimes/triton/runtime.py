@@ -32,15 +32,17 @@ from merlin.systems.dag.ops.compat import (
     treelite_sklearn,
     xgboost,
 )
-from merlin.systems.dag.ops.fil import PredictForest
 from merlin.systems.dag.ops.operator import add_model_param
 from merlin.systems.dag.runtimes import Runtime
-from merlin.systems.dag.runtimes.triton.ops.tensorflow import PredictTensorflowTriton
 
 # Should this have an import if statement? XGboost, sklearn, CUML???
 
 tensorflow = None
 try:
+    from nvtabular.loader.tf_utils import configure_tensorflow
+
+    # everything tensorflow related must be imported after this.
+    configure_tensorflow()
     import tensorflow
 except ImportError:
     ...
@@ -48,12 +50,14 @@ except ImportError:
 TRITON_OP_TABLE = {}
 
 if cuml_ensemble or lightgbm or sklearn_ensemble or treelite_sklearn or xgboost:
+    from merlin.systems.dag.ops.fil import PredictForest
     from merlin.systems.dag.runtimes.triton.ops.fil import PredictForestTriton
 
     TRITON_OP_TABLE[PredictForest] = PredictForestTriton
 
 if tensorflow:
     from merlin.systems.dag.ops.tensorflow import PredictTensorflow
+    from merlin.systems.dag.runtimes.triton.ops.tensorflow import PredictTensorflowTriton
 
     TRITON_OP_TABLE[PredictTensorflow] = PredictTensorflowTriton
 
