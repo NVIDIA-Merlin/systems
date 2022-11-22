@@ -18,6 +18,5 @@
 set -e
 
 # Run tests
-TF_GPU_ALLOCATOR=cuda_malloc_async pytest -rsx tests/unit tests/notebook
-
+TF_GPU_ALLOCATOR=cuda_malloc_async pytest -rsx tests/unit
 
