@@ -138,7 +138,6 @@ class PredictForestTriton(TritonOperator):
         cls_instance = cls(None, input_schema)
         params = json.loads(config["params"])
         model_name = params["fil_model_name"]
-        # raise ValueError(f"model name is: {model_name}")
         cls_instance.set_fil_model_name(model_name)
         return cls_instance
 
@@ -147,7 +146,6 @@ class PredictForestTriton(TritonOperator):
         return self._fil_model_name
 
     def set_fil_model_name(self, fil_model_name):
-        # raise ValueError(f"model name:{fil_model_name}")
         self._fil_model_name = fil_model_name
 
     def transform(
@@ -172,8 +170,6 @@ class PredictForestTriton(TritonOperator):
         )
 
         inputs = DictArray({"input__0": input0})
-
-        # raise ValueError(f"model name:{self._fil_model_name}")
 
         inference_request = dict_array_to_triton_request(
             self.fil_model_name, inputs, ["input__0"], ["output__0"]
