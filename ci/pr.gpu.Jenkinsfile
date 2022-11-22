@@ -5,7 +5,7 @@ pipeline {
             label 'merlin_gpu'
             registryCredentialsId 'jawe-nvcr-io'
             registryUrl 'https://nvcr.io'
-            args "--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all"
+            args "--runtime=nvidia -e NVIDIA_VISIBLE_DEVICES=all --shm-size '256m'"
         }
     }
 
@@ -18,7 +18,7 @@ pipeline {
     stages {
         stage("test-gpu") {
             options {
-                timeout(time: 60, unit: 'MINUTES', activity: true)
+                timeout(time: 60, unit: 'MINUTES', activity: false)
             }
             steps {
                 sh """#!/bin/bash
