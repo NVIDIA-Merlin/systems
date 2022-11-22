@@ -19,7 +19,7 @@ loader_tf_utils = pytest.importorskip("nvtabular.loader.tf_utils")  # noqa
 loader_tf_utils.configure_tensorflow()
 tf = pytest.importorskip("tensorflow")
 
-import nvtabular.framework_utils.tensorflow.layers as layers  # noqa
+from nvtabular.framework_utils.tensorflow import layers  # noqa
 
 
 def create_tf_model(cat_columns: list, cat_mh_columns: list, embed_tbl_shapes: dict):
@@ -31,7 +31,7 @@ def create_tf_model(cat_columns: list, cat_mh_columns: list, embed_tbl_shapes: d
     for col in cat_mh_columns:
         inputs[col] = (
             tf.keras.Input(name=f"{col}__values", dtype=tf.int64, shape=(1,)),
-            tf.keras.Input(name=f"{col}__nnzs", dtype=tf.int64, shape=(1,)),
+            tf.keras.Input(name=f"{col}__lengths", dtype=tf.int64, shape=(1,)),
         )
     for col in cat_columns + cat_mh_columns:
         emb_layers.append(

@@ -81,6 +81,7 @@ suppress_warnings = ["etoc.toctree"]
 html_theme = "sphinx_rtd_theme"
 html_theme_options = {
     "navigation_depth": 2,
+    "analytics_id": "G-NVJ1Y1YJHK",
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -90,6 +91,7 @@ html_static_path = ["_static"]
 
 source_suffix = [".rst", ".md"]
 
+html_copy_source = False
 html_show_sourcelink = False
 
 if os.path.exists(gitdir):
@@ -110,6 +112,9 @@ intersphinx_mapping = {
     "torch": ("https://pytorch.org/docs/stable/", None),
     "merlin-core": ("https://nvidia-merlin.github.io/core/main/", None),
 }
+
+html_sidebars = {"**": ["versions.html"]}
+html_baseurl = "https://nvidia-merlin.github.io/systems/main"
 
 autodoc_inherit_docstrings = False
 autodoc_default_options = {

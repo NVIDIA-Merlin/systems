@@ -57,10 +57,10 @@ class TensorflowWorkflowRunner(WorkflowRunner):
                 values = values.reshape(len(values), 1)
                 output_tensors.append((name + "__values", values))
 
-                offsets = value[1].astype(self.output_dtypes[name + "__nnzs"])
-                nnzs = offsets[1:] - offsets[:-1]
-                nnzs = nnzs.reshape(len(nnzs), 1)
-                output_tensors.append((name + "__nnzs", nnzs))
+                offsets = value[1].astype(self.output_dtypes[name + "__lengths"])
+                lengths = offsets[1:] - offsets[:-1]
+                lengths = lengths.reshape(len(lengths), 1)
+                output_tensors.append((name + "__lengths", lengths))
             else:
                 d = value.astype(self.output_dtypes[name])
                 d = d.reshape(len(d), 1)
