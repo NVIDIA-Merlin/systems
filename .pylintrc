@@ -1,6 +1,6 @@
 [MASTER]
 
-ignore-patterns=_version.py,model_config_pb2.py
+ignore-patterns=_version.py,model_config_pb2.py,merlin/legacy
 
 extension-pkg-allow-list=hugectr,nvtabular_cpp
 
