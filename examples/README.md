@@ -12,11 +12,7 @@ file or browse the [examples](https://github.com/NVIDIA-Merlin/models/tree/main/
 Docker containers are available from the NVIDIA GPU Cloud.
 Access the catalog of containers at <http://ngc.nvidia.com/catalog/containers>.
 
-Use the following container to run the example notebook:
-
-- Merlin TensorFlow Inference
-
-To run the example notebooks using Docker containers, perform the following steps:
+We use the latest stable version of the [merlin-tensorflow](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow/tags) container to run the example notebooks. To run the example notebooks using Docker containers, perform the following steps:
 
 1. If you haven't already created a Docker volume to share models and datasets
    between containers, create the volume by running the following command:
