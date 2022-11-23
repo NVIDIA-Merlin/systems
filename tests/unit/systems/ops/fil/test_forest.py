@@ -30,6 +30,7 @@ from merlin.schema import ColumnSchema, Schema, Tags
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.fil import PredictForest
 from merlin.systems.dag.ops.workflow import TransformWorkflow
+from merlin.systems.dag.runtimes.triton.ops.fil import PredictForestTriton
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
 
@@ -48,7 +49,7 @@ def test_load_from_config(tmpdir):
     feature_names = [str(i) for i in range(num_features)]
     input_schema = Schema([ColumnSchema(col, dtype=np.float32) for col in feature_names])
     output_schema = Schema([ColumnSchema("output__0", dtype=np.float32)])
-    config = PredictForest(model, input_schema).export(
+    config = PredictForestTriton(PredictForest(model, input_schema)).export(
         tmpdir, input_schema, output_schema, node_id=2
     )
     node_config = json.loads(config.parameters[config.name].string_value)
@@ -57,8 +58,8 @@ def test_load_from_config(tmpdir):
         "output__0": {"dtype": "float32", "is_list": False, "is_ragged": False}
     }
 
-    cls = PredictForest.from_config(node_config)
-    assert cls.fil_model_name == "2_fil"
+    cls = PredictForestTriton.from_config(node_config)
+    assert "2_fil" in cls.fil_model_name
 
 
 def read_config(config_path):
@@ -82,16 +83,18 @@ def test_export(tmpdir):
     feature_names = [str(i) for i in range(num_features)]
     input_schema = Schema([ColumnSchema(col, dtype=np.float32) for col in feature_names])
     output_schema = Schema([ColumnSchema("output__0", dtype=np.float32)])
-    _ = PredictForest(model, input_schema).export(tmpdir, input_schema, output_schema, node_id=2)
+    _ = PredictForestTriton(PredictForest(model, input_schema)).export(
+        tmpdir, input_schema, output_schema, node_id=2
+    )
 
-    config_path = tmpdir / "2_predictforest" / "config.pbtxt"
+    config_path = tmpdir / "2_predictforesttriton" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "2_predictforest"
+    assert "2_predictforest" in parsed_config.name
     assert parsed_config.backend == "python"
 
-    config_path = tmpdir / "2_fil" / "config.pbtxt"
+    config_path = tmpdir / "2_filtriton" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "2_fil"
+    assert "2_fil" in parsed_config.name
     assert parsed_config.backend == "fil"
 
 
@@ -121,16 +124,18 @@ def test_export_merlin_models(tmpdir):
     feature_names = [str(i) for i in range(num_features)]
     input_schema = Schema([ColumnSchema(col, dtype=np.float32) for col in feature_names])
     output_schema = Schema([ColumnSchema("output__0", dtype=np.float32)])
-    _ = PredictForest(model, input_schema).export(tmpdir, input_schema, output_schema, node_id=2)
+    _ = PredictForestTriton(PredictForest(model, input_schema)).export(
+        tmpdir, input_schema, output_schema, node_id=2
+    )
 
-    config_path = tmpdir / "2_predictforest" / "config.pbtxt"
+    config_path = tmpdir / "2_predictforesttriton" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "2_predictforest"
+    assert "2_predictforest" in parsed_config.name
     assert parsed_config.backend == "python"
 
-    config_path = tmpdir / "2_fil" / "config.pbtxt"
+    config_path = tmpdir / "2_filtriton" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "2_fil"
+    assert "2_fil" in parsed_config.name
     assert parsed_config.backend == "fil"
 
 
@@ -164,14 +169,14 @@ def test_ensemble(tmpdir):
 
     triton_ens.export(tmpdir)
 
-    config_path = tmpdir / "1_predictforest" / "config.pbtxt"
+    config_path = tmpdir / "1_predictforesttriton" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "1_predictforest"
+    assert "1_predictforest" in parsed_config.name
     assert parsed_config.backend == "python"
 
-    config_path = tmpdir / "1_fil" / "config.pbtxt"
+    config_path = tmpdir / "1_filtriton" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "1_fil"
+    assert "1_fil" in parsed_config.name
     assert parsed_config.backend == "fil"
 
     config_path = tmpdir / "0_transformworkflow" / "config.pbtxt"

@@ -15,10 +15,10 @@
 #
 from typing import List
 
-from merlin.systems.dag.ops.operator import InferenceOperator
+from merlin.systems.dag.ops.operator import InferenceOperator, PipelineableInferenceOperator
 
 
-class TritonOperator:
+class TritonOperator(PipelineableInferenceOperator):
     """Base class for Triton operators."""
 
     def __init__(self, base_op: InferenceOperator):
