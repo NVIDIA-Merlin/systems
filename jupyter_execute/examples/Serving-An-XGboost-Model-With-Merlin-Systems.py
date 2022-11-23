@@ -59,7 +59,7 @@
 # 
 # If you would like to learn more about training an `XGBoost` model using the Merlin Models library, please consult this [tutorial](https://github.com/NVIDIA-Merlin/models/blob/main/examples/07-Train-an-xgboost-model-using-the-Merlin-Models-API.ipynb).
 
-# In[3]:
+# In[ ]:
 
 
 from merlin.core.utils import Distributed
@@ -69,6 +69,16 @@ import numpy as np
 from merlin.schema.tags import Tags
 
 from merlin.datasets.entertainment import get_movielens
+
+
+# In[ ]:
+
+
+ensemble_export_path = os.environ.get("OUTPUT_DATA_DIR", "ensemble")
+
+
+# In[3]:
+
 
 train, _ = get_movielens(variant='ml-100k')
 
@@ -127,10 +137,8 @@ inf_ops = inf_workflow.input_schema.column_names >> TransformWorkflow(inf_workfl
 # In[6]:
 
 
-export_path = 'ensemble'
-
 ensemble = Ensemble(inf_ops, inf_workflow.input_schema)
-ensemble.export(export_path);
+ensemble.export(ensemble_export_path);
 
 
 # ## Starting the Triton Inference Server

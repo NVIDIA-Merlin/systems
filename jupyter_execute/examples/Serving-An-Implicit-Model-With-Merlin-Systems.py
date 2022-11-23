@@ -62,12 +62,24 @@
 # In[ ]:
 
 
+import os
 import nvtabular as nvt
 import numpy as np
 from merlin.schema.tags import Tags
 from merlin.models.implicit import BayesianPersonalizedRanking
 
 from merlin.datasets.entertainment import get_movielens
+
+
+# In[ ]:
+
+
+ensemble_export_path = os.environ.get("OUTPUT_DATA_DIR", "ensemble")
+USE_GPU = bool(int(os.environ.get("USE_GPU", "1")))
+
+
+# In[ ]:
+
 
 train, _ = get_movielens(variant='ml-100k')
 
@@ -86,7 +98,7 @@ train_transformed = train_workflow.fit_transform(train)
 # In[2]:
 
 
-model = BayesianPersonalizedRanking(use_gpu=True)
+model = BayesianPersonalizedRanking(use_gpu=USE_GPU)
 model.fit(train_transformed)
 
 
@@ -130,10 +142,8 @@ inf_ops = inf_workflow.input_schema.column_names >> TransformWorkflow(inf_workfl
 # In[5]:
 
 
-export_path = 'ensemble'
-
 ensemble = Ensemble(inf_ops, inf_workflow.input_schema)
-ensemble.export(export_path);
+ensemble.export(ensemble_export_path);
 
 
 # ## Starting the Triton Inference Server
@@ -167,7 +177,7 @@ ensemble.export(export_path);
 # In[6]:
 
 
-ten_examples = train.compute()['user_id'].sample(10).sort_values().to_frame().reset_index(drop=True)
+ten_examples = train.compute()['user_id'].unique().sample(10).sort_values().to_frame().reset_index(drop=True)
 ten_examples
 
 
@@ -207,7 +217,7 @@ local_predictions = model.predict(inf_workflow.transform(nvt.Dataset(ten_example
 # In[10]:
 
 
-assert np.allclose(predictions_from_triton, local_predictions)
+np.testing.assert_allclose(predictions_from_triton, local_predictions)
 
 
 # We managed to preprocess the data in the same way in serving as we did during training and obtain the same predictions!
