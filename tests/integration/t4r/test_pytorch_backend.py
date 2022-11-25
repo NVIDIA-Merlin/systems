@@ -16,6 +16,7 @@
 
 import pytest
 
+np = pytest.importorskip("numpy")
 torch = pytest.importorskip("torch")
 t4r = pytest.importorskip("transformers4rec")
 tr = pytest.importorskip("transformers4rec.torch")
@@ -58,19 +59,16 @@ def test_serve_t4r_with_torchscript(tmpdir):
         d_output=64,
         masking="causal",
     )
-    prediction_task = t4r.torch.NextItemPredictionTask(hf_format=True, weight_tying=True)
+    prediction_task = t4r.torch.NextItemPredictionTask(weight_tying=True)
     transformer_config = t4r.config.transformer.XLNetConfig.build(
         d_model=64, n_head=8, n_layer=2, total_seq_length=20
     )
     model = transformer_config.to_torch_model(input_module, prediction_task)
     model = model.cuda()
 
-    _ = model(torch_yoochoose_like, training=False)
+    _ = model(torch_yoochoose_like)
 
     model.eval()
-    # set hf_format property to ensure model outputs tensor of predictions and not the dict
-    # expected by hugging face
-    model.hf_format = False
 
     traced_model = torch.jit.trace(model, torch_yoochoose_like, strict=True)
     assert isinstance(traced_model, torch.jit.TopLevelTracedModule)
@@ -118,8 +116,14 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # ===========================================
     # Send request to Triton and check response
     # ===========================================
-    response = run_ensemble_on_tritonserver(
+    triton_response = run_ensemble_on_tritonserver(
         tmpdir, input_schema, df, output_schema.column_names, "ensemble_model"
     )
 
-    assert response
+    assert triton_response
+
+    preds_triton = triton_response[output_schema.column_names[0]]
+
+    preds_model = model(request_data).cpu().detach().numpy()
+
+    np.testing.assert_allclose(preds_triton, preds_model)
