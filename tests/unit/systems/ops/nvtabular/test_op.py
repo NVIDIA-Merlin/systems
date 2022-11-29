@@ -29,7 +29,8 @@ from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
 
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")
-workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
+wf_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
+wf_triton_op = pytest.importorskip("merlin.systems.dag.runtimes.triton.ops.workflow")
 
 
 @pytest.mark.parametrize("engine", ["parquet"])
@@ -43,7 +44,7 @@ def test_workflow_op_validates_schemas(dataset, engine):
     workflow.fit(dataset)
 
     # Triton
-    triton_ops = ["a", "b", "c"] >> workflow_op.TransformWorkflow(workflow)
+    triton_ops = ["a", "b", "c"] >> wf_triton_op.TransformWorkflowTriton(wf_op.TransformWorkflow(workflow))
 
     with pytest.raises(ValueError) as exc_info:
         ensemble.Ensemble(triton_ops, request_schema)
@@ -60,7 +61,7 @@ def test_workflow_op_exports_own_config(tmpdir, dataset, engine):
     workflow.fit(dataset)
 
     # Triton
-    triton_op = workflow_op.TransformWorkflow(workflow)
+    triton_op = wf_triton_op.TransformWorkflowTriton(wf_op.TransformWorkflow(workflow))
     triton_op.export(tmpdir, None, None)
 
     # Export creates directory

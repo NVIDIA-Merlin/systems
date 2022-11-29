@@ -68,7 +68,10 @@ class TransformWorkflow(PipelineableInferenceOperator):
         """
         super().__init__()
 
-        self.workflow = workflow
+
+        self.workflow = workflow 
+        if label_columns:
+            self.workflow = workflow.remove_inputs(self.label_columns)
         self._nvt_model_name = None
         self.sparse_max = sparse_max or {}
         self.max_batch_size = max_batch_size
@@ -76,25 +79,10 @@ class TransformWorkflow(PipelineableInferenceOperator):
         self.model_framework = model_framework or ""
         self.cats = cats or []
         self.conts = conts or []
-        self._python = backend == "python"
 
-        if workflow is not None:
-            self.input_schema = workflow.input_schema
-            self.output_schema = workflow.output_schema
-
-    def transform(self, col_selector: ColumnSelector, transformable: Transformable):
-        inference_request = dict_array_to_triton_request(
-            self._nvt_model_name,
-            transformable,
-            self.input_schema.column_names,
-            self.output_schema.column_names,
-        )
-
-        inference_response = inference_request.exec()
-
-        return triton_response_to_dict_array(
-            inference_response, type(transformable), self.output_schema.column_names
-        )
+        if self.workflow is not None:
+            self.input_schema = self.workflow.input_schema
+            self.output_schema = self.workflow.output_schema
 
     @property
     def nvt_model_name(self):
@@ -120,16 +108,5 @@ class TransformWorkflow(PipelineableInferenceOperator):
         backend: str = "ensemble",
     ):
         """Create a directory inside supplied path based on our export name"""
-        modified_workflow = self.workflow.remove_inputs(self.label_columns)
-
-        node_name = f"{node_id}_{export_name}" if node_id is not None else self.export_name
-        node_export_path = pathlib.Path(path) / node_name
-        version_path = node_export_path / str(version)
-        version_path.mkdir(parents=True, exist_ok=True)
-
-        
-        modified_workflow.save(version_path)
-
-
-        return version_path
+        raise NotImplementedError
 
