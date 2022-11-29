@@ -15,18 +15,16 @@
 #
 import json
 import pathlib
-from typing import List
 
 from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import PipelineableInferenceOperator  # noqa
+from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator
 from merlin.systems.triton.conversions import (
     dict_array_to_triton_request,
     triton_response_to_dict_array,
 )
 from merlin.systems.triton.export import generate_nvtabular_model
-from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator
 
 
 class TransformWorkflowTriton(TritonOperator):
@@ -35,10 +33,7 @@ class TransformWorkflowTriton(TritonOperator):
     execute feature engineering during ensemble on tritonserver.
     """
 
-    def __init__(
-        self,
-        op
-    ):
+    def __init__(self, op):
         """
         Creates a Transform Workflow operator for a target workflow.
 
@@ -69,6 +64,17 @@ class TransformWorkflowTriton(TritonOperator):
             self.output_schema = op.workflow.output_schema
 
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
+        """Transform the dataframe by applying this FIL operator to the set of input columns.
+
+        Parameters
+        -----------
+        df: DictArray
+            A pandas or cudf dataframe that this operator will work on
+
+        Returns
+        -------
+        DictArray
+            Returns a transformed dataframe for this operator"""
         inference_request = dict_array_to_triton_request(
             self._nvt_model_name,
             transformable,
@@ -83,7 +89,7 @@ class TransformWorkflowTriton(TritonOperator):
         )
 
     @classmethod
-    def from_config(cls, config: dict, **kwargs) -> "TransformWorkflow":
+    def from_config(cls, config: dict, **kwargs) -> "TransformWorkflowTriton":
         """Instantiate the class from a dictionary representation.
 
         Expected structure:
@@ -106,7 +112,7 @@ class TransformWorkflowTriton(TritonOperator):
             for name, schema_properties in json.loads(config["output_dict"]).items()
         ]
         output_schema = Schema(output_column_schemas)
-
+        cls_instance = cls(None)
         cls_instance.input_schema = input_schema
         cls_instance.output_schema = output_schema
 
@@ -117,9 +123,11 @@ class TransformWorkflowTriton(TritonOperator):
 
     @property
     def nvt_model_name(self):
+        """The name of the model held by the operator"""
         return self._nvt_model_name
 
     def set_nvt_model_name(self, nvt_model_name):
+        """Set the name of the model held by the operator"""
         self._nvt_model_name = nvt_model_name
 
     def compute_output_schema(
