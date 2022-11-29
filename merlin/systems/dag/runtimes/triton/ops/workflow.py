@@ -26,9 +26,10 @@ from merlin.systems.triton.conversions import (
     triton_response_to_dict_array,
 )
 from merlin.systems.triton.export import generate_nvtabular_model
+from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator
 
 
-class TransformWorkflow(PipelineableInferenceOperator):
+class TransformWorkflowTriton(TritonOperator):
     """
     This operator takes a workflow and turns it into a ensemble operator so that we can
     execute feature engineering during ensemble on tritonserver.
@@ -36,14 +37,7 @@ class TransformWorkflow(PipelineableInferenceOperator):
 
     def __init__(
         self,
-        workflow=None,
-        sparse_max: dict = None,
-        max_batch_size: int = None,
-        label_columns: List[str] = None,
-        model_framework: str = None,
-        cats: List[str] = None,
-        conts: List[str] = None,
-        backend: str = "workflow",
+        op
     ):
         """
         Creates a Transform Workflow operator for a target workflow.
@@ -66,21 +60,13 @@ class TransformWorkflow(PipelineableInferenceOperator):
         conts : List[str], optional
             List of string identifying continuous columns, by default None
         """
-        super().__init__()
+        super().__init__(op)
 
-        self.workflow = workflow
         self._nvt_model_name = None
-        self.sparse_max = sparse_max or {}
-        self.max_batch_size = max_batch_size
-        self.label_columns = label_columns or []
-        self.model_framework = model_framework or ""
-        self.cats = cats or []
-        self.conts = conts or []
-        self._python = backend == "python"
 
-        if workflow is not None:
-            self.input_schema = workflow.input_schema
-            self.output_schema = workflow.output_schema
+        if op.workflow is not None:
+            self.input_schema = op.workflow.input_schema
+            self.output_schema = op.workflow.output_schema
 
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
         inference_request = dict_array_to_triton_request(
@@ -96,6 +82,39 @@ class TransformWorkflow(PipelineableInferenceOperator):
             inference_response, type(transformable), self.output_schema.column_names
         )
 
+    @classmethod
+    def from_config(cls, config: dict, **kwargs) -> "TransformWorkflow":
+        """Instantiate the class from a dictionary representation.
+
+        Expected structure:
+        {
+            "input_dict": str  # JSON dict with input names and schemas
+            "params": str  # JSON dict with params saved at export
+        }
+
+        """
+        # Input schema
+        input_column_schemas = [
+            ColumnSchema(name, **schema_properties)
+            for name, schema_properties in json.loads(config["input_dict"]).items()
+        ]
+        input_schema = Schema(input_column_schemas)
+
+        # Output schema
+        output_column_schemas = [
+            ColumnSchema(name, **schema_properties)
+            for name, schema_properties in json.loads(config["output_dict"]).items()
+        ]
+        output_schema = Schema(output_column_schemas)
+
+        cls_instance.input_schema = input_schema
+        cls_instance.output_schema = output_schema
+
+        params = json.loads(config["params"])
+        cls_instance.set_nvt_model_name(params["nvt_model_name"])
+
+        return cls_instance
+
     @property
     def nvt_model_name(self):
         return self._nvt_model_name
@@ -107,7 +126,7 @@ class TransformWorkflow(PipelineableInferenceOperator):
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
         """Returns output schema of operator"""
-        return self.workflow.output_schema
+        return self.op.workflow.output_schema
 
     def export(
         self,
@@ -120,16 +139,21 @@ class TransformWorkflow(PipelineableInferenceOperator):
         backend: str = "ensemble",
     ):
         """Create a directory inside supplied path based on our export name"""
-        modified_workflow = self.workflow.remove_inputs(self.label_columns)
-
-        node_name = f"{node_id}_{export_name}" if node_id is not None else self.export_name
+        modified_workflow = self.op.workflow.remove_inputs(self.op.label_columns)
+        export_name = self.__class__.__name__.lower()
+        node_name = f"{node_id}_{export_name}" if node_id is not None else export_name
+        self.set_nvt_model_name(node_name)
         node_export_path = pathlib.Path(path) / node_name
-        version_path = node_export_path / str(version)
-        version_path.mkdir(parents=True, exist_ok=True)
+        node_export_path.mkdir(parents=True, exist_ok=True)
 
-        
-        modified_workflow.save(version_path)
+        backend_model_config = generate_nvtabular_model(
+            modified_workflow,
+            node_name,
+            node_export_path,
+            sparse_max=self.op.sparse_max,
+            max_batch_size=self.op.max_batch_size,
+            cats=self.op.cats,
+            conts=self.op.conts,
+        )
 
-
-        return version_path
-
+        return backend_model_config

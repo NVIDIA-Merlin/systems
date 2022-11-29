@@ -27,6 +27,7 @@ from tritonclient import grpc as grpcclient  # noqa
 from merlin.systems.triton.utils import run_triton_server  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
+from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
@@ -37,7 +38,14 @@ workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.parametrize("engine", ["parquet"])
-def test_workflow_op_serving_python(tmpdir, dataset, engine):
+@pytest.mark.parametrize(
+    ["runtime", "model_name", "expected_model_name"],
+    [
+        (TritonEnsembleRuntime(), None, "ensemble_model"),
+        (TritonExecutorRuntime(), None, "executor_model"),
+    ],
+)
+def test_workflow_op_serving_triton(tmpdir, dataset, engine, runtime, model_name, expected_model_name):
     input_columns = ["x", "y", "id"]
 
     # NVT
@@ -53,7 +61,9 @@ def test_workflow_op_serving_python(tmpdir, dataset, engine):
     )
 
     wkflow_ensemble = ensemble.Ensemble(triton_op, workflow.input_schema)
-    ens_config, node_configs = wkflow_ensemble.export(tmpdir)
+    ens_config, node_configs = wkflow_ensemble.export(tmpdir, runtime=runtime, name=model_name)
+
+    assert ens_config.name == expected_model_name
 
     input_data = {}
     inputs = []
@@ -68,6 +78,7 @@ def test_workflow_op_serving_python(tmpdir, dataset, engine):
         triton_input.set_data_from_numpy(input_data[col_name])
 
         inputs.append(triton_input)
+
 
     outputs = []
     for col_name in workflow.output_schema.column_names:
