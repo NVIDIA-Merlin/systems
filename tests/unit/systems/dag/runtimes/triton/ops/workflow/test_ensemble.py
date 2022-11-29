@@ -13,21 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 from distutils.spawn import find_executable  # pylint: disable=deprecated-module
 
 import numpy as np
 import pytest
+from tritonclient import grpc as grpcclient
 
-# this needs to be before any modules that import protobuf
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
-
-from tritonclient import grpc as grpcclient  # noqa
-
-from merlin.systems.triton.utils import run_triton_server  # noqa
-from nvtabular import Workflow  # noqa
-from nvtabular import ops as wf_ops  # noqa
 from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
+from merlin.systems.triton.utils import run_triton_server
+from nvtabular import Workflow
+from nvtabular import ops as wf_ops
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
@@ -45,7 +40,9 @@ workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
         (TritonExecutorRuntime(), None, "executor_model"),
     ],
 )
-def test_workflow_op_serving_triton(tmpdir, dataset, engine, runtime, model_name, expected_model_name):
+def test_workflow_op_serving_triton(
+    tmpdir, dataset, engine, runtime, model_name, expected_model_name
+):
     input_columns = ["x", "y", "id"]
 
     # NVT
@@ -78,7 +75,6 @@ def test_workflow_op_serving_triton(tmpdir, dataset, engine, runtime, model_name
         triton_input.set_data_from_numpy(input_data[col_name])
 
         inputs.append(triton_input)
-
 
     outputs = []
     for col_name in workflow.output_schema.column_names:

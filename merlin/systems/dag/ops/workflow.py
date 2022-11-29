@@ -13,19 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
-import pathlib
 from typing import List
 
-from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector
-from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import PipelineableInferenceOperator  # noqa
-from merlin.systems.triton.conversions import (
-    dict_array_to_triton_request,
-    triton_response_to_dict_array,
-)
-from merlin.systems.triton.export import generate_nvtabular_model
+from merlin.schema import Schema
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 
 class TransformWorkflow(PipelineableInferenceOperator):
@@ -68,10 +60,9 @@ class TransformWorkflow(PipelineableInferenceOperator):
         """
         super().__init__()
 
-
-        self.workflow = workflow 
+        self.workflow = workflow
         if label_columns:
-            self.workflow = workflow.remove_inputs(self.label_columns)
+            self.workflow = workflow.remove_inputs(label_columns)
         self._nvt_model_name = None
         self.sparse_max = sparse_max or {}
         self.max_batch_size = max_batch_size
@@ -109,4 +100,3 @@ class TransformWorkflow(PipelineableInferenceOperator):
     ):
         """Create a directory inside supplied path based on our export name"""
         raise NotImplementedError
-

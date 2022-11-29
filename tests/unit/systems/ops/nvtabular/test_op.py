@@ -44,7 +44,9 @@ def test_workflow_op_validates_schemas(dataset, engine):
     workflow.fit(dataset)
 
     # Triton
-    triton_ops = ["a", "b", "c"] >> wf_triton_op.TransformWorkflowTriton(wf_op.TransformWorkflow(workflow))
+    triton_ops = ["a", "b", "c"] >> wf_triton_op.TransformWorkflowTriton(
+        wf_op.TransformWorkflow(workflow)
+    )
 
     with pytest.raises(ValueError) as exc_info:
         ensemble.Ensemble(triton_ops, request_schema)

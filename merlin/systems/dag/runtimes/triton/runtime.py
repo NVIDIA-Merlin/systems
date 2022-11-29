@@ -33,13 +33,14 @@ from merlin.systems.dag.ops.compat import (
     xgboost,
 )
 from merlin.systems.dag.ops.operator import add_model_param
-from merlin.systems.dag.runtimes import Runtime
 from merlin.systems.dag.ops.workflow import TransformWorkflow
+from merlin.systems.dag.runtimes import Runtime
 from merlin.systems.dag.runtimes.triton.ops.workflow import TransformWorkflowTriton
 
 tensorflow = None
 try:
     from nvtabular.loader.tf_utils import configure_tensorflow
+
     # everything tensorflow related must be imported after this.
     configure_tensorflow()
     import tensorflow
@@ -60,7 +61,6 @@ if tensorflow:
     from merlin.systems.dag.runtimes.triton.ops.tensorflow import PredictTensorflowTriton
 
     TRITON_OP_TABLE[PredictTensorflow] = PredictTensorflowTriton
-
 
 
 class TritonEnsembleRuntime(Runtime):
