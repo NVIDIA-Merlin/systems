@@ -66,6 +66,7 @@ def run_triton_server(
         f"--backend-config={backend_config}",
         f"--grpc-port={grpc_port}",
         f"--grpc-address={grpc_host}",
+        "--cuda-memory-pool-byte-size=0:536870912",
     ]
     env = os.environ.copy()
     env["CUDA_VISIBLE_DEVICES"] = "0"
