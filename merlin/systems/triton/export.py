@@ -709,7 +709,7 @@ def _add_model_param(col_schema, paramclass, params, dims=None):
 
 def _convert_dtype(dtype):
     """converts a dtype to the appropriate triton proto type"""
-    dtype = merlin_dtype(dtype)
+    dtype = merlin_dtype(dtype)  # pylint:disable=not-callable
     try:
         return dtype.to("triton")
     except ValueError:
