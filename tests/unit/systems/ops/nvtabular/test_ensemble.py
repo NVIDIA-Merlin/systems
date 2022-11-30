@@ -58,7 +58,7 @@ def test_workflow_op_serving_python(tmpdir, dataset, engine):
     input_data = {}
     inputs = []
     for col_name, col_schema in workflow.input_schema.column_schemas.items():
-        col_dtype = col_schema.dtype
+        col_dtype = col_schema.dtype.to_numpy
         input_data[col_name] = np.array([[2], [3], [4]]).astype(col_dtype)
 
         triton_input = grpcclient.InferInput(
