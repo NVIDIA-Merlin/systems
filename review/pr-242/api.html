@@ -49,7 +49,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#ensemble-graph-constructors">Ensemble Graph Constructors</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ensemble-operator-constructors">Ensemble Operator Constructors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#persist-workflows-and-ensembles">Persist Workflows and Ensembles</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#conversion-functions-for-triton-inference-server">Conversion Functions for Triton Inference Server</a></li>
 </ul>
 </li>
@@ -122,26 +121,6 @@
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures" title="merlin.systems.dag.ops.unroll_features.UnrollFeatures"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unroll_features.UnrollFeatures</span></code></a>(item_id_col, …)</p></td>
 <td><p>This operator takes a target column and joins the “unroll” columns to the target.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="persist-workflows-and-ensembles">
-<h2>Persist Workflows and Ensembles<a class="headerlink" href="#persist-workflows-and-ensembles" title="Permalink to this headline"></a></h2>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/merlin.systems.triton.export_tensorflow_ensemble.html#merlin.systems.triton.export_tensorflow_ensemble" title="merlin.systems.triton.export_tensorflow_ensemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_tensorflow_ensemble</span></code></a>(model, workflow, …)</p></td>
-<td><p>Creates an ensemble triton server model, with the first model being a nvtabular preprocessing, and the second by a tensorflow savedmodel</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/merlin.systems.triton.export_pytorch_ensemble.html#merlin.systems.triton.export_pytorch_ensemble" title="merlin.systems.triton.export_pytorch_ensemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_pytorch_ensemble</span></code></a>(model, workflow, …)</p></td>
-<td><p>Creates an ensemble triton server model, with the first model being a nvtabular preprocessing, and the second by a pytorch savedmodel</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/merlin.systems.triton.export_hugectr_ensemble.html#merlin.systems.triton.export_hugectr_ensemble" title="merlin.systems.triton.export_hugectr_ensemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_hugectr_ensemble</span></code></a>(workflow, …[, …])</p></td>
-<td><p>Creates an ensemble hugectr server model, with the first model being a nvtabular preprocessing, and the second by a hugectr savedmodel</p></td>
 </tr>
 </tbody>
 </table>
