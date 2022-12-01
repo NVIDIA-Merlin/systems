@@ -14,26 +14,13 @@
 # limitations under the License.
 #
 import os
-import pathlib
-from shutil import copyfile
-
-# this needs to be before any modules that import protobuf
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 import torch  # noqa
 import torch.utils.dlpack  # noqa
-import tritonclient.grpc.model_config_pb2 as model_config  # noqa
-from google.protobuf import text_format  # noqa
 
-from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
-from merlin.systems.dag.ops import compute_dims  # noqa
-from merlin.systems.dag.ops.operator import PipelineableInferenceOperator, add_model_param  # noqa
-from merlin.systems.triton.conversions import (  # noqa
-    dict_array_to_triton_request,
-    triton_response_to_dict_array,
-)
+from merlin.systems.dag.ops.operator import PipelineableInferenceOperator  # noqa
 
 
 class PredictPyTorch(PipelineableInferenceOperator):
@@ -86,35 +73,6 @@ class PredictPyTorch(PipelineableInferenceOperator):
     def __getstate__(self):
         return {k: v for k, v in self.__dict__.items() if k != "model"}
 
-    @property
-    def torch_model_name(self):
-        return self._torch_model_name
-
-    def set_torch_model_name(self, torch_model_name):
-        """
-        Set the name of the Triton model to use
-
-        Parameters
-        ----------
-        torch_model_name : str
-            Triton model directory name
-        """
-        self._torch_model_name = torch_model_name
-
-    def transform(self, col_selector: ColumnSelector, transformable: Transformable):
-        inference_request = dict_array_to_triton_request(
-            self.torch_model_name,
-            transformable,
-            self.input_schema.column_names,
-            self.output_schema.column_names,
-        )
-
-        inference_response = inference_request.exec()
-
-        return triton_response_to_dict_array(
-            inference_response, type(transformable), self.output_schema.column_names
-        )
-
     def compute_input_schema(
         self,
         root_schema: Schema,
@@ -134,104 +92,6 @@ class PredictPyTorch(PipelineableInferenceOperator):
         Use the output schema supplied during object creation.
         """
         return self.output_schema
-
-    @property
-    def exportable_backends(self):
-        return ["ensemble", "executor"]
-
-    def export(
-        self,
-        path: str,
-        input_schema: Schema,
-        output_schema: Schema,
-        params: dict = None,
-        node_id: int = None,
-        version: int = 1,
-        backend: str = "ensemble",
-    ):
-        """Create a directory inside supplied path based on our export name"""
-        export_name = self.__class__.__name__.lower()
-        node_name = f"{node_id}_{export_name}" if node_id is not None else export_name
-
-        node_export_path = pathlib.Path(path) / node_name
-        node_export_path.mkdir(exist_ok=True)
-
-        export_model_path = pathlib.Path(node_export_path) / str(version)
-        export_model_path.mkdir(exist_ok=True)
-
-        if self.path:
-            copyfile(
-                str(self.path),
-                export_model_path / "model.pt",
-            )
-        else:
-            self.model.save(export_model_path / "model.pt")
-
-        self.set_torch_model_name(node_name)
-        backend_model_config = self._export_model_config(node_name, node_export_path)
-        return backend_model_config
-
-    @property
-    def export_name(self):
-        """
-        Provides a clear common english identifier for this operator.
-
-        Returns
-        -------
-        String
-            Name of the current class as spelled in module.
-        """
-        return self.__class__.__name__.lower()
-
-    def _export_model_config(self, name, output_path):
-        """Exports a PyTorch model for serving with Triton
-
-        Parameters
-        ----------
-        name:
-            The name of the triton model to export
-        output_path:
-            The path to write the exported model to
-        """
-        config = self._export_torchscript_config(name, output_path)
-
-        return config
-
-    def _export_torchscript_config(self, name, output_path):
-        """Exports a PyTorch model for serving with Triton
-
-        Parameters
-        ----------
-        name:
-            The name of the triton model to export
-        output_path:
-            The path to write the exported model to
-        """
-        config = model_config.ModelConfig(name=name)
-
-        config.backend = "pytorch"
-        config.platform = "pytorch_libtorch"
-        config.parameters["INFERENCE_MODE"].string_value = "true"
-
-        for _, col_schema in self.input_schema.column_schemas.items():
-            add_model_param(
-                config.input,
-                model_config.ModelInput,
-                col_schema,
-                compute_dims(col_schema),
-            )
-
-        for _, col_schema in self.output_schema.column_schemas.items():
-            add_model_param(
-                config.output,
-                model_config.ModelOutput,
-                col_schema,
-                compute_dims(col_schema),
-            )
-
-        with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
-            text_format.PrintMessage(config, o)
-        return config
 
     @property
     def scalar_shape(self):

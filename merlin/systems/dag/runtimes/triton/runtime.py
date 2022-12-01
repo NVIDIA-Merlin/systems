@@ -47,6 +47,13 @@ try:
 except ImportError:
     ...
 
+torch = None
+try:
+    import torch
+except ImportError:
+    ...
+
+
 TRITON_OP_TABLE = {}
 
 if cuml_ensemble or lightgbm or sklearn_ensemble or treelite_sklearn or xgboost:
@@ -60,6 +67,12 @@ if tensorflow:
     from merlin.systems.dag.runtimes.triton.ops.tensorflow import PredictTensorflowTriton
 
     TRITON_OP_TABLE[PredictTensorflow] = PredictTensorflowTriton
+
+if torch:
+    from merlin.systems.dag.ops.pytorch import PredictPyTorch
+    from merlin.systems.dag.runtimes.triton.ops.pytorch import PredictPyTorchTriton
+
+    TRITON_OP_TABLE[PredictPyTorch] = PredictPyTorchTriton
 
 
 class TritonEnsembleRuntime(Runtime):
