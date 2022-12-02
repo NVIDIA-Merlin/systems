@@ -33,9 +33,9 @@ from merlin.systems.dag.ops.compat import (
     xgboost,
 )
 from merlin.systems.dag.ops.operator import add_model_param
+from merlin.systems.dag.ops.workflow import TransformWorkflow
 from merlin.systems.dag.runtimes import Runtime
-
-# Should this have an import if statement? XGboost, sklearn, CUML???
+from merlin.systems.dag.runtimes.triton.ops.workflow import TransformWorkflowTriton
 
 tensorflow = None
 try:
@@ -55,6 +55,7 @@ except ImportError:
 
 
 TRITON_OP_TABLE = {}
+TRITON_OP_TABLE[TransformWorkflow] = TransformWorkflowTriton
 
 if cuml_ensemble or lightgbm or sklearn_ensemble or treelite_sklearn or xgboost:
     from merlin.systems.dag.ops.fil import PredictForest
