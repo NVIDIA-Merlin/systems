@@ -87,19 +87,11 @@
 <span class="c1"># See the License for the specific language governing permissions and</span>
 <span class="c1"># limitations under the License.</span>
 <span class="c1">#</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">pathlib</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">from</span> <span class="nn">merlin.core.protocols</span> <span class="kn">import</span> <span class="n">Transformable</span>  <span class="c1"># noqa</span>
 <span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">ColumnSelector</span>
-<span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">ColumnSchema</span><span class="p">,</span> <span class="n">Schema</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">PipelineableInferenceOperator</span>  <span class="c1"># noqa</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.triton.conversions</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">dict_array_to_triton_request</span><span class="p">,</span>
-    <span class="n">triton_response_to_dict_array</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.triton.export</span> <span class="kn">import</span> <span class="n">generate_nvtabular_model</span>
+<span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">Schema</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">PipelineableInferenceOperator</span>
 
 
 <div class="viewcode-block" id="TransformWorkflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow">[docs]</a><span class="k">class</span> <span class="nc">TransformWorkflow</span><span class="p">(</span><span class="n">PipelineableInferenceOperator</span><span class="p">):</span>
@@ -143,6 +135,8 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span> <span class="o">=</span> <span class="n">workflow</span>
+        <span class="k">if</span> <span class="n">label_columns</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">remove_inputs</span><span class="p">(</span><span class="n">label_columns</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nvt_model_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sparse_max</span> <span class="o">=</span> <span class="n">sparse_max</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_batch_size</span> <span class="o">=</span> <span class="n">max_batch_size</span>
@@ -150,61 +144,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model_framework</span> <span class="o">=</span> <span class="n">model_framework</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cats</span> <span class="o">=</span> <span class="n">cats</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conts</span> <span class="o">=</span> <span class="n">conts</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_python</span> <span class="o">=</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;python&quot;</span>
 
-        <span class="k">if</span> <span class="n">workflow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">input_schema</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span> <span class="o">=</span> <span class="n">workflow</span><span class="o">.</span><span class="n">output_schema</span></div>
-
-<div class="viewcode-block" id="TransformWorkflow.transform"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">transformable</span><span class="p">:</span> <span class="n">Transformable</span><span class="p">):</span>
-        <span class="n">inference_request</span> <span class="o">=</span> <span class="n">dict_array_to_triton_request</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_nvt_model_name</span><span class="p">,</span>
-            <span class="n">transformable</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="n">inference_response</span> <span class="o">=</span> <span class="n">inference_request</span><span class="o">.</span><span class="n">exec</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="n">triton_response_to_dict_array</span><span class="p">(</span>
-            <span class="n">inference_response</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">transformable</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
-        <span class="p">)</span></div>
-
-<div class="viewcode-block" id="TransformWorkflow.from_config"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow.from_config">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;TransformWorkflow&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Instantiate the class from a dictionary representation.</span>
-
-<span class="sd">        Expected structure:</span>
-<span class="sd">        {</span>
-<span class="sd">            &quot;input_dict&quot;: str  # JSON dict with input names and schemas</span>
-<span class="sd">            &quot;params&quot;: str  # JSON dict with params saved at export</span>
-<span class="sd">        }</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Input schema</span>
-        <span class="n">input_column_schemas</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">ColumnSchema</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">schema_properties</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">schema_properties</span> <span class="ow">in</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;input_dict&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">]</span>
-        <span class="n">input_schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">(</span><span class="n">input_column_schemas</span><span class="p">)</span>
-
-        <span class="c1"># Output schema</span>
-        <span class="n">output_column_schemas</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">ColumnSchema</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">schema_properties</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">schema_properties</span> <span class="ow">in</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;output_dict&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-        <span class="p">]</span>
-        <span class="n">output_schema</span> <span class="o">=</span> <span class="n">Schema</span><span class="p">(</span><span class="n">output_column_schemas</span><span class="p">)</span>
-
-        <span class="c1"># This method only runs when we&#39;re loading the operator to run in Python,</span>
-        <span class="c1"># so it&#39;s safe to set a property on the object that tells us that</span>
-        <span class="n">cls_instance</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;python&quot;</span><span class="p">)</span>
-        <span class="n">cls_instance</span><span class="o">.</span><span class="n">input_schema</span> <span class="o">=</span> <span class="n">input_schema</span>
-        <span class="n">cls_instance</span><span class="o">.</span><span class="n">output_schema</span> <span class="o">=</span> <span class="n">output_schema</span>
-
-        <span class="n">params</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">])</span>
-        <span class="n">cls_instance</span><span class="o">.</span><span class="n">set_nvt_model_name</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;nvt_model_name&quot;</span><span class="p">])</span>
-
-        <span class="k">return</span> <span class="n">cls_instance</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input_schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">input_schema</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">output_schema</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nvt_model_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -230,50 +173,7 @@
         <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a directory inside supplied path based on our export name&quot;&quot;&quot;</span>
-        <span class="n">modified_workflow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">remove_inputs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_columns</span><span class="p">)</span>
-        <span class="n">export_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">export_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">export_name</span>
-
-        <span class="n">node_export_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">node_name</span>
-        <span class="n">node_export_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">backend_model_config</span> <span class="o">=</span> <span class="n">generate_nvtabular_model</span><span class="p">(</span>
-            <span class="n">modified_workflow</span><span class="p">,</span>
-            <span class="n">node_name</span><span class="p">,</span>
-            <span class="n">node_export_path</span><span class="p">,</span>
-            <span class="n">sparse_max</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_max</span><span class="p">,</span>
-            <span class="n">max_batch_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_batch_size</span><span class="p">,</span>
-            <span class="n">cats</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">cats</span><span class="p">,</span>
-            <span class="n">conts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conts</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_python</span><span class="p">:</span>
-            <span class="n">self_params</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;nvt_model_name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">export_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="n">python_config</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">export</span><span class="p">(</span>
-                <span class="n">path</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="n">output_schema</span><span class="p">,</span> <span class="n">self_params</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">version</span>
-            <span class="p">)</span>
-
-            <span class="k">return</span> <span class="n">python_config</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">backend_model_config</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">export_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Provides a clear common english identifier for this operator.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        String</span>
-<span class="sd">            Name of the current class as spelled in module.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">cls_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_python</span><span class="p">:</span>
-            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;py_</span><span class="si">{</span><span class="n">cls_name</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">cls_name</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 </pre></div>
 
            </div>
