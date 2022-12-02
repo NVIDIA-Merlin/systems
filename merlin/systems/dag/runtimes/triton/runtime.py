@@ -19,32 +19,61 @@ import pathlib
 from shutil import copyfile
 from typing import List, Tuple
 
-from merlin.dag import postorder_iter_nodes
+import tritonclient.grpc.model_config_pb2 as model_config
+from google.protobuf import text_format
 
-# this needs to be before any modules that import protobuf
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
-
-import tritonclient.grpc.model_config_pb2 as model_config  # noqa
-from google.protobuf import text_format  # noqa
-
-from merlin.core.protocols import Transformable  # noqa
-from merlin.dag import Graph  # noqa
-from merlin.systems.dag.ops import compute_dims  # noqa
-from merlin.systems.dag.ops.operator import add_model_param  # noqa
-from merlin.systems.dag.runtimes import Runtime  # noqa
-from merlin.systems.dag.runtimes.triton.ops.tensorflow import PredictTensorflowTriton  # noqa
+from merlin.core.protocols import Transformable
+from merlin.dag import Graph, postorder_iter_nodes
+from merlin.systems.dag.ops import compute_dims
+from merlin.systems.dag.ops.compat import (
+    cuml_ensemble,
+    lightgbm,
+    sklearn_ensemble,
+    treelite_sklearn,
+    xgboost,
+)
+from merlin.systems.dag.ops.operator import add_model_param
+from merlin.systems.dag.ops.workflow import TransformWorkflow
+from merlin.systems.dag.runtimes import Runtime
+from merlin.systems.dag.runtimes.triton.ops.workflow import TransformWorkflowTriton
 
 tensorflow = None
 try:
+    from nvtabular.loader.tf_utils import configure_tensorflow
+
+    # everything tensorflow related must be imported after this.
+    configure_tensorflow()
     import tensorflow
 except ImportError:
     ...
 
+torch = None
+try:
+    import torch
+except ImportError:
+    ...
+
+
 TRITON_OP_TABLE = {}
+TRITON_OP_TABLE[TransformWorkflow] = TransformWorkflowTriton
+
+if cuml_ensemble or lightgbm or sklearn_ensemble or treelite_sklearn or xgboost:
+    from merlin.systems.dag.ops.fil import PredictForest
+    from merlin.systems.dag.runtimes.triton.ops.fil import PredictForestTriton
+
+    TRITON_OP_TABLE[PredictForest] = PredictForestTriton
+
 if tensorflow:
     from merlin.systems.dag.ops.tensorflow import PredictTensorflow
+    from merlin.systems.dag.runtimes.triton.ops.tensorflow import PredictTensorflowTriton
 
     TRITON_OP_TABLE[PredictTensorflow] = PredictTensorflowTriton
+
+if torch:
+    from merlin.systems.dag.ops.pytorch import PredictPyTorch
+    from merlin.systems.dag.runtimes.triton.ops.pytorch import PredictPyTorchTriton
+
+    TRITON_OP_TABLE[PredictPyTorch] = PredictPyTorchTriton
 
 
 class TritonEnsembleRuntime(Runtime):

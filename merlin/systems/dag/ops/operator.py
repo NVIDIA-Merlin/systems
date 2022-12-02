@@ -170,11 +170,13 @@ class InferenceOperator(BaseOperator):
         """
         raise NotImplementedError(f"{cls.__name__} operators cannot be instantiated with a path.")
 
+    # TODO: This operator should be moved once all triton specific op migrations completed
     @property
     def scalar_shape(self):
         return [1]
 
 
+# TODO: This gets absorbed into TritonOperator after migration of all triton operators.
 class PipelineableInferenceOperator(InferenceOperator):
     """
     This Inference operator type builds on the base infrence operator, by allowing
