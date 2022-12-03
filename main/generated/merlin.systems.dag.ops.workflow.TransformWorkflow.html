@@ -136,8 +136,8 @@ execute feature engineering during ensemble on tritonserver.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.export" title="merlin.systems.dag.ops.workflow.TransformWorkflow.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(path, input_schema, output_schema[, …])</p></td>
 <td><p>Create a directory inside supplied path based on our export name</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.from_config" title="merlin.systems.dag.ops.workflow.TransformWorkflow.from_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code></a>(config, **kwargs)</p></td>
-<td><p>Instantiate the class from a dictionary representation.</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code>(config, **kwargs)</p></td>
+<td><p>Instantiate a class object given a config.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
 <td><p>Loads the InferenceOperator from the provided ModelRegistry.</p></td>
@@ -154,8 +154,8 @@ execute feature engineering during ensemble on tritonserver.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.set_nvt_model_name" title="merlin.systems.dag.ops.workflow.TransformWorkflow.set_nvt_model_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_nvt_model_name</span></code></a>(nvt_model_name)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.transform" title="merlin.systems.dag.ops.workflow.TransformWorkflow.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(col_selector, transformable)</p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code>(col_selector, transformable)</p></td>
+<td><p>Transform the dataframe by applying this operator to the set of input columns</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schemas</span></code>(parents_schema, …[, …])</p></td>
 <td><p>Provides a hook method that sub-classes can override to implement schema validation logic.</p></td>
@@ -175,7 +175,7 @@ execute feature engineering during ensemble on tritonserver.</p>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dynamic_dtypes</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.export_name" title="merlin.systems.dag.ops.workflow.TransformWorkflow.export_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_name</span></code></a></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_name</span></code></p></td>
 <td><p>Provides a clear common english identifier for this operator.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">exportable_backends</span></code></p></td>
@@ -205,24 +205,6 @@ execute feature engineering during ensemble on tritonserver.</p>
 </tbody>
 </table>
 <dl class="py method">
-<dt id="merlin.systems.dag.ops.workflow.TransformWorkflow.transform">
-<code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_selector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.dag.selector.ColumnSelector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.core.protocols.Transformable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/workflow.html#TransformWorkflow.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.transform" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="merlin.systems.dag.ops.workflow.TransformWorkflow.from_config">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow" title="merlin.systems.dag.ops.workflow.TransformWorkflow"><span class="pre">merlin.systems.dag.ops.workflow.TransformWorkflow</span></a><a class="reference internal" href="../_modules/merlin/systems/dag/ops/workflow.html#TransformWorkflow.from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.from_config" title="Permalink to this definition"></a></dt>
-<dd><p>Instantiate the class from a dictionary representation.</p>
-<p>Expected structure:
-{</p>
-<blockquote>
-<div><p>“input_dict”: str  # JSON dict with input names and schemas
-“params”: str  # JSON dict with params saved at export</p>
-</div></blockquote>
-<p>}</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="merlin.systems.dag.ops.workflow.TransformWorkflow.nvt_model_name">
 <em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">nvt_model_name</span></code><a class="headerlink" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.nvt_model_name" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
@@ -242,20 +224,6 @@ execute feature engineering during ensemble on tritonserver.</p>
 <dt id="merlin.systems.dag.ops.workflow.TransformWorkflow.export">
 <code class="sig-name descname"><span class="pre">export</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.schema.schema.Schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.schema.schema.Schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'ensemble'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/workflow.html#TransformWorkflow.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.export" title="Permalink to this definition"></a></dt>
 <dd><p>Create a directory inside supplied path based on our export name</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="merlin.systems.dag.ops.workflow.TransformWorkflow.export_name">
-<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">export_name</span></code><a class="headerlink" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.export_name" title="Permalink to this definition"></a></dt>
-<dd><p>Provides a clear common english identifier for this operator.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Name of the current class as spelled in module.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>String</p>
-</dd>
-</dl>
 </dd></dl>
 
 </dd></dl>
