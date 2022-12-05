@@ -55,32 +55,6 @@ model_input_schema = Schema(
 model_output_schema = Schema([ColumnSchema("OUTPUT__0", dtype=np.float32)])
 
 
-model_name = "example_model"
-model_config = """
-name: "example_model"
-platform: "pytorch_libtorch"
-input {
-  name: "input"
-  data_type: TYPE_FP32
-  dims: -1
-  dims: 3
-}
-output {
-  name: "OUTPUT__0"
-  data_type: TYPE_FP32
-  dims: -1
-  dims: 1
-}
-parameters {
-  key: "INFERENCE_MODE"
-  value {
-    string_value: "true"
-  }
-}
-backend: "pytorch"
-"""
-
-
 @pytest.mark.parametrize("torchscript", [True])
 @pytest.mark.parametrize("use_path", [True, False])
 @pytest.mark.parametrize("runtime", [(Runtime())])
