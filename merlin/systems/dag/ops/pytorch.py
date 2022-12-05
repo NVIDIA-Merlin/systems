@@ -15,11 +15,14 @@
 #
 import os
 
+import numpy as np
 import torch  # noqa
 import torch.utils.dlpack  # noqa
 
+from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
+from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator  # noqa
 
 
@@ -92,6 +95,17 @@ class PredictPyTorch(PipelineableInferenceOperator):
         Use the output schema supplied during object creation.
         """
         return self.output_schema
+
+    def transform(self, col_selector: ColumnSelector, transformable: Transformable):
+        tensor_dict = {}
+        for column in transformable.columns:
+            tensor_dict[column] = torch.from_numpy(np.squeeze(transformable[column].values))
+
+        result = self.model(tensor_dict)
+        output = {}
+        for idx, col in enumerate(self.output_schema.column_names):
+            output[col] = result[:, idx].detach().numpy()
+        return DictArray(output)
 
     @property
     def scalar_shape(self):
