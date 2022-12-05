@@ -26,7 +26,7 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 from google.protobuf import text_format  # noqa
 
-from merlin import dtype as merlin_dtype  # noqa
+import merlin.dtypes as md  # noqa
 from merlin.core.dispatch import is_string_dtype  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Tags  # noqa
@@ -709,7 +709,7 @@ def _add_model_param(col_schema, paramclass, params, dims=None):
 
 def _convert_dtype(dtype):
     """converts a dtype to the appropriate triton proto type"""
-    dtype = merlin_dtype(dtype)  # pylint:disable=not-callable
+    dtype = md.dtype(dtype)
     try:
         return dtype.to("triton")
     except ValueError:
