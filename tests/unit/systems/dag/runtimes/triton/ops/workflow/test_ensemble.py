@@ -13,20 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 from distutils.spawn import find_executable  # pylint: disable=deprecated-module
 
 import numpy as np
 import pytest
+from tritonclient import grpc as grpcclient
 
-# this needs to be before any modules that import protobuf
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
-
-from tritonclient import grpc as grpcclient  # noqa
-
-from merlin.systems.triton.utils import run_triton_server  # noqa
-from nvtabular import Workflow  # noqa
-from nvtabular import ops as wf_ops  # noqa
+from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
+from merlin.systems.triton.utils import run_triton_server
+from nvtabular import Workflow
+from nvtabular import ops as wf_ops
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
 
@@ -37,7 +33,16 @@ workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.parametrize("engine", ["parquet"])
-def test_workflow_op_serving_python(tmpdir, dataset, engine):
+@pytest.mark.parametrize(
+    ["runtime", "model_name", "expected_model_name"],
+    [
+        (TritonEnsembleRuntime(), None, "ensemble_model"),
+        (TritonExecutorRuntime(), None, "executor_model"),
+    ],
+)
+def test_workflow_op_serving_triton(
+    tmpdir, dataset, engine, runtime, model_name, expected_model_name
+):
     input_columns = ["x", "y", "id"]
 
     # NVT
@@ -53,7 +58,9 @@ def test_workflow_op_serving_python(tmpdir, dataset, engine):
     )
 
     wkflow_ensemble = ensemble.Ensemble(triton_op, workflow.input_schema)
-    ens_config, node_configs = wkflow_ensemble.export(tmpdir)
+    ens_config, node_configs = wkflow_ensemble.export(tmpdir, runtime=runtime, name=model_name)
+
+    assert ens_config.name == expected_model_name
 
     input_data = {}
     inputs = []
@@ -75,7 +82,7 @@ def test_workflow_op_serving_python(tmpdir, dataset, engine):
 
     response = None
     with run_triton_server(tmpdir) as client:
-        response = client.infer("0_transformworkflow", inputs, outputs=outputs)
+        response = client.infer(ens_config.name, inputs, outputs=outputs)
 
     for col_name in workflow.output_schema.column_names:
         assert response.as_numpy(col_name).shape[0] == input_data[col_name.split("_")[0]].shape[0]

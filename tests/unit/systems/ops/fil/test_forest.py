@@ -179,9 +179,9 @@ def test_ensemble(tmpdir):
     assert "1_fil" in parsed_config.name
     assert parsed_config.backend == "fil"
 
-    config_path = tmpdir / "0_transformworkflow" / "config.pbtxt"
+    config_path = tmpdir / "0_transformworkflowtriton" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "0_transformworkflow"
+    assert "0_transformworkflow" in parsed_config.name
     assert parsed_config.backend == "python"
 
     config_path = tmpdir / "ensemble_model" / "config.pbtxt"

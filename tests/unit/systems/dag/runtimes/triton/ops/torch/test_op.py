@@ -27,6 +27,7 @@ from tritonclient.grpc import model_config_pb2
 
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
+from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
 from merlin.systems.triton.utils import run_triton_server
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
@@ -34,6 +35,7 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 torch = pytest.importorskip("torch")
 triton = pytest.importorskip("merlin.systems.triton")
 ptorch_op = pytest.importorskip("merlin.systems.dag.ops.pytorch")
+ptorch_triton_op = pytest.importorskip("merlin.systems.dag.runtimes.triton.ops.pytorch")
 
 
 class CustomModel(torch.nn.Module):
@@ -94,7 +96,9 @@ backend: "pytorch"
 def test_pytorch_op_exports_own_config(tmpdir, torchscript):
     model_to_use = model_scripted if torchscript else model
 
-    triton_op = ptorch_op.PredictPyTorch(model_to_use, model_input_schema, model_output_schema)
+    triton_op = ptorch_triton_op.PredictPyTorchTriton(
+        ptorch_op.PredictPyTorch(model_to_use, model_input_schema, model_output_schema)
+    )
 
     triton_op.export(tmpdir, None, None)
 
@@ -154,8 +158,16 @@ def test_torch_backend(tmpdir):
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.parametrize("torchscript", [True])
 @pytest.mark.parametrize("use_path", [True, False])
-def test_pytorch_op_serving(tmpdir, use_path, torchscript):
-    model_name = "0_predictpytorch"
+@pytest.mark.parametrize(
+    ["runtime", "model_name", "expected_model_name"],
+    [
+        (TritonEnsembleRuntime(), None, "ensemble_model"),
+        (TritonExecutorRuntime(), None, "executor_model"),
+    ],
+)
+def test_pytorch_op_serving(
+    tmpdir, use_path, torchscript, runtime, model_name, expected_model_name
+):
     model_path = str(tmpdir / "model.pt")
 
     model_to_use = model_scripted if torchscript else model
@@ -173,7 +185,7 @@ def test_pytorch_op_serving(tmpdir, use_path, torchscript):
         model_or_path, model_input_schema, model_output_schema
     )
     ensemble = Ensemble(predictions, model_input_schema)
-    ens_config, node_configs = ensemble.export(tmpdir)
+    ens_config, node_configs = ensemble.export(tmpdir, runtime=runtime, name=model_name)
 
     input_data = {"input": np.array([[2.0, 3.0, 4.0], [4.0, 8.0, 1.0]]).astype(np.float32)}
 
@@ -185,10 +197,10 @@ def test_pytorch_op_serving(tmpdir, use_path, torchscript):
     inputs[0].set_data_from_numpy(input_data["input"])
 
     outputs = [grpcclient.InferRequestedOutput("OUTPUT__0")]
-
+    assert ens_config.name == expected_model_name
     response = None
     with run_triton_server(tmpdir) as client:
-        response = client.infer(model_name, inputs, outputs=outputs)
+        response = client.infer(ens_config.name, inputs, outputs=outputs)
 
     assert response.as_numpy("OUTPUT__0").shape[0] == input_data["input"].shape[0]
 
@@ -196,7 +208,16 @@ def test_pytorch_op_serving(tmpdir, use_path, torchscript):
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.parametrize("torchscript", [True])
 @pytest.mark.parametrize("use_path", [True, False])
-def test_pytorch_op_serving_python(tmpdir, use_path, torchscript):
+@pytest.mark.parametrize(
+    ["runtime", "model_name", "expected_model_name"],
+    [
+        (TritonEnsembleRuntime(), None, "ensemble_model"),
+        (TritonExecutorRuntime(), None, "executor_model"),
+    ],
+)
+def test_pytorch_op_serving_python(
+    tmpdir, use_path, torchscript, runtime, model_name, expected_model_name
+):
     model_path = str(tmpdir / "model.pt")
 
     model_to_use = model_scripted if torchscript else model
@@ -214,7 +235,7 @@ def test_pytorch_op_serving_python(tmpdir, use_path, torchscript):
         model_or_path, model_input_schema, model_output_schema
     )
     ensemble = Ensemble(predictions, model_input_schema)
-    ens_config, node_configs = ensemble.export(tmpdir)
+    ens_config, node_configs = ensemble.export(tmpdir, runtime=runtime, name=model_name)
 
     input_data = {"input": np.array([[2.0, 3.0, 4.0], [4.0, 8.0, 1.0]]).astype(np.float32)}
 
@@ -227,8 +248,9 @@ def test_pytorch_op_serving_python(tmpdir, use_path, torchscript):
 
     outputs = [grpcclient.InferRequestedOutput("OUTPUT__0")]
 
+    assert ens_config.name == expected_model_name
     response = None
     with run_triton_server(tmpdir) as client:
-        response = client.infer("0_predictpytorch", inputs, outputs=outputs)
+        response = client.infer(ens_config.name, inputs, outputs=outputs)
 
     assert response.as_numpy("OUTPUT__0").shape[0] == input_data["input"].shape[0]
