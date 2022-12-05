@@ -18,6 +18,7 @@ from typing import Dict, Optional
 
 import numpy as np
 
+import merlin.dtypes as md
 from merlin.core.protocols import SeriesLike
 
 try:
@@ -45,7 +46,7 @@ class Column(SeriesLike):
 
         self.values = _make_array(values)
         self.row_lengths = _make_array(row_lengths)
-        self.dtype = self.values.dtype
+        self.dtype = md.dtype(self.values.dtype)
 
         if isinstance(self.values, np.ndarray):
             self._device = Device.CPU
