@@ -230,9 +230,9 @@ class DictArray:
         """
         Create a DataFrame from the DictArray
         """
-        df = get_lib.DataFrame()
+        df = get_lib().DataFrame()
         for col in self.columns:
-            df[col] = get_lib.Series(self[col])
+            df[col] = get_lib().Series(self[col])
         return df
 
     @classmethod
