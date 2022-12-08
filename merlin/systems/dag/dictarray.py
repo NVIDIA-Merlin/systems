@@ -18,6 +18,7 @@ from typing import Dict, Optional
 
 import numpy as np
 
+from merlin.core.dispatch import get_lib
 from merlin.core.protocols import SeriesLike
 
 try:
@@ -224,6 +225,25 @@ class DictArray:
         Create a new DictArray with the same data and dtypes
         """
         return DictArray(self._columns.copy())
+
+    def to_df(self):
+        """
+        Create a DataFrame from the DictArray
+        """
+        df = get_lib().DataFrame()
+        for col in self.columns:
+            df[col] = get_lib().Series(self[col])
+        return df
+
+    @classmethod
+    def from_df(cls, df):
+        """
+        Create a DictArray from a DataFrame
+        """
+        array_dict = {}
+        for col in df.columns:
+            array_dict[col] = df[col].to_numpy()
+        return cls(array_dict)
 
 
 def _array_lib():
