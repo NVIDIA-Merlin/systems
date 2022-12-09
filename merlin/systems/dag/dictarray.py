@@ -144,7 +144,11 @@ class Column(SeriesLike):
 
     @property
     def is_list(self):
-        return len(self.values.shape) > 1 or self.row_lengths is not None
+        return (
+            len(self.values.shape) > 1
+            or self.row_lengths is not None
+            or isinstance(self.values[0], np.ndarray)
+        )
 
     @property
     def is_ragged(self):
