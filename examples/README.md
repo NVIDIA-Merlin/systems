@@ -1,17 +1,10 @@
 # Merlin Systems Example Notebook
 
-This Jupyter notebook example demonstrates how to deploy a ranking model to Triton Inference Server.
-As a prerequisite, the model must be trained and saved with Merlin Models.
-See the [Exporting Ranking Models](https://github.com/NVIDIA-Merlin/models/blob/main/examples/04-Exporting-ranking-models.ipynb)
-file or browse the [examples](https://github.com/NVIDIA-Merlin/models/tree/main/examples) directory of the Merlin Models repository.
+These Jupyter notebooks demonstrate how to use Merlin Systems to deploy models to Triton Inference Server.
 
-- [Serving Ranking Models With Merlin Systems](Serving-Ranking-Models-With-Merlin-Systems.ipynb)
-
-## Running the Example Notebook
+## Running the Example Notebooks
 
 Docker containers are available from the NVIDIA GPU Cloud.
-Access the catalog of containers at <http://ngc.nvidia.com/catalog/containers>.
-
 We use the latest stable version of the [merlin-tensorflow](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow/tags) container to run the example notebooks. To run the example notebooks using Docker containers, perform the following steps:
 
 1. If you haven't already created a Docker volume to share models and datasets
@@ -20,8 +13,8 @@ We use the latest stable version of the [merlin-tensorflow](https://catalog.ngc.
    ```shell
    docker volume create merlin-examples
    ```
-Note that the saved `dlrm` model, NVT `workflow` and processed synthetic parquet files should be stored in the `merlin-examples` folder so that they can be mounted to the inference container.
 
+   For the ranking models example, note that the saved `dlrm` model that was created with Merlin Models, the NVTabular workflow, and processed synthetic parquet files should be stored in the `merlin-examples` folder so that they can be mounted to the container for performing inference with Merlin Systems.
 
 1. Pull and start the container by running the following command:
 
@@ -29,8 +22,11 @@ Note that the saved `dlrm` model, NVT `workflow` and processed synthetic parquet
    docker run --gpus all --rm -it \
      -p 8888:8888 -p 8797:8787 -p 8796:8786 --ipc=host \
      -v merlin-examples:/workspace/data \
-     <docker container> /bin/bash
+     nvcr.io/nvidia/merlin/merlin-tensorflow:nightly /bin/bash
    ```
+
+   > In production, instead of using the `nightly` tag, specify a release tag.
+   > You can find the release tags and more information on the [merlin-tensorflow](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow) container page.
 
    The container opens a shell when the run command execution is completed.
    Your shell prompt should look similar to the following example:
