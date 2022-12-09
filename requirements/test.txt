@@ -14,7 +14,7 @@ testbook==0.4.2
 
 # packages necessary to run tests and push PRs
 tritonclient
-feast~=0.27.0
+# feast~=0.27.0
 xgboost==1.6.2
 implicit==0.6.0
 
