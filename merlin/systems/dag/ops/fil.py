@@ -23,6 +23,7 @@ from merlin.core.dispatch import HAS_GPU
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
+from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.ops.compat import (
     cuml_ensemble,
     cuml_fil,
@@ -422,6 +423,12 @@ class XGBoost(FILModel):
                 raise ValueError("Only single target objectives are supported.")
 
             super().__init__(model)
+
+    def predict(self, inputs):
+        if isinstance(inputs, DictArray):
+            inputs = inputs.to_df()
+        inputs = xgboost.DMatrix(inputs)
+        return self.model.predict(inputs)
 
     def save(self, version_path) -> None:
         """Save model to version_path."""
