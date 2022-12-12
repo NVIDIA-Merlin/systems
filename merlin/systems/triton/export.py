@@ -560,7 +560,7 @@ def export_pytorch_model(
         cloudpickle.dump(model, o)
 
     copyfile(
-        os.path.join(os.path.dirname(__file__), "model", "model_pt.py"),
+        os.path.join(os.path.dirname(__file__), "models", "pytorch_model.py"),
         os.path.join(output_path, str(version), "model.py"),
     )
 
