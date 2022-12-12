@@ -693,12 +693,12 @@ def _add_model_param(col_schema, paramclass, params, dims=None):
             paramclass(
                 name=col_schema.name + "__values",
                 data_type=_convert_dtype(col_schema.dtype),
-                dims=dims,
+                dims=[-1],
             )
         )
         params.append(
             paramclass(
-                name=col_schema.name + "__lengths", data_type=model_config.TYPE_INT64, dims=dims
+                name=col_schema.name + "__lengths", data_type=model_config.TYPE_INT64, dims=[-1]
             )
         )
     else:
