@@ -154,26 +154,25 @@ class TritonPythonModel:
                         input_values, input_lengths, seq_limit, sparse_to_dense
                     )
 
-                # Call forward function to get the predictions
-                # Forward function should return a dict with the "predictions" bucket
-                out = self.model(input_dict)  # , training=False)
-                if not isinstance(out, dict):
-                    raise ValueError("output of the forward function should be a dict")
-
-                # Get the predictions from the out
-                pred = out.get("predictions")
-                if pred is None:
-                    raise KeyError(
-                        "output of the forward function should have a bucket named as predictions"
+                out = self.model(input_dict)
+                output_tensors = []
+                if isinstance(out, dict):
+                    for output_name, output_value in out.items():
+                        pred_numpy = output_value.cpu().detach().numpy()
+                        output_tensor = pb_utils.Tensor(output_name, pred_numpy)
+                        output_tensors.append(output_tensor)
+                elif isinstance(out, torch.Tensor):
+                    output_name = self.model_config["output"][0]["name"]
+                    pred_numpy = out.cpu().detach().numpy()
+                    output_tensor = pb_utils.Tensor(output_name, pred_numpy)
+                    output_tensors.append(output_tensor)
+                else:
+                    raise ValueError(
+                        f"Model returned unsupported output type: {type(out)}. "
+                        "Supported output types are torch.tensor or dict[str, torch.tensor]. "
                     )
 
-                pred_numpy = pred.cpu().detach().numpy()
-
-                # There is one output in the config file
-                # since the PyTorch models generate a tensor as an output
-                output_info = self.model_config["output"][0]
-                output_tensor = pb_utils.Tensor(output_info["name"], pred_numpy)
-                responses.append(pb_utils.InferenceResponse([output_tensor]))
+                responses.append(pb_utils.InferenceResponse(output_tensors))
 
         return responses
 
