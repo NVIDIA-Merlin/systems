@@ -160,6 +160,7 @@ class TransformWorkflowTriton(TritonOperator):
             node_export_path,
             sparse_max=self.op.sparse_max,
             max_batch_size=self.op.max_batch_size,
+            output_model=self.op.output_model,
             cats=self.op.cats,
             conts=self.op.conts,
         )

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from typing import List
+from typing import List, Optional
 
 from merlin.dag import ColumnSelector
 from merlin.schema import Schema
@@ -36,6 +36,7 @@ class TransformWorkflow(PipelineableInferenceOperator):
         cats: List[str] = None,
         conts: List[str] = None,
         backend: str = "workflow",
+        output_model: Optional[str] = None,
     ):
         """
         Creates a Transform Workflow operator for a target workflow.
@@ -57,6 +58,9 @@ class TransformWorkflow(PipelineableInferenceOperator):
             List of strings identifying categorical columns, by default None
         conts : List[str], optional
             List of string identifying continuous columns, by default None
+        output_model : str, optional
+            Specify which model is expected after the inference is run. Used for
+            different post-processing steps after the workflow transform has run.
         """
         super().__init__()
 
@@ -70,6 +74,7 @@ class TransformWorkflow(PipelineableInferenceOperator):
         self.model_framework = model_framework or ""
         self.cats = cats or []
         self.conts = conts or []
+        self.output_model = output_model
 
         if self.workflow is not None:
             self.input_schema = self.workflow.input_schema
