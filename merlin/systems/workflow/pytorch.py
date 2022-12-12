@@ -24,23 +24,39 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import json
+
 from merlin.systems.workflow.base import WorkflowRunner
 
 
 class PyTorchWorkflowRunner(WorkflowRunner):
     def _transform_outputs(self, tensors):
+        # Load extra info needed for the Transformer4Rec (if exists)
+        sparse_feat = None
+        params = self.model_config["parameters"]
+        if "sparse_max" in params.keys():
+            sparse_feat = json.loads(self.model_config["parameters"]["sparse_max"]["string_value"])
+        # transforms outputs for both pytorch and tensorflow
         output_tensors = []
-        for col_name in self.cats + self.conts:
-            output_tensors.append(
-                (
-                    col_name,
-                    self._convert([col_name], tensors, self.workflow.output_dtypes[col_name]),
-                )
-            )
+        for name in self.cats + self.conts:
+            value = tensors[name]
+            if sparse_feat and name in sparse_feat.keys():
+                # convert sparse tensors to dense representations
+                d = value[0].astype(self.output_dtypes[name])
+                col_dim = sparse_feat[name]
+                row_dim = d.shape[0] // col_dim
+                d = d.reshape(row_dim, col_dim)
+                output_tensors.append((name, d))
+            elif isinstance(value, tuple):
+                # convert list values to match TF dataloader
+                values = value[0].astype(self.output_dtypes[name + "__values"])
+                output_tensors.append((name + "__values", values))
 
+                offsets = value[1].astype(self.output_dtypes[name + "__lengths"])
+                lengths = offsets[1:] - offsets[:-1]
+                output_tensors.append((name + "__lengths", lengths))
+            else:
+                d = value.astype(self.output_dtypes[name])
+                d = d.reshape(len(d), 1)
+                output_tensors.append((name, d))
         return output_tensors
-
-    def _convert(self, columns, tensors, dtype):
-        """converts outputs to a numpy input compatible with pytorch"""
-        rows = max(len(tensors[name]) for name in columns)
-        return self._convert_to_np(columns, tensors, dtype, rows)
