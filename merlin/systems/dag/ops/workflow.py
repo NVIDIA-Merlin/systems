@@ -111,10 +111,7 @@ class TransformWorkflow(PipelineableInferenceOperator):
         dataset = Dataset(transformable.to_df())
         response = self.workflow.transform(dataset).to_ddf().compute()
 
-        numpy_dict = {}
-        for col in response.columns:
-            numpy_dict[col] = response[col].to_pandas().to_numpy()
-        return DictArray(numpy_dict)
+        return DictArray().from_df(response)
 
     def export(
         self,

@@ -237,7 +237,8 @@ class DictArray:
         """
         df = get_lib().DataFrame()
         for col in self.columns:
-            df[col] = get_lib().Series(self[col])
+            col_values = self[col].values.tolist() if self[col].is_list else self[col].values
+            df[col] = get_lib().Series(col_values)
         return df
 
     @classmethod
@@ -247,7 +248,12 @@ class DictArray:
         """
         array_dict = {}
         for col in df.columns:
-            array_dict[col] = df[col].to_numpy()
+            vals = df[col].to_numpy()
+            # in the case of pandas, list columns are encoded as
+            # python lists for each record we want numpy arrays
+            if isinstance(vals[0], list):
+                vals = [np.asarray(val) for val in vals]
+            array_dict[col] = vals
         return cls(array_dict)
 
 
