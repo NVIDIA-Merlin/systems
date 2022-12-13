@@ -148,6 +148,7 @@ class Column(SeriesLike):
             len(self.values.shape) > 1
             or self.row_lengths is not None
             or isinstance(self.values[0], np.ndarray)
+            or (cupy and isinstance(self.values[0], cupy.ndarray))
         )
 
     @property
