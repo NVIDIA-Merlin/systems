@@ -17,8 +17,15 @@ from enum import Enum
 from typing import Dict, Optional
 
 import numpy as np
+import pandas as pd
 
-from merlin.core.dispatch import get_lib
+from merlin.core.dispatch import (
+    build_cudf_list_column,
+    build_pandas_list_column,
+    flatten_list_column_values,
+    get_lib,
+    is_list_dtype,
+)
 from merlin.core.protocols import SeriesLike
 
 try:
@@ -85,6 +92,11 @@ class Column(SeriesLike):
     @property
     def device(self):
         return self._device
+
+    @property
+    def offsets(self):
+        if self.row_lengths is not None:
+            return np.cumsum(self.row_lengths) - 1
 
     @device.setter
     def device(self, device):
@@ -235,10 +247,25 @@ class DictArray:
         """
         Create a DataFrame from the DictArray
         """
-        df = get_lib().DataFrame()
+        df_lib = get_lib()
+        df = df_lib.DataFrame()
         for col in self.columns:
-            col_values = self[col].values.tolist() if self[col].is_list else self[col].values
-            df[col] = get_lib().Series(col_values)
+            if self[col].is_list:
+                values_series = df_lib.Series(self[col].values.flatten()).reset_index(drop=True)
+                if isinstance(values_series, pd.Series):
+                    row_lengths_series = df_lib.Series(self[col].row_lengths)
+                    df[col] = build_pandas_list_column(values_series, row_lengths_series)
+                else:
+                    values_size = df_lib.Series(self[col].values.shape[0]).reset_index(drop=True)
+                    offsets_series = (
+                        df_lib.Series(self[col].offsets)
+                        .append(values_size)
+                        .reset_index(drop=True)
+                        .astype("int32")
+                    )
+                    df[col] = build_cudf_list_column(values_series, offsets_series)
+            else:
+                df[col] = df_lib.Series(self[col].values)
         return df
 
     @classmethod
@@ -248,12 +275,13 @@ class DictArray:
         """
         array_dict = {}
         for col in df.columns:
-            vals = df[col].to_numpy()
-            # in the case of pandas, list columns are encoded as
-            # python lists for each record we want numpy arrays
-            if isinstance(vals[0], list):
-                vals = [np.asarray(val) for val in vals]
-            array_dict[col] = vals
+            if is_list_dtype(df[col]):
+                array_dict[col] = (
+                    flatten_list_column_values(df[col]).values,
+                    get_series_offsets(df[col]),
+                )
+            else:
+                array_dict[col] = df[col].to_numpy()
         return cls(array_dict)
 
 
@@ -273,3 +301,16 @@ def _make_column(value):
 
 def _make_array(value):
     return _array_lib().array(value) if isinstance(value, list) else value
+
+
+def get_series_offsets(series):
+    if not is_list_dtype(series):
+        # no offsets
+        return np.asarray([])
+    row_lengths = []
+    if isinstance(series, pd.Series):
+        for row in series:
+            row_lengths.append(len(row))
+        return np.asarray(row_lengths)
+    else:
+        return series._column.offsets.values[1:] - series._column.offsets.values[:-1]
