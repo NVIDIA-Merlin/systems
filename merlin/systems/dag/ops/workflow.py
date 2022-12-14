@@ -17,7 +17,6 @@ from typing import List
 
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
-from merlin.io import Dataset
 from merlin.schema import Schema
 from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
@@ -108,10 +107,16 @@ class TransformWorkflow(PipelineableInferenceOperator):
         Transformable
             workflow transform
         """
-        dataset = Dataset(transformable.to_df())
-        response = self.workflow.transform(dataset).to_ddf().compute()
+        output_type = type(transformable)
+        if isinstance(transformable, DictArray):
+            transformable = transformable.to_df()
 
-        return DictArray().from_df(response)
+        output = self.workflow._transform_df(transformable)
+
+        if not isinstance(output, output_type):
+            output = DictArray().from_df(output)
+
+        return output
 
     def export(
         self,
