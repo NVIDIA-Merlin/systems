@@ -78,6 +78,7 @@ setup(
         "Topic :: Scientific/Engineering",
     ],
     zip_safe=False,
+    python_requires=">=3.8",
     install_requires=requirements["cpu"],
     extras_require={
         **requirements,
