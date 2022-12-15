@@ -23,7 +23,7 @@ import fsspec
 
 from merlin.core.protocols import Transformable
 from merlin.dag import Graph
-from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 
 
 class Ensemble:
@@ -74,7 +74,7 @@ class Ensemble:
         Transformable
             transformed data
         """
-        runtime = runtime or TritonEnsembleRuntime()
+        runtime = runtime or TritonExecutorRuntime()
         return runtime.transform(self.graph, transformable)
 
     def save(self, path):
@@ -149,5 +149,5 @@ class Ensemble:
         Write out an ensemble model configuration directory. The exported
         ensemble is designed for use with Triton Inference Server.
         """
-        runtime = runtime or TritonEnsembleRuntime()
+        runtime = runtime or TritonExecutorRuntime()
         return runtime.export(self, export_path, **kwargs)
