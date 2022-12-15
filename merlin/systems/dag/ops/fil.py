@@ -286,7 +286,7 @@ class FIL(InferenceOperator):
 
     def load_model(self, version_path):
         version_path = pathlib.Path(version_path)
-        self.fil_model_class.model = self.fil_model_class.load(version_path)
+        self.fil_model_class.load(version_path)
 
     def predict(self, inputs):
         return self.fil_model_class.predict(inputs)
@@ -441,6 +441,7 @@ class XGBoost(FILModel):
             self.model = cuml_fil.load(model_path, output_class=True)
         else:
             self.model = treelite_model.load(model_path, self.model_type)
+        return self.model
 
     def _get_learner(self):
         return self._learner
@@ -482,6 +483,7 @@ class LightGBM(FILModel):
             self.model = cuml_fil.load(model_path, output_class=True)
         else:
             self.model = treelite_model.load(model_path, self.model_type)
+        return self.model
 
     @property
     def num_features(self):
@@ -522,6 +524,7 @@ class SKLearnRandomForest(FILModel):
                 "are required to save an sklearn random forest model."
             )
         self.model = treelite_model.deserialize(str(model_path))
+        return self.model
 
     @property
     def num_features(self):
@@ -554,9 +557,10 @@ class CUMLRandomForest(FILModel):
         """Load model to version_path."""
         model_path = pathlib.Path(version_path) / self.model_filename
         if HAS_GPU:
-            self.model = cuml_fil.load(model_path, output_class=True)
+            model = cuml_fil.load(model_path, output_class=True)
         else:
-            self.model = treelite_model.deserialize(model_path)
+            model = treelite_model.deserialize(model_path)
+        return model
 
     @property
     def num_features(self):
