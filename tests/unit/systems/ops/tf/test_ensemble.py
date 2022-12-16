@@ -97,7 +97,7 @@ def test_workflow_tf_e2e_config_verification(tmpdir, dataset, engine):
 
         # The config file contents are correct
         assert parsed.name == "executor_model"
-        assert parsed.platform == "ensemble"
+        assert parsed.platform == "merlin_executor"
         assert hasattr(parsed, "ensemble_scheduling")
 
     df = make_df({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "id": [7, 8, 9]})
@@ -155,7 +155,7 @@ def test_workflow_tf_e2e_multi_op_run(tmpdir, dataset, engine):
 
         # The config file contents are correct
         assert parsed.name == "executor_model"
-        assert parsed.platform == "ensemble"
+        assert parsed.platform == "merlin_executor"
         assert hasattr(parsed, "ensemble_scheduling")
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
@@ -212,7 +212,7 @@ def test_workflow_tf_python_wrapper(tmpdir, dataset, engine, python):
 
         # The config file contents are correct
         assert parsed.name == "executor_model"
-        assert parsed.platform == "ensemble"
+        assert parsed.platform == "merlin_executor"
         assert hasattr(parsed, "ensemble_scheduling")
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
