@@ -184,7 +184,7 @@ def test_ensemble(tmpdir):
     assert "0_transformworkflow" in parsed_config.name
     assert parsed_config.backend == "python"
 
-    config_path = tmpdir / "ensemble_model" / "config.pbtxt"
+    config_path = tmpdir / "executor_model" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert parsed_config.name == "ensemble_model"
+    assert parsed_config.name == "executor_model"
     assert parsed_config.platform == "ensemble"
