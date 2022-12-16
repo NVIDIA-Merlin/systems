@@ -169,7 +169,7 @@ def send_triton_request(
     request_id : str, optional
         The id of the inference request, by default "1"
     triton_model : str, optional
-        Name of the model to run inputs through, by default "ensemble_model"
+        Name of the model to run inputs through, by default "executor_model"
 
     Returns
     -------

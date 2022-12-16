@@ -38,7 +38,6 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 @pytest.mark.parametrize(
     ["runtime", "model_name", "expected_model_name"],
     [
-        (None, None, "ensemble_model"),
         (TritonExecutorRuntime(), None, "executor_model"),
         (TritonExecutorRuntime(), "triton_model", "triton_model"),
     ],
