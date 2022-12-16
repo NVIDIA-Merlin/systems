@@ -187,4 +187,4 @@ def test_ensemble(tmpdir):
     config_path = tmpdir / "executor_model" / "config.pbtxt"
     parsed_config = read_config(config_path)
     assert parsed_config.name == "executor_model"
-    assert parsed_config.platform == "ensemble"
+    assert parsed_config.platform == "merlin_executor"
