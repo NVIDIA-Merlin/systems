@@ -117,7 +117,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # Send request to Triton and check response
     # ===========================================
     triton_response = run_ensemble_on_tritonserver(
-        tmpdir, input_schema, df, output_schema.column_names, "ensemble_model"
+        tmpdir, input_schema, df, output_schema.column_names, "executor_model"
     )
 
     assert triton_response

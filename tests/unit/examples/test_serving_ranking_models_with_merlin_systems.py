@@ -112,6 +112,6 @@ def test_example_04_exporting_ranking_models(tb):
     )
 
     response = run_ensemble_on_tritonserver(
-        "/tmp/data/ensemble/", schema.without(["click"]), batch, outputs, "ensemble_model"
+        "/tmp/data/ensemble/", schema.without(["click"]), batch, outputs, "executor_model"
     )
     assert len(response["click/binary_classification_task"]) == 3

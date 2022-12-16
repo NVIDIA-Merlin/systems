@@ -14,7 +14,4 @@
 # limitations under the License.
 #
 # flake8: noqa
-from merlin.systems.dag.runtimes.triton.runtime import (  # noqa
-    TritonEnsembleRuntime,
-    TritonExecutorRuntime,
-)
+from merlin.systems.dag.runtimes.triton.runtime import TritonExecutorRuntime  # noqa
