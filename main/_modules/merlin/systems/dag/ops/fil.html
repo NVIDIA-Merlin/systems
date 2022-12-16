@@ -360,7 +360,7 @@
 
     <span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_path</span><span class="p">):</span>
         <span class="n">version_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fil_model_class</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fil_model_class</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fil_model_class</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fil_model_class</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
@@ -515,6 +515,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">cuml_fil</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">output_class</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">treelite_model</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
 
     <span class="k">def</span> <span class="nf">_get_learner</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learner</span>
@@ -556,6 +557,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">cuml_fil</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">output_class</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">treelite_model</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -596,6 +598,7 @@
                 <span class="s2">&quot;are required to save an sklearn random forest model.&quot;</span>
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">treelite_model</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -628,9 +631,10 @@
         <span class="sd">&quot;&quot;&quot;Load model to version_path.&quot;&quot;&quot;</span>
         <span class="n">model_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_filename</span>
         <span class="k">if</span> <span class="n">HAS_GPU</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">cuml_fil</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">output_class</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">cuml_fil</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">output_class</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">treelite_model</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">treelite_model</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
