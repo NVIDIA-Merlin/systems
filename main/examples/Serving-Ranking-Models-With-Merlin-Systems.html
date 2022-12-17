@@ -887,7 +887,7 @@ outputs = [
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># send request to tritonserver
 with grpcclient.InferenceServerClient(&quot;localhost:8001&quot;) as client:
-    response = client.infer(&quot;ensemble_model&quot;, inputs, request_id=&quot;1&quot;, outputs=outputs)
+    response = client.infer(&quot;executor_model&quot;, inputs, request_id=&quot;1&quot;, outputs=outputs)
 </pre></div>
 </div>
 </div>

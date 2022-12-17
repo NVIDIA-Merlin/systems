@@ -97,7 +97,7 @@
 
 <span class="kn">from</span> <span class="nn">merlin.core.protocols</span> <span class="kn">import</span> <span class="n">Transformable</span>
 <span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">Graph</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.dag.runtimes.triton</span> <span class="kn">import</span> <span class="n">TritonEnsembleRuntime</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.runtimes.triton</span> <span class="kn">import</span> <span class="n">TritonExecutorRuntime</span>
 
 
 <div class="viewcode-block" id="Ensemble"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble">[docs]</a><span class="k">class</span> <span class="nc">Ensemble</span><span class="p">:</span>
@@ -148,7 +148,7 @@
 <span class="sd">        Transformable</span>
 <span class="sd">            transformed data</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">runtime</span> <span class="o">=</span> <span class="n">runtime</span> <span class="ow">or</span> <span class="n">TritonEnsembleRuntime</span><span class="p">()</span>
+        <span class="n">runtime</span> <span class="o">=</span> <span class="n">runtime</span> <span class="ow">or</span> <span class="n">TritonExecutorRuntime</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">runtime</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">transformable</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Ensemble.save"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
@@ -223,7 +223,7 @@
 <span class="sd">        Write out an ensemble model configuration directory. The exported</span>
 <span class="sd">        ensemble is designed for use with Triton Inference Server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">runtime</span> <span class="o">=</span> <span class="n">runtime</span> <span class="ow">or</span> <span class="n">TritonEnsembleRuntime</span><span class="p">()</span>
+        <span class="n">runtime</span> <span class="o">=</span> <span class="n">runtime</span> <span class="ow">or</span> <span class="n">TritonExecutorRuntime</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">runtime</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
 </pre></div>
 
