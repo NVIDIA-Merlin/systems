@@ -22,7 +22,6 @@ import pandas as pd
 from merlin.core.dispatch import (
     build_cudf_list_column,
     build_pandas_list_column,
-    flatten_list_column_values,
     get_lib,
     is_list_dtype,
 )
@@ -122,33 +121,37 @@ class Column(SeriesLike):
 
     def _device_move(self, fn):
         self.values = fn(self.values)
-        if self.row_lengths:
+        if self.row_lengths is not None:
             self.row_lengths = fn(self.row_lengths)
 
     def __getitem__(self, index):
-        if self.row_lengths:
-            start = self._array_lib.cumsum(self.row_lengths[:index])
-            end = start + self.row_lengths[index] - 1
-            return self.values[start:end]
-        else:
-            return self.values[index]
+        if (
+            self.row_lengths is not None
+            and len(self.values.shape) == 2
+            and self.values.shape[1] != 1
+        ):
+            start = self._array_lib.cumsum(self.row_lengths[: index + 1]).item() or 0
+            end = start + self.row_lengths[index].item() + 1
+            if start < end:
+                return self.values[start:end]
+        return self.values[index]
 
     def __eq__(self, other):
         values_eq = all(self.values == other.values) and self.dtype == other.dtype
-        if self.row_lengths:
+        if self.row_lengths is not None:
             return values_eq and all(self.row_lengths == other.row_lengths)
         else:
             return values_eq
 
     def __len__(self):
-        if self.row_lengths:
+        if self.row_lengths is not None:
             return len(self.row_lengths)
         else:
             return len(self.values)
 
     @property
     def shape(self):
-        if self.row_lengths:
+        if self.row_lengths is not None:
             dim = self.row_lengths[0] if self.is_ragged else None
             return (len(self), dim)
         else:
@@ -165,7 +168,14 @@ class Column(SeriesLike):
 
     @property
     def is_ragged(self):
-        return self.row_lengths and any(self.row_lengths != self.row_lengths[0])
+        return (
+            # we have row lengths
+            self.row_lengths is not None
+            # and there are multiple rows
+            and len(self.row_lengths) > 1
+            # and the rows are not all the same length
+            and any(self.row_lengths != self.row_lengths[0])
+        )
 
     @property
     def _array_lib(self):
@@ -249,23 +259,24 @@ class DictArray:
         """
         df_lib = get_lib()
         df = df_lib.DataFrame()
-        for col in self.columns:
-            if self[col].is_list:
-                values_series = df_lib.Series(self[col].values.flatten()).reset_index(drop=True)
+        for col_name, column in self.items():
+            if column.is_list:
+                values_series = df_lib.Series(column.values.flatten()).reset_index(drop=True)
+
                 if isinstance(values_series, pd.Series):
-                    row_lengths_series = df_lib.Series(self[col].row_lengths)
-                    df[col] = build_pandas_list_column(values_series, row_lengths_series)
+                    row_lengths_series = df_lib.Series(column.row_lengths)
+                    df[col_name] = build_pandas_list_column(values_series, row_lengths_series)
                 else:
-                    values_size = df_lib.Series(self[col].values.shape[0]).reset_index(drop=True)
+                    values_size = df_lib.Series(column.values.shape[0]).reset_index(drop=True)
                     offsets_series = (
-                        df_lib.Series(self[col].offsets)
+                        df_lib.Series(column.offsets)
                         .append(values_size)
                         .reset_index(drop=True)
                         .astype("int32")
                     )
-                    df[col] = build_cudf_list_column(values_series, offsets_series)
+                    df[col_name] = build_cudf_list_column(values_series, offsets_series)
             else:
-                df[col] = df_lib.Series(self[col].values)
+                df[col_name] = df_lib.Series(column.values)
         return df
 
     @classmethod
@@ -276,10 +287,12 @@ class DictArray:
         array_dict = {}
         for col in df.columns:
             if is_list_dtype(df[col]):
-                array_dict[col] = (
-                    flatten_list_column_values(df[col]).values,
-                    get_series_offsets(df[col]),
-                )
+                series = df[col]
+                if isinstance(series, pd.Series):
+                    array_dict[col] = (series.to_numpy(), get_series_offsets(series))
+                else:
+                    # cudf series that is a list to_pandas to keep values in non-flattened format
+                    array_dict[col] = (series.to_pandas().to_numpy(), get_series_offsets(series))
             else:
                 array_dict[col] = df[col].to_numpy()
         return cls(array_dict)
@@ -291,12 +304,27 @@ def _array_lib():
 
 
 def _make_column(value):
+    # If it's already a column, there's nothing to do
+    if isinstance(value, Column):
+        return value
+
+    # Handle (values, lengths) tuples
     if isinstance(value, tuple):
         values, row_lengths = value
         return Column(values, row_lengths=row_lengths)
-    else:
-        column = Column(value) if not isinstance(value, Column) else value
-        return column
+
+    # Otherwise, assume value is a Numpy/Cupy array
+    if hasattr(value, "shape"):
+        if len(value.shape) > 2:
+            raise ValueError("Values with dimensions higher than 2 aren't supported.")
+        elif len(value.shape) == 2:
+            num_values = value.shape[0]
+            row_lengths = [value.shape[1]] * num_values
+            # raise ValueError(value, row_lengths)
+            return Column(value, row_lengths=row_lengths)
+
+    column = Column(value) if not isinstance(value, Column) else value
+    return column
 
 
 def _make_array(value):
