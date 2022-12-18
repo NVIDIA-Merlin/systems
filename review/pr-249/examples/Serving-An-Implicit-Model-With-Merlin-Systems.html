@@ -343,7 +343,7 @@ outputs = [
 ]
 # send request to tritonserver
 with grpcclient.InferenceServerClient(&quot;localhost:8001&quot;) as client:
-    response = client.infer(&quot;ensemble_model&quot;, inputs, outputs=outputs)
+    response = client.infer(&quot;executor_model&quot;, inputs, outputs=outputs)
 </pre></div>
 </div>
 </div>
