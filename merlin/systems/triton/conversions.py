@@ -87,7 +87,7 @@ def dict_array_to_triton_response(dictarray):
     """
     output_tensors = []
     for name, column in dictarray.items():
-        if column.row_lengths:
+        if column.is_ragged:
             values = _triton_tensor_from_array(f"{name}__values", column.values)
             lengths = _triton_tensor_from_array(f"{name}__lengths", column.row_lengths)
             output_tensors.extend([values, lengths])
