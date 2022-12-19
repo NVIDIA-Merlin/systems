@@ -85,9 +85,15 @@ class PredictTensorflow(InferenceOperator):
         """
         # TODO: Validate that the inputs match the schema
         # TODO: Should we coerce the dtypes to match the schema here?
-        output = self.model(transformable)
+        input_tensors = {}
+        for col in transformable.columns:
+            input_tensors[col] = tf.convert_to_tensor(transformable[col].values)
+        outputs = self.model(input_tensors)
+        dict_outputs = {}
+        for col in self.output_schema.column_names:
+            dict_outputs[col] = outputs.numpy()
         # TODO: map output schema names to outputs produced by prediction
-        return type(transformable)({"output": output})
+        return type(transformable)(dict_outputs)
 
     @property
     def export_name(self):

@@ -25,6 +25,7 @@ from merlin.core.dispatch import (
     get_lib,
     is_list_dtype,
 )
+
 from merlin.core.protocols import SeriesLike
 
 try:
