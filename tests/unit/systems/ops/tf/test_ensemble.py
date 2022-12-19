@@ -96,8 +96,8 @@ def test_workflow_tf_e2e_config_verification(tmpdir, dataset, engine):
         parsed = text_format.Parse(raw_config, config)
 
         # The config file contents are correct
-        assert parsed.name == "ensemble_model"
-        assert parsed.platform == "ensemble"
+        assert parsed.name == "executor_model"
+        assert parsed.platform == "merlin_executor"
         assert hasattr(parsed, "ensemble_scheduling")
 
     df = make_df({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "id": [7, 8, 9]})
@@ -145,7 +145,7 @@ def test_workflow_tf_e2e_multi_op_run(tmpdir, dataset, engine):
 
     # Creating Triton Ensemble Config
     ensemble_config, nodes_config = triton_ens.export(str(tmpdir))
-    config_path = tmpdir / "ensemble_model" / "config.pbtxt"
+    config_path = tmpdir / "executor_model" / "config.pbtxt"
 
     # Checking Triton Ensemble Config
     with open(config_path, "rb") as f:
@@ -154,8 +154,8 @@ def test_workflow_tf_e2e_multi_op_run(tmpdir, dataset, engine):
         parsed = text_format.Parse(raw_config, config)
 
         # The config file contents are correct
-        assert parsed.name == "ensemble_model"
-        assert parsed.platform == "ensemble"
+        assert parsed.name == "executor_model"
+        assert parsed.platform == "merlin_executor"
         assert hasattr(parsed, "ensemble_scheduling")
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
@@ -202,7 +202,7 @@ def test_workflow_tf_python_wrapper(tmpdir, dataset, engine, python):
 
     # Creating Triton Ensemble Config
     ensemble_config, nodes_config = triton_ens.export(str(tmpdir))
-    config_path = tmpdir / "ensemble_model" / "config.pbtxt"
+    config_path = tmpdir / "executor_model" / "config.pbtxt"
 
     # Checking Triton Ensemble Config
     with open(config_path, "rb") as f:
@@ -211,8 +211,8 @@ def test_workflow_tf_python_wrapper(tmpdir, dataset, engine, python):
         parsed = text_format.Parse(raw_config, config)
 
         # The config file contents are correct
-        assert parsed.name == "ensemble_model"
-        assert parsed.platform == "ensemble"
+        assert parsed.name == "executor_model"
+        assert parsed.platform == "merlin_executor"
         assert hasattr(parsed, "ensemble_scheduling")
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]

@@ -13,5 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# flake8: noqa
-from merlin.systems.dag.runtimes.triton.runtime import TritonExecutorRuntime  # noqa
+import numpy as np
+
+from merlin.systems.dag.dictarray import Column
+
+
+def test_column_scalar_list():
+    column = Column(np.array([[1], [2], [3]]))
+    assert column.is_list is True

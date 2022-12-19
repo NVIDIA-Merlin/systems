@@ -151,7 +151,7 @@ def send_triton_request(
     client=None,
     endpoint="localhost:8001",
     request_id="1",
-    triton_model="ensemble_model",
+    triton_model="executor_model",
 ):
     """This function checks if the triton server is available and sends a request to the Triton
     server that has already been started.
@@ -169,7 +169,7 @@ def send_triton_request(
     request_id : str, optional
         The id of the inference request, by default "1"
     triton_model : str, optional
-        Name of the model to run inputs through, by default "ensemble_model"
+        Name of the model to run inputs through, by default "executor_model"
 
     Returns
     -------

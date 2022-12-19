@@ -697,7 +697,7 @@ def _add_model_param(col_schema, paramclass, params, dims=None):
         )
         params.append(
             paramclass(
-                name=col_schema.name + "__lengths", data_type=model_config.TYPE_INT64, dims=dims
+                name=col_schema.name + "__lengths", data_type=model_config.TYPE_INT32, dims=dims
             )
         )
     else:

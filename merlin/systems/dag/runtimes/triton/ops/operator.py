@@ -29,6 +29,7 @@ class TritonOperator(PipelineableInferenceOperator):
         base_op : merlin.systems.dag.ops.operator.InfereneOperator
             Base operator used to construct this Triton op.
         """
+        super().__init__()
         self.op = base_op
 
     @property

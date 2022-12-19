@@ -1,32 +1,21 @@
-from distutils.spawn import find_executable  # pylint: disable=W0402
-
 import numpy as np
 import pandas as pd
 import pytest
 
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.fil import PredictForest
-from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
-from merlin.systems.triton.utils import run_ensemble_on_tritonserver
+from merlin.systems.dag.runtimes.base_runtime import Runtime
 
 sklearn_datasets = pytest.importorskip("sklearn.datasets")
-sklearn_ensemble = pytest.importorskip("sklearn.ensemble")
-triton = pytest.importorskip("merlin.systems.triton")
+lightgbm = pytest.importorskip("lightgbm")
 export = pytest.importorskip("merlin.systems.dag.ensemble")
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
 
-
-@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize(
-    ["runtime", "model_name", "expected_model_name"],
-    [
-        (TritonExecutorRuntime(), None, "executor_model"),
-    ],
-)
-def test_sklearn_regressor_forest_inference(runtime, model_name, expected_model_name, tmpdir):
+@pytest.mark.parametrize("runtime", [Runtime()])
+def test_lightgbm_regressor_forest_inference(runtime, tmpdir):
     rows = 200
     num_features = 16
     X, y = sklearn_datasets.make_regression(
@@ -41,7 +30,7 @@ def test_sklearn_regressor_forest_inference(runtime, model_name, expected_model_
         df[column] = np.log(df[column] + 1).fillna(0.5)
 
     # Fit GBDT Model
-    model = sklearn_ensemble.RandomForestRegressor()
+    model = lightgbm.LGBMRegressor()
     model.fit(X, y)
 
     input_column_schemas = [ColumnSchema(col, dtype=np.float32) for col in feature_names]
@@ -54,24 +43,14 @@ def test_sklearn_regressor_forest_inference(runtime, model_name, expected_model_
 
     request_df = df[:5]
 
-    response = None
-    ensemble_config, _ = ensemble.export(tmpdir, runtime=runtime, name=model_name)
-    assert ensemble_config.name == expected_model_name
+    dict_array = DictArray().from_df(request_df)
+    response = ensemble.transform(dict_array, runtime=runtime)
 
-    response = run_ensemble_on_tritonserver(
-        str(tmpdir), input_schema, request_df, ["output__0"], ensemble_config.name
-    )
     assert response["output__0"].shape == (5,)
 
 
-@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize(
-    ["runtime", "model_name", "expected_model_name"],
-    [
-        (TritonExecutorRuntime(), None, "executor_model"),
-    ],
-)
-def test_sklearn_classify_forest_inference(runtime, model_name, expected_model_name, tmpdir):
+@pytest.mark.parametrize("runtime", [Runtime()])
+def test_lightgbm_classify_forest_inference(runtime, tmpdir):
     rows = 200
     num_features = 16
     X, y = sklearn_datasets.make_classification(
@@ -86,7 +65,7 @@ def test_sklearn_classify_forest_inference(runtime, model_name, expected_model_n
         df[column] = np.log(df[column] + 1).fillna(0.5)
 
     # Fit GBDT Model
-    model = sklearn_ensemble.RandomForestClassifier()
+    model = lightgbm.LGBMClassifier()
     model.fit(X, y)
 
     input_column_schemas = [ColumnSchema(col, dtype=np.float32) for col in feature_names]
@@ -98,11 +77,8 @@ def test_sklearn_classify_forest_inference(runtime, model_name, expected_model_n
     ensemble = Ensemble(triton_chain, input_schema)
 
     request_df = df[:5]
-    ensemble_config, _ = ensemble.export(tmpdir, runtime=runtime, name=model_name)
 
-    assert ensemble_config.name == expected_model_name
+    dict_array = DictArray().from_df(request_df)
+    response = ensemble.transform(dict_array, runtime=runtime)
 
-    response = run_ensemble_on_tritonserver(
-        str(tmpdir), input_schema, request_df, ["output__0"], ensemble_config.name
-    )
     assert response["output__0"].shape == (5,)
