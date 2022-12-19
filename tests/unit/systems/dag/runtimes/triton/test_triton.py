@@ -20,7 +20,6 @@ from distutils.spawn import find_executable  # pylint: disable=W0402
 import numpy as np
 import pytest
 
-from merlin.core.dispatch import make_df
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
@@ -70,7 +69,7 @@ def test_triton_runtime_export_and_run(runtime, model_name, expected_model_name,
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
-        make_df(request_data._columns),
+        request_data.to_df(),
         ensemble.output_schema.column_names,
         ensemble_config.name,
     )

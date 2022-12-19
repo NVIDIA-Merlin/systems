@@ -97,6 +97,10 @@ class PredictPyTorch(PipelineableInferenceOperator):
         return self.output_schema
 
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
+        output_type = type(transformable)
+        if not isinstance(transformable, DictArray):
+            transformable = DictArray.from_df(transformable)
+
         tensor_dict = {}
         for column in transformable.columns:
             tensor_dict[column] = torch.from_numpy(np.squeeze(transformable[column].values))
@@ -105,7 +109,12 @@ class PredictPyTorch(PipelineableInferenceOperator):
         output = {}
         for idx, col in enumerate(self.output_schema.column_names):
             output[col] = result[:, idx].detach().numpy()
-        return DictArray(output)
+
+        output = DictArray(output)
+        if not isinstance(output, output_type):
+            output = output.to_df(transformable)
+
+        return output
 
     @property
     def scalar_shape(self):
