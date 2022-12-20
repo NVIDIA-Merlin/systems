@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 import random
-from distutils.spawn import find_executable
 
 import numpy as np
 import pandas as pd
@@ -27,8 +26,6 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
-
-TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
 def test_run_dag_on_dictarray_with_local_executor():
