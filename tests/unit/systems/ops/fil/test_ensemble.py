@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 import os
-from distutils.spawn import find_executable
 
 import numpy as np
 import pandas as pd
 import pytest
+import shutils
 import sklearn.datasets
 import xgboost
 
@@ -38,7 +38,7 @@ from merlin.systems.dag.ensemble import Ensemble  # noqa
 from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutils.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")

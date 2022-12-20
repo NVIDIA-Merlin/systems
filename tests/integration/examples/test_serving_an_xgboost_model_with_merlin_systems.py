@@ -1,4 +1,4 @@
-from distutils.spawn import find_executable  # pylint: disable=deprecated-module
+import shutils
 
 import pytest
 from testbook import testbook
@@ -10,7 +10,7 @@ pytest.importorskip("tensorflow")
 pytest.importorskip("merlin.models")
 pytest.importorskip("xgboost")
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutils.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")

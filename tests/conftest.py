@@ -16,13 +16,13 @@
 
 import glob
 import random
-from distutils.spawn import find_executable
 from pathlib import Path
 
 import dask
 import numpy as np
 import pandas as pd
 import pytest
+import shutils
 
 from merlin.io import Dataset
 
@@ -50,7 +50,7 @@ except ImportError:
 
 
 REPO_ROOT = Path(__file__).parent.parent
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutils.which("tritonserver")
 
 
 allcols_csv = ["timestamp", "id", "label", "name-string", "x", "y", "z"]

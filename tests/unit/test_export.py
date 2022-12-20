@@ -14,9 +14,8 @@
 # limitations under the License.
 #
 
-from distutils.spawn import find_executable
-
 import pytest
+import shutils
 
 from merlin.io import Dataset
 from merlin.systems.workflow import get_embedding_sizes
@@ -36,7 +35,7 @@ from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 from tests.unit.systems.utils.tf import create_tf_model  # noqa
 from tests.unit.systems.utils.torch import create_pytorch_model  # noqa
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutils.which("tritonserver")
 tf_utils.configure_tensorflow()
 
 

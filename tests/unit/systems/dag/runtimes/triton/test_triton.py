@@ -15,10 +15,10 @@
 #
 
 import random
-from distutils.spawn import find_executable  # pylint: disable=W0402
 
 import numpy as np
 import pytest
+import shutils
 
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag import DictArray
@@ -30,7 +30,7 @@ from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 triton = pytest.importorskip("merlin.systems.triton")
 export = pytest.importorskip("merlin.systems.dag.ensemble")
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutils.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")

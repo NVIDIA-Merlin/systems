@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 import json
-from distutils.spawn import find_executable
 
 import implicit
 import numpy as np
 import pytest
+import shutils
 from scipy.sparse import csr_matrix
 from tritonclient import grpc as grpcclient
 
@@ -28,7 +28,7 @@ from merlin.systems.dag.ops.implicit import PredictImplicit
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_triton_server
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutils.which("tritonserver")
 
 triton = pytest.importorskip("merlin.systems.triton")
 

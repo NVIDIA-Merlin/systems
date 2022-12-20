@@ -1,8 +1,7 @@
-from distutils.spawn import find_executable  # pylint: disable=W0402
-
 import numpy as np
 import pandas as pd
 import pytest
+import shutils
 
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
@@ -16,7 +15,7 @@ xgboost = pytest.importorskip("xgboost")
 triton = pytest.importorskip("merlin.systems.triton")
 export = pytest.importorskip("merlin.systems.dag.ensemble")
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutils.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
