@@ -24,8 +24,8 @@ from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.faiss import QueryFaiss, setup_faiss
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
-pytest.importorskip("merlin.models.loader.tf_utils")
-from merlin.models.loader.tf_utils import configure_tensorflow  # noqa
+pytest.importorskip("merlin.dataloader.tf_utils")
+from merlin.dataloader.tf_utils import configure_tensorflow  # noqa
 
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
