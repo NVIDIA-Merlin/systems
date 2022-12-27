@@ -102,7 +102,7 @@ def test_example_04_exporting_ranking_models(tb):
     )
     batch = batch.drop(columns="click")
     outputs = tb.ref("output_cols")
-    from merlin.models.loader.tf_utils import configure_tensorflow
+    from merlin.dataloader.tf_utils import configure_tensorflow
 
     configure_tensorflow()
     from merlin.systems.triton.utils import run_ensemble_on_tritonserver
