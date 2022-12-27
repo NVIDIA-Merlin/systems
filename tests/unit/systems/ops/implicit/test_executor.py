@@ -13,10 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import shutil
+
 import implicit
 import numpy as np
 import pytest
-import shutils
 from scipy.sparse import csr_matrix
 
 from merlin.core.dispatch import make_df
@@ -24,7 +25,7 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.implicit import PredictImplicit
 
-TRITON_SERVER_PATH = shutils.which("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")

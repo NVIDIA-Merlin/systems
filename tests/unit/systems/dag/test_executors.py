@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 import random
+import shutil
 
 import numpy as np
 import pandas as pd
 import pytest
-import shutils
 
 from merlin.core.dispatch import HAS_GPU, make_df
 from merlin.dag.executors import DaskExecutor, LocalExecutor
@@ -28,7 +28,7 @@ from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 
-TRITON_SERVER_PATH = shutils.which("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 def test_run_dag_on_dictarray_with_local_executor():

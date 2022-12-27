@@ -14,10 +14,10 @@
 # limitations under the License.
 #
 import random
+import shutil
 
 import numpy as np
 import pytest
-import shutils
 
 from merlin.core.dispatch import make_df
 from merlin.schema import ColumnSchema, Schema
@@ -26,7 +26,7 @@ from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.dag.ops.softmax_sampling import SoftmaxSampling
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
-TRITON_SERVER_PATH = shutils.which("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")

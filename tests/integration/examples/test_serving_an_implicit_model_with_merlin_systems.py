@@ -1,4 +1,4 @@
-import shutils
+import shutil
 
 import pytest
 from testbook import testbook
@@ -17,7 +17,7 @@ try:
 except ImportError:
     _TRAIN_ON_GPU = [False]
 
-TRITON_SERVER_PATH = shutils.which("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 @pytest.mark.notebook

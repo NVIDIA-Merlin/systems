@@ -15,12 +15,12 @@
 #
 
 import pathlib
+import shutil
 from pathlib import Path
 from typing import Dict
 
 import numpy as np
 import pytest
-import shutils
 from google.protobuf import text_format
 from tritonclient import grpc as grpcclient
 from tritonclient.grpc import model_config_pb2
@@ -30,7 +30,7 @@ from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_triton_server
 
-TRITON_SERVER_PATH = shutils.which("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 torch = pytest.importorskip("torch")
 triton = pytest.importorskip("merlin.systems.triton")

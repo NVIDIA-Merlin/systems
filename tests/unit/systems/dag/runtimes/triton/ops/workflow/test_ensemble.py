@@ -13,9 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import shutil
+
 import numpy as np
 import pytest
-import shutils
 from tritonclient import grpc as grpcclient
 
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
@@ -23,7 +24,7 @@ from merlin.systems.triton.utils import run_triton_server
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
 
-TRITON_SERVER_PATH = shutils.which("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 triton = pytest.importorskip("merlin.systems.triton")
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")
