@@ -106,13 +106,13 @@
 
 
 <div class="viewcode-block" id="PredictTensorflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow">[docs]</a><span class="k">class</span> <span class="nc">PredictTensorflow</span><span class="p">(</span><span class="n">InferenceOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This operator takes a tensorflow model and packages it correctly for tritonserver</span>
 <span class="sd">    to run, on the tensorflow backend.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PredictTensorflow.__init__"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_or_path</span><span class="p">,</span> <span class="n">custom_objects</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instantiate a PredictTensorflow inference operator.</span>
 
 <span class="sd">        Parameters</span>
@@ -136,7 +136,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">input_schema</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_schemas_from_model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="PredictTensorflow.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="n">output_schema</span><span class="p">,</span> <span class="n">node_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a directory inside supplied path based on our export name&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a directory inside supplied path based on our export name&quot;&quot;&quot;</span>
         <span class="n">node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">export_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_name</span>
 
         <span class="n">node_export_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">node_name</span>
@@ -166,7 +166,7 @@
         <span class="n">deps_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
         <span class="n">selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use the input schema supplied during object creation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_schema</span></div>
@@ -174,13 +174,13 @@
 <div class="viewcode-block" id="PredictTensorflow.compute_output_schema"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.tensorflow.PredictTensorflow.html#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema">[docs]</a>    <span class="k">def</span> <span class="nf">compute_output_schema</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">prev_output_schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Use the output schema supplied during object creation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_schema</span></div>
 
     <span class="k">def</span> <span class="nf">_export_model_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">output_path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Exports a TensorFlow model for serving with Triton</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Exports a TensorFlow model for serving with Triton</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>

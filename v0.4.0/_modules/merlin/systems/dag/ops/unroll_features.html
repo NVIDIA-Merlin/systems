@@ -98,7 +98,7 @@
 
 
 <div class="viewcode-block" id="UnrollFeatures"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures">[docs]</a><span class="k">class</span> <span class="nc">UnrollFeatures</span><span class="p">(</span><span class="n">PipelineableInferenceOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This operator takes a target column and joins the &quot;unroll&quot; columns to the target. This helps</span>
 <span class="sd">    when broadcasting a series of user features to a set of items.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -111,7 +111,7 @@
 
 <div class="viewcode-block" id="UnrollFeatures.from_config"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures.from_config">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Load operator and properties from Triton config&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load operator and properties from Triton config&quot;&quot;&quot;</span>
         <span class="n">parameters</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
         <span class="n">candidate_col</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;item_id_col&quot;</span><span class="p">]</span>
         <span class="n">unroll_cols</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;unroll_cols&quot;</span><span class="p">]</span>
@@ -119,7 +119,7 @@
         <span class="k">return</span> <span class="n">UnrollFeatures</span><span class="p">(</span><span class="n">candidate_col</span><span class="p">,</span> <span class="n">unroll_cols</span><span class="p">,</span> <span class="n">unrolled_prefix</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="UnrollFeatures.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.unroll_features.UnrollFeatures.html#merlin.systems.dag.ops.unroll_features.UnrollFeatures.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="n">output_schema</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Write out a Triton model config directory&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write out a Triton model config directory&quot;&quot;&quot;</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">params</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="n">self_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;item_id_col&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_id_col</span><span class="p">,</span>

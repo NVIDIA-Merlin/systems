@@ -112,7 +112,7 @@
 </pre></div>
 </div>
 <p>After you export your ensemble, you reference the directory to run an instance of Triton Inference Server to host your ensemble.</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tritonserver --model-repository<span class="o">=</span>/export_path/
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tritonserver<span class="w"> </span>--model-repository<span class="o">=</span>/export_path/
 </pre></div>
 </div>
 <p>Refer to the <a class="reference internal" href="examples/index.html"><span class="xref myst">Merlin Systems Example Notebooks</span></a> for a notebook that serves a ranking models ensemble.
@@ -177,15 +177,15 @@ The notebook shows how to deploy the ensemble and demonstrates sending requests 
 <div class="section" id="installing-merlin-systems-using-pip">
 <h3>Installing Merlin Systems Using Pip<a class="headerlink" href="#installing-merlin-systems-using-pip" title="Permalink to this headline"></a></h3>
 <p>You can install Merlin Systems with <code class="docutils literal notranslate"><span class="pre">pip</span></code>:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install merlin-systems
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>merlin-systems
 </pre></div>
 </div>
 </div>
 <div class="section" id="installing-merlin-systems-from-source">
 <h3>Installing Merlin Systems from Source<a class="headerlink" href="#installing-merlin-systems-from-source" title="Permalink to this headline"></a></h3>
 <p>Merlin Systems can be installed from source by cloning the GitHub repository and running <code class="docutils literal notranslate"><span class="pre">setup.py</span></code></p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/NVIDIA-Merlin/systems.git
-<span class="nb">cd</span> systems <span class="o">&amp;&amp;</span> python setup.py develop
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/NVIDIA-Merlin/systems.git
+<span class="nb">cd</span><span class="w"> </span>systems<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>python<span class="w"> </span>setup.py<span class="w"> </span>develop
 </pre></div>
 </div>
 </div>

@@ -102,13 +102,13 @@
 
 
 <div class="viewcode-block" id="Ensemble"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble">[docs]</a><span class="k">class</span> <span class="nc">Ensemble</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class that represents an entire ensemble consisting of multiple models that</span>
 <span class="sd">    run sequentially in tritonserver initiated by an inference request.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Ensemble.__init__"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ensemble_model&quot;</span><span class="p">,</span> <span class="n">label_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;_summary_</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_summary_</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -127,7 +127,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">label_columns</span> <span class="o">=</span> <span class="n">label_columns</span> <span class="ow">or</span> <span class="p">[]</span></div>
 
 <div class="viewcode-block" id="Ensemble.export"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write out an ensemble model configuration directory. The exported</span>
 <span class="sd">        ensemble is designed for use with Triton Inference Server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

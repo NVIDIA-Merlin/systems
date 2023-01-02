@@ -230,14 +230,14 @@ ensemble.export(ensemble_export_path);
 <h2>Starting the Triton Inference Server<a class="headerlink" href="#starting-the-triton-inference-server" title="Permalink to this headline"></a></h2>
 <p>After we export the ensemble, we are ready to start the Triton Inference Server. The server is installed in Merlin Tensorflow and Merlin PyTorch containers. If you are not using one of our containers, then ensure it is installed in your environment. For more information, see the Triton Inference Server <a class="reference external" href="https://github.com/triton-inference-server/server/blob/r22.03/README.md#documentation">documentation</a>.</p>
 <p>You can start the server by running the following command:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tritonserver --model-repository<span class="o">=</span>ensemble
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tritonserver<span class="w"> </span>--model-repository<span class="o">=</span>ensemble
 </pre></div>
 </div>
 <p>For the <code class="docutils literal notranslate"><span class="pre">--model-repository</span></code> argument, specify the same value as the <code class="docutils literal notranslate"><span class="pre">export_path</span></code> that you specified previously in the <code class="docutils literal notranslate"><span class="pre">ensemble.export</span></code> method.</p>
 <p>After you run the <code class="docutils literal notranslate"><span class="pre">tritonserver</span></code> command, wait until your terminal shows messages like the following example:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>I0414 <span class="m">18</span>:29:50.741833 <span class="m">4067</span> grpc_server.cc:4421<span class="o">]</span> Started GRPCInferenceService at <span class="m">0</span>.0.0.0:8001
-I0414 <span class="m">18</span>:29:50.742197 <span class="m">4067</span> http_server.cc:3113<span class="o">]</span> Started HTTPService at <span class="m">0</span>.0.0.0:8000
-I0414 <span class="m">18</span>:29:50.783470 <span class="m">4067</span> http_server.cc:178<span class="o">]</span> Started Metrics Service at <span class="m">0</span>.0.0.0:8002
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>I0414<span class="w"> </span><span class="m">18</span>:29:50.741833<span class="w"> </span><span class="m">4067</span><span class="w"> </span>grpc_server.cc:4421<span class="o">]</span><span class="w"> </span>Started<span class="w"> </span>GRPCInferenceService<span class="w"> </span>at<span class="w"> </span><span class="m">0</span>.0.0.0:8001
+I0414<span class="w"> </span><span class="m">18</span>:29:50.742197<span class="w"> </span><span class="m">4067</span><span class="w"> </span>http_server.cc:3113<span class="o">]</span><span class="w"> </span>Started<span class="w"> </span>HTTPService<span class="w"> </span>at<span class="w"> </span><span class="m">0</span>.0.0.0:8000
+I0414<span class="w"> </span><span class="m">18</span>:29:50.783470<span class="w"> </span><span class="m">4067</span><span class="w"> </span>http_server.cc:178<span class="o">]</span><span class="w"> </span>Started<span class="w"> </span>Metrics<span class="w"> </span>Service<span class="w"> </span>at<span class="w"> </span><span class="m">0</span>.0.0.0:8002
 </pre></div>
 </div>
 </div>

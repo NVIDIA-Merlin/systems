@@ -111,7 +111,7 @@
 
 
 <div class="viewcode-block" id="PredictForest"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.fil.PredictForest.html#merlin.systems.dag.ops.fil.PredictForest">[docs]</a><span class="k">class</span> <span class="nc">PredictForest</span><span class="p">(</span><span class="n">PipelineableInferenceOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Operator for running inference on Forest models.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Operator for running inference on Forest models.</span>
 
 <span class="sd">    This works for gradient-boosted decision trees (GBDTs) and Random forests (RF).</span>
 <span class="sd">    While RF and GBDT algorithms differ in the way they train the models,</span>
@@ -121,7 +121,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="PredictForest.__init__"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.fil.PredictForest.html#merlin.systems.dag.ops.fil.PredictForest.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">fil_params</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Instantiate a FIL inference operator.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiate a FIL inference operator.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -147,7 +147,7 @@
         <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span>
         <span class="n">prev_output_schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the output schema representing the columns this operator returns.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the output schema representing the columns this operator returns.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fil_op</span><span class="o">.</span><span class="n">compute_output_schema</span><span class="p">(</span>
             <span class="n">input_schema</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">,</span> <span class="n">prev_output_schema</span><span class="o">=</span><span class="n">prev_output_schema</span>
         <span class="p">)</span></div>
@@ -159,7 +159,7 @@
         <span class="n">deps_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
         <span class="n">selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the input schema representing the input columns this operator expects to use.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the input schema representing the input columns this operator expects to use.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_schema</span></div>
 
     <span class="nd">@property</span>
@@ -176,7 +176,7 @@
         <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Export the class and related files to the path specified.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Export the class and related files to the path specified.&quot;&quot;&quot;</span>
         <span class="n">fil_model_config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fil_op</span><span class="o">.</span><span class="n">export</span><span class="p">(</span>
             <span class="n">path</span><span class="p">,</span>
             <span class="n">input_schema</span><span class="p">,</span>
@@ -198,7 +198,7 @@
 <div class="viewcode-block" id="PredictForest.transform"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.fil.PredictForest.html#merlin.systems.dag.ops.fil.PredictForest.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">transformable</span><span class="p">:</span> <span class="n">Transformable</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Transformable</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Transform the dataframe by applying this FIL operator to the set of input columns.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform the dataframe by applying this FIL operator to the set of input columns.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        -----------</span>
@@ -227,7 +227,7 @@
 
 
 <span class="k">class</span> <span class="nc">FIL</span><span class="p">(</span><span class="n">InferenceOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Operator for Forest Inference Library (FIL) models.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Operator for Forest Inference Library (FIL) models.</span>
 
 <span class="sd">    Packages up XGBoost models to run on Triton inference server using the fil backend.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -247,7 +247,7 @@
         <span class="n">transfer_threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
         <span class="n">instance_group</span><span class="o">=</span><span class="s2">&quot;AUTO&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Instantiate a FIL inference operator.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Instantiate a FIL inference operator.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -327,7 +327,7 @@
         <span class="n">deps_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
         <span class="n">selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns input schema for FIL op&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns input schema for FIL op&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Schema</span><span class="p">([</span><span class="n">ColumnSchema</span><span class="p">(</span><span class="s2">&quot;input__0&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)])</span>
 
     <span class="k">def</span> <span class="nf">compute_output_schema</span><span class="p">(</span>
@@ -336,7 +336,7 @@
         <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span>
         <span class="n">prev_output_schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns output schema for FIL op&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns output schema for FIL op&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Schema</span><span class="p">([</span><span class="n">ColumnSchema</span><span class="p">(</span><span class="s2">&quot;output__0&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)])</span>
 
     <span class="k">def</span> <span class="nf">export</span><span class="p">(</span>
@@ -348,7 +348,7 @@
         <span class="n">node_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Export the model to the supplied path. Returns the config&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Export the model to the supplied path. Returns the config&quot;&quot;&quot;</span>
         <span class="n">node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">export_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_name</span>
         <span class="n">node_export_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">/</span> <span class="n">node_name</span>
         <span class="n">version_path</span> <span class="o">=</span> <span class="n">node_export_path</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
@@ -367,7 +367,7 @@
 
 
 <span class="k">class</span> <span class="nc">FILModel</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Interface for a FIL Model. Methods implement required information to construct a FIL</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Interface for a FIL Model. Methods implement required information to construct a FIL</span>
 <span class="sd">    model configuration file&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
@@ -375,35 +375,35 @@
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save model to version_path</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">num_classes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The number of classes</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">num_features</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The number of features</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">num_targets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        The number of targets</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">model_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The type of model&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The type of model&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
@@ -413,7 +413,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_fil_model_class</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FILModel</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Return FILModel class corresponding to the model passed in.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return FILModel class corresponding to the model passed in.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -471,7 +471,7 @@
 
 
 <span class="k">class</span> <span class="nc">XGBoost</span><span class="p">(</span><span class="n">FILModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;XGBoost Wrapper for FIL.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;XGBoost Wrapper for FIL.&quot;&quot;&quot;</span>
 
     <span class="n">model_type</span> <span class="o">=</span> <span class="s2">&quot;xgboost_json&quot;</span>
     <span class="n">model_filename</span> <span class="o">=</span> <span class="s2">&quot;xgboost.json&quot;</span>
@@ -505,7 +505,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
         <span class="n">model_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_filename</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
 
@@ -539,18 +539,18 @@
 
 
 <span class="k">class</span> <span class="nc">LightGBM</span><span class="p">(</span><span class="n">FILModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;LightGBM Wrapper for FIL.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LightGBM Wrapper for FIL.&quot;&quot;&quot;</span>
 
     <span class="n">model_type</span> <span class="o">=</span> <span class="s2">&quot;lightgbm&quot;</span>
     <span class="n">model_filename</span> <span class="o">=</span> <span class="s2">&quot;model.txt&quot;</span>
 
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
         <span class="n">model_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_filename</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">save_model</span><span class="p">(</span><span class="n">model_path</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;LightGBM&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
         <span class="n">model_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_filename</span>
         <span class="k">if</span> <span class="n">HAS_GPU</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">cuml_fil</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">output_class</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -572,13 +572,13 @@
 
 
 <span class="k">class</span> <span class="nc">SKLearnRandomForest</span><span class="p">(</span><span class="n">FILModel</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Scikit-Learn RandomForest Wrapper for FIL.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scikit-Learn RandomForest Wrapper for FIL.&quot;&quot;&quot;</span>
 
     <span class="n">model_type</span> <span class="o">=</span> <span class="s2">&quot;treelite_checkpoint&quot;</span>
     <span class="n">model_filename</span> <span class="o">=</span> <span class="s2">&quot;checkpoint.tl&quot;</span>
 
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
         <span class="n">model_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_filename</span>
         <span class="k">if</span> <span class="n">treelite_sklearn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
@@ -620,12 +620,12 @@
     <span class="n">model_filename</span> <span class="o">=</span> <span class="s2">&quot;checkpoint.tl&quot;</span>
 
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save model to version_path.&quot;&quot;&quot;</span>
         <span class="n">model_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_filename</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">convert_to_treelite_model</span><span class="p">()</span><span class="o">.</span><span class="n">to_treelite_checkpoint</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version_path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;CUMLRandomForest&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Load model to version_path.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load model to version_path.&quot;&quot;&quot;</span>
         <span class="n">model_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">version_path</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_filename</span>
         <span class="k">if</span> <span class="n">HAS_GPU</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">cuml_fil</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">output_class</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

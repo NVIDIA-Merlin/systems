@@ -84,13 +84,13 @@
 
 
 <div class="viewcode-block" id="SoftmaxSampling"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling">[docs]</a><span class="k">class</span> <span class="nc">SoftmaxSampling</span><span class="p">(</span><span class="n">PipelineableInferenceOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given inputs of ID and prediction, this operator will sort all</span>
 <span class="sd">    inputs in descending order.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="SoftmaxSampling.__init__"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relevance_col</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> <span class="n">topk</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">_input_col</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a SoftmaxSampling Pipelineable Inference Operator.</span>
 
 <span class="sd">        Parameters</span>
@@ -113,7 +113,7 @@
 
 <div class="viewcode-block" id="SoftmaxSampling.from_config"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.from_config">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SoftmaxSampling&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Load operator and properties from Triton config&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load operator and properties from Triton config&quot;&quot;&quot;</span>
         <span class="n">parameters</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
         <span class="n">relevance_col</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;relevance_col&quot;</span><span class="p">]</span>
         <span class="n">input_col</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;input_col&quot;</span><span class="p">]</span>
@@ -138,7 +138,7 @@
         <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Write out a Triton model config directory&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write out a Triton model config directory&quot;&quot;&quot;</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">params</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="n">self_params</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;input_col&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_col_name</span><span class="p">,</span>
@@ -172,13 +172,13 @@
 <div class="viewcode-block" id="SoftmaxSampling.compute_output_schema"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.compute_output_schema">[docs]</a>    <span class="k">def</span> <span class="nf">compute_output_schema</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">prev_output_schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Describe the operator&#39;s outputs&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Describe the operator&#39;s outputs&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Schema</span><span class="p">([</span><span class="n">ColumnSchema</span><span class="p">(</span><span class="s2">&quot;ordered_ids&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">is_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">is_ragged</span><span class="o">=</span><span class="kc">False</span><span class="p">)])</span></div>
 
 <div class="viewcode-block" id="SoftmaxSampling.transform"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">transformable</span><span class="p">:</span> <span class="n">Transformable</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Transformable</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Transform the dataframe by applying this operator to the set of input columns&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transform the dataframe by applying this operator to the set of input columns&quot;&quot;&quot;</span>
         <span class="c1"># Extract parameters from the request</span>
         <span class="n">candidate_ids</span> <span class="o">=</span> <span class="n">transformable</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_col_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">predicted_scores</span> <span class="o">=</span> <span class="n">transformable</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_relevance_col_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>

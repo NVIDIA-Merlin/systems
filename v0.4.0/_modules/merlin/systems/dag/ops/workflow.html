@@ -97,7 +97,7 @@
 
 
 <div class="viewcode-block" id="TransformWorkflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow">[docs]</a><span class="k">class</span> <span class="nc">TransformWorkflow</span><span class="p">(</span><span class="n">InferenceOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This operator takes a workflow and turns it into a ensemble operator so that we can</span>
 <span class="sd">    execute feature engineering during ensemble on tritonserver.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -112,7 +112,7 @@
         <span class="n">cats</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">conts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a Transform Workflow operator for a target workflow.</span>
 
 <span class="sd">        Parameters</span>
@@ -147,11 +147,11 @@
 <div class="viewcode-block" id="TransformWorkflow.compute_output_schema"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow.compute_output_schema">[docs]</a>    <span class="k">def</span> <span class="nf">compute_output_schema</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">prev_output_schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns output schema of operator&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns output schema of operator&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">output_schema</span></div>
 
 <div class="viewcode-block" id="TransformWorkflow.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="n">output_schema</span><span class="p">,</span> <span class="n">node_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a directory inside supplied path based on our export name&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a directory inside supplied path based on our export name&quot;&quot;&quot;</span>
         <span class="n">modified_workflow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">remove_inputs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_columns</span><span class="p">)</span>
 
         <span class="n">node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">export_name</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">node_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">export_name</span>

@@ -101,13 +101,13 @@
 
 
 <div class="viewcode-block" id="Ensemble"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble">[docs]</a><span class="k">class</span> <span class="nc">Ensemble</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class that represents an entire ensemble consisting of multiple models that</span>
 <span class="sd">    run sequentially in tritonserver initiated by an inference request.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Ensemble.__init__"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ops</span><span class="p">,</span> <span class="n">schema</span><span class="p">,</span> <span class="n">label_columns</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Construct a systems ensemble.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct a systems ensemble.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -131,7 +131,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">output_schema</span>
 
 <div class="viewcode-block" id="Ensemble.transform"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transformable</span><span class="p">:</span> <span class="n">Transformable</span><span class="p">,</span> <span class="n">runtime</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Delegate transformation of input data to the executor with</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Delegate transformation of input data to the executor with</span>
 <span class="sd">        the necessary ensemble graph. This will traverse each node of</span>
 <span class="sd">        the graph and mutate the input according to the operator in each</span>
 <span class="sd">        node.</span>
@@ -152,7 +152,7 @@
         <span class="k">return</span> <span class="n">runtime</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="p">,</span> <span class="n">transformable</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Ensemble.save"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Save this ensemble to disk</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save this ensemble to disk</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -182,7 +182,7 @@
 
 <div class="viewcode-block" id="Ensemble.load"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.load">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Ensemble&quot;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Load up a saved ensemble object from disk</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load up a saved ensemble object from disk</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -219,7 +219,7 @@
         <span class="k">return</span> <span class="n">ensemble</span></div>
 
 <div class="viewcode-block" id="Ensemble.export"><a class="viewcode-back" href="../../../../generated/merlin.systems.dag.Ensemble.html#merlin.systems.dag.Ensemble.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">export_path</span><span class="p">,</span> <span class="n">runtime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write out an ensemble model configuration directory. The exported</span>
 <span class="sd">        ensemble is designed for use with Triton Inference Server.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
