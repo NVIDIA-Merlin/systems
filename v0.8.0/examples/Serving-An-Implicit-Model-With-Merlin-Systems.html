@@ -72,20 +72,20 @@
              
   <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Copyright 2022 NVIDIA Corporation. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Copyright 2022 NVIDIA Corporation. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># ==============================================================================</span>
 </pre></div>
 </div>
 </div>
@@ -129,38 +129,37 @@
 <p>If you would like to learn more about training an <code class="docutils literal notranslate"><span class="pre">Implicit</span></code> model using the Merlin Models library, please consult this <a class="reference external" href="https://github.com/NVIDIA-Merlin/models/blob/main/examples/07-Train-traditional-ML-models-using-the-Merlin-Models-API.ipynb">tutorial</a>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
-import nvtabular as nvt
-import numpy as np
-from merlin.schema.tags import Tags
-from merlin.models.implicit import BayesianPersonalizedRanking
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">nvtabular</span> <span class="k">as</span> <span class="nn">nvt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">merlin.schema.tags</span> <span class="kn">import</span> <span class="n">Tags</span>
+<span class="kn">from</span> <span class="nn">merlin.models.implicit</span> <span class="kn">import</span> <span class="n">BayesianPersonalizedRanking</span>
 
-from merlin.datasets.entertainment import get_movielens
+<span class="kn">from</span> <span class="nn">merlin.datasets.entertainment</span> <span class="kn">import</span> <span class="n">get_movielens</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ensemble_export_path = os.environ.get(&quot;OUTPUT_DATA_DIR&quot;, &quot;ensemble&quot;)
-USE_GPU = bool(int(os.environ.get(&quot;USE_GPU&quot;, &quot;1&quot;)))
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ensemble_export_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OUTPUT_DATA_DIR&quot;</span><span class="p">,</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">)</span>
+<span class="n">USE_GPU</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;USE_GPU&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">)))</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>
-train, _ = get_movielens(variant=&#39;ml-100k&#39;)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">train</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">get_movielens</span><span class="p">(</span><span class="n">variant</span><span class="o">=</span><span class="s1">&#39;ml-100k&#39;</span><span class="p">)</span>
 
-# the implicit model expects a `user_id` column hence the need to rename it
-train = nvt.Dataset(train.compute().rename(columns = {&#39;userId&#39;: &#39;user_id&#39;}))
+<span class="c1"># the implicit model expects a `user_id` column hence the need to rename it</span>
+<span class="n">train</span> <span class="o">=</span> <span class="n">nvt</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;userId&#39;</span><span class="p">:</span> <span class="s1">&#39;user_id&#39;</span><span class="p">}))</span>
 
-user_id  = [&#39;user_id&#39;] &gt;&gt; nvt.ops.Categorify() &gt;&gt; nvt.ops.TagAsUserID()
-movieId  = [&#39;movieId&#39;] &gt;&gt; nvt.ops.Categorify() &gt;&gt; nvt.ops.TagAsItemID()
+<span class="n">user_id</span>  <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="n">nvt</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">Categorify</span><span class="p">()</span> <span class="o">&gt;&gt;</span> <span class="n">nvt</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">TagAsUserID</span><span class="p">()</span>
+<span class="n">movieId</span>  <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;movieId&#39;</span><span class="p">]</span> <span class="o">&gt;&gt;</span> <span class="n">nvt</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">Categorify</span><span class="p">()</span> <span class="o">&gt;&gt;</span> <span class="n">nvt</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">TagAsItemID</span><span class="p">()</span>
 
-train_workflow = nvt.Workflow(user_id + movieId)
-train_transformed = train_workflow.fit_transform(train)
+<span class="n">train_workflow</span> <span class="o">=</span> <span class="n">nvt</span><span class="o">.</span><span class="n">Workflow</span><span class="p">(</span><span class="n">user_id</span> <span class="o">+</span> <span class="n">movieId</span><span class="p">)</span>
+<span class="n">train_transformed</span> <span class="o">=</span> <span class="n">train_workflow</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">train</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -168,8 +167,8 @@ train_transformed = train_workflow.fit_transform(train)
 <p>Having preprocessed our data, let’s train our model.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>model = BayesianPersonalizedRanking(use_gpu=USE_GPU)
-model.fit(train_transformed)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">BayesianPersonalizedRanking</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="n">USE_GPU</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">train_transformed</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -196,7 +195,7 @@ model.fit(train_transformed)
 <p>In order to ensure we process our data in the same way in production as we do in training, let us now modify the training preprocessing pipeline and use it to construct our inference workflow.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>inf_workflow = train_workflow.remove_inputs([&#39;movieId&#39;])
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">inf_workflow</span> <span class="o">=</span> <span class="n">train_workflow</span><span class="o">.</span><span class="n">remove_inputs</span><span class="p">([</span><span class="s1">&#39;movieId&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -206,12 +205,12 @@ model.fit(train_transformed)
 <p>Last but not least, having received and preprocessed the data, we instruct the Triton Inference Server to perform inference using the model that we trained.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from merlin.systems.dag.ops.implicit import PredictImplicit
-from merlin.systems.dag.ensemble import Ensemble
-from merlin.systems.dag.ops.workflow import TransformWorkflow
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.implicit</span> <span class="kn">import</span> <span class="n">PredictImplicit</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ensemble</span> <span class="kn">import</span> <span class="n">Ensemble</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.workflow</span> <span class="kn">import</span> <span class="n">TransformWorkflow</span>
 
-inf_ops = inf_workflow.input_schema.column_names &gt;&gt; TransformWorkflow(inf_workflow) \
-                    &gt;&gt; PredictImplicit(model.implicit_model)
+<span class="n">inf_ops</span> <span class="o">=</span> <span class="n">inf_workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="o">.</span><span class="n">column_names</span> <span class="o">&gt;&gt;</span> <span class="n">TransformWorkflow</span><span class="p">(</span><span class="n">inf_workflow</span><span class="p">)</span> \
+                    <span class="o">&gt;&gt;</span> <span class="n">PredictImplicit</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">implicit_model</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -219,8 +218,8 @@ inf_ops = inf_workflow.input_schema.column_names &gt;&gt; TransformWorkflow(inf_
 <p>With inference operations defined, all that remains now is outputting the ensemble to disk so that it can be loaded up when Triton starts.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ensemble = Ensemble(inf_ops, inf_workflow.input_schema)
-ensemble.export(ensemble_export_path);
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ensemble</span> <span class="o">=</span> <span class="n">Ensemble</span><span class="p">(</span><span class="n">inf_ops</span><span class="p">,</span> <span class="n">inf_workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="p">)</span>
+<span class="n">ensemble</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">ensemble_export_path</span><span class="p">);</span>
 </pre></div>
 </div>
 </div>
@@ -248,8 +247,8 @@ I0414<span class="w"> </span><span class="m">18</span>:29:50.783470<span class="
 <p>We begin by obtaining 10 examples from our train data to include in the request.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ten_examples = train.compute()[&#39;user_id&#39;].unique().sample(10).sort_values().to_frame().reset_index(drop=True)
-ten_examples
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ten_examples</span> <span class="o">=</span> <span class="n">train</span><span class="o">.</span><span class="n">compute</span><span class="p">()[</span><span class="s1">&#39;user_id&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">ten_examples</span>
 </pre></div>
 </div>
 </div>
@@ -323,18 +322,18 @@ ten_examples
 <p>Let’s now package the information up as inputs and send it to Triton for inference.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from merlin.systems.triton import convert_df_to_triton_input
-import tritonclient.grpc as grpcclient
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">merlin.systems.triton</span> <span class="kn">import</span> <span class="n">convert_df_to_triton_input</span>
+<span class="kn">import</span> <span class="nn">tritonclient.grpc</span> <span class="k">as</span> <span class="nn">grpcclient</span>
 
-inputs = convert_df_to_triton_input(inf_workflow.input_schema, ten_examples, grpcclient.InferInput)
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">convert_df_to_triton_input</span><span class="p">(</span><span class="n">inf_workflow</span><span class="o">.</span><span class="n">input_schema</span><span class="p">,</span> <span class="n">ten_examples</span><span class="p">,</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferInput</span><span class="p">)</span>
 
-outputs = [
-    grpcclient.InferRequestedOutput(col)
-    for col in inf_ops.output_schema.column_names
-]
-# send request to tritonserver
-with grpcclient.InferenceServerClient(&quot;localhost:8001&quot;) as client:
-    response = client.infer(&quot;ensemble_model&quot;, inputs, outputs=outputs)
+<span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferRequestedOutput</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">inf_ops</span><span class="o">.</span><span class="n">output_schema</span><span class="o">.</span><span class="n">column_names</span>
+<span class="p">]</span>
+<span class="c1"># send request to tritonserver</span>
+<span class="k">with</span> <span class="n">grpcclient</span><span class="o">.</span><span class="n">InferenceServerClient</span><span class="p">(</span><span class="s2">&quot;localhost:8001&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="s2">&quot;ensemble_model&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -342,21 +341,21 @@ with grpcclient.InferenceServerClient(&quot;localhost:8001&quot;) as client:
 <p>We can now compare the predictions from the server to those from our local model.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>predictions_from_triton = response.as_numpy(outputs[0].name())
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">predictions_from_triton</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>local_predictions = model.predict(inf_workflow.transform(nvt.Dataset(ten_examples)))[0]
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">local_predictions</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">inf_workflow</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">nvt</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">ten_examples</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>np.testing.assert_allclose(predictions_from_triton, local_predictions)
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">predictions_from_triton</span><span class="p">,</span> <span class="n">local_predictions</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
