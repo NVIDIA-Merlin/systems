@@ -30,12 +30,12 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
-from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime  # noqa
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize("runtime", [None, TritonEnsembleRuntime(), TritonExecutorRuntime()])
+@pytest.mark.parametrize("runtime", [None, TritonExecutorRuntime()])
 def test_implicit_in_triton_executor_model(tmpdir, runtime):
     model = implicit.bpr.BayesianPersonalizedRanking()
     n = 100

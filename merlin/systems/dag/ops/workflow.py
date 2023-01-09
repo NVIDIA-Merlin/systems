@@ -15,8 +15,10 @@
 #
 from typing import List, Optional
 
+from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import Schema
+from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
 
 
@@ -92,6 +94,34 @@ class TransformWorkflow(PipelineableInferenceOperator):
     ) -> Schema:
         """Returns output schema of operator"""
         return self.workflow.output_schema
+
+    def transform(
+        self, col_selector: ColumnSelector, transformable: Transformable
+    ) -> Transformable:
+        """Run nvtabular workflow transformations.
+
+        Parameters
+        ----------
+        col_selector : ColumnSelector
+            Unused ColumunSelector input
+        transformable : Transformable
+            Input features to model
+
+        Returns
+        -------
+        Transformable
+            workflow transform
+        """
+        output_type = type(transformable)
+        if isinstance(transformable, DictArray):
+            transformable = transformable.to_df()
+
+        output = self.workflow._transform_df(transformable)
+
+        if not isinstance(output, output_type):
+            output = DictArray().from_df(output)
+
+        return output
 
     def export(
         self,

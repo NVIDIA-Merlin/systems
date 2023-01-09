@@ -13,11 +13,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-#!/bin/bash
-set -e
-
-# Run tests
-TF_GPU_ALLOCATOR=cuda_malloc_async pytest -rsx tests/unit tests/notebook
-
-
