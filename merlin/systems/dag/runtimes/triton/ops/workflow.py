@@ -13,18 +13,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import importlib.resources
 import json
+import os
 import pathlib
+from shutil import copyfile
+
+# this needs to be before any modules that import protobuf
+os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+
+import tritonclient.grpc.model_config_pb2 as model_config  # noqa
+from google.protobuf import text_format  # noqa
 
 from merlin.core.protocols import Transformable  # noqa
-from merlin.dag import ColumnSelector
-from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator
-from merlin.systems.triton.conversions import (
+from merlin.dag import ColumnSelector  # noqa
+from merlin.schema import ColumnSchema, Schema  # noqa
+from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
+from merlin.systems.triton.conversions import (  # noqa
     dict_array_to_triton_request,
     triton_response_to_dict_array,
 )
-from merlin.systems.triton.export import generate_nvtabular_model
+from merlin.systems.triton.export import _add_model_param, _convert_dtype  # noqa
 
 
 class TransformWorkflowTriton(TritonOperator):
@@ -154,7 +163,7 @@ class TransformWorkflowTriton(TritonOperator):
         node_export_path = pathlib.Path(path) / node_name
         node_export_path.mkdir(parents=True, exist_ok=True)
 
-        backend_model_config = generate_nvtabular_model(
+        backend_model_config = _generate_nvtabular_model(
             modified_workflow,
             node_name,
             node_export_path,
@@ -165,3 +174,124 @@ class TransformWorkflowTriton(TritonOperator):
         )
 
         return backend_model_config
+
+
+def _generate_nvtabular_model(
+    workflow,
+    name,
+    output_path,
+    version=1,
+    output_model=None,
+    max_batch_size=None,
+    sparse_max=None,
+    backend="python",
+    cats=None,
+    conts=None,
+):
+    """converts a workflow to a triton mode
+    Parameters
+    ----------
+    sparse_max:
+        Max length of the each row when the sparse data is converted to dense
+    cats:
+        Names of the categorical columns
+    conts:
+        Names of the continuous columns
+    """
+    workflow.save(os.path.join(output_path, str(version), "workflow"))
+    config = _generate_nvtabular_config(
+        workflow,
+        name,
+        output_path,
+        output_model,
+        max_batch_size,
+        sparse_max=sparse_max,
+        backend=backend,
+        cats=cats,
+        conts=conts,
+    )
+
+    # copy the model file over. note that this isn't necessary with the c++ backend, but
+    # does provide us to use the python backend with just changing the 'backend' parameter
+    with importlib.resources.path(
+        "merlin.systems.triton.models", "workflow_model.py"
+    ) as workflow_model:
+        copyfile(
+            workflow_model,
+            os.path.join(output_path, str(version), "model.py"),
+        )
+
+    return config
+
+
+def _generate_nvtabular_config(
+    workflow,
+    name,
+    output_path,
+    output_model=None,
+    max_batch_size=None,
+    sparse_max=None,
+    backend="python",
+    cats=None,
+    conts=None,
+):
+    """given a workflow generates the trton modelconfig proto object describing the inputs
+    and outputs to that workflow"""
+    config = model_config.ModelConfig(name=name, backend=backend, max_batch_size=max_batch_size)
+
+    config.parameters["python_module"].string_value = "merlin.systems.triton.models.workflow_model"
+    config.parameters["output_model"].string_value = output_model if output_model else ""
+
+    config.parameters["cats"].string_value = json.dumps(cats) if cats else ""
+    config.parameters["conts"].string_value = json.dumps(conts) if conts else ""
+
+    if sparse_max:
+        # this assumes seq_length is same for each list column
+        config.parameters["sparse_max"].string_value = json.dumps(sparse_max)
+
+    if output_model == "hugectr":
+        config.instance_group.append(model_config.ModelInstanceGroup(kind=2))
+
+        for column in workflow.output_node.input_columns.names:
+            dtype = workflow.input_dtypes[column]
+            config.input.append(
+                model_config.ModelInput(name=column, data_type=_convert_dtype(dtype), dims=[-1])
+            )
+
+        config.output.append(
+            model_config.ModelOutput(name="DES", data_type=model_config.TYPE_FP32, dims=[-1])
+        )
+
+        config.output.append(
+            model_config.ModelOutput(name="CATCOLUMN", data_type=model_config.TYPE_INT64, dims=[-1])
+        )
+
+        config.output.append(
+            model_config.ModelOutput(name="ROWINDEX", data_type=model_config.TYPE_INT32, dims=[-1])
+        )
+    elif output_model == "pytorch":
+        for col_name, col_schema in workflow.input_schema.column_schemas.items():
+            _add_model_param(col_schema, model_config.ModelInput, config.input)
+
+        for col_name, col_schema in workflow.output_schema.column_schemas.items():
+            _add_model_param(
+                col_schema,
+                model_config.ModelOutput,
+                config.output,
+                [-1, 1],
+            )
+    else:
+        for col_name, col_schema in workflow.input_schema.column_schemas.items():
+            _add_model_param(col_schema, model_config.ModelInput, config.input)
+
+        for col_name, col_schema in workflow.output_schema.column_schemas.items():
+            if sparse_max and col_name in sparse_max.keys():
+                # this assumes max_sequence_length is equal for all output columns
+                dim = sparse_max[col_name]
+                _add_model_param(col_schema, model_config.ModelOutput, config.output, [-1, dim])
+            else:
+                _add_model_param(col_schema, model_config.ModelOutput, config.output)
+
+    with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
+        text_format.PrintMessage(config, o)
+    return config
