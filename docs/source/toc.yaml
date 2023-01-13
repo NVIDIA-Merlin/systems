@@ -11,5 +11,6 @@ subtrees:
             entries:
               - file: examples/Serving-Ranking-Models-With-Merlin-Systems.ipynb
               - file: examples/Serving-An-XGboost-Model-With-Merlin-Systems.ipynb
+              - file: examples/Serving-An-Implicit-Model-With-Merlin-Systems.ipynb
       - file: api
         title: API Documentation

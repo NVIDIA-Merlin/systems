@@ -1,6 +1,7 @@
 import os
 
 import pytest
+
 from testbook import testbook
 
 from tests.conftest import REPO_ROOT
@@ -101,7 +102,7 @@ def test_example_04_exporting_ranking_models(tb):
     )
     batch = batch.drop(columns="click")
     outputs = tb.ref("output_cols")
-    from merlin.models.loader.tf_utils import configure_tensorflow
+    from merlin.dataloader.tf_utils import configure_tensorflow
 
     configure_tensorflow()
     from merlin.systems.triton.utils import run_ensemble_on_tritonserver
@@ -112,6 +113,6 @@ def test_example_04_exporting_ranking_models(tb):
     )
 
     response = run_ensemble_on_tritonserver(
-        "/tmp/data/ensemble/", schema.without(["click"]), batch, outputs, "ensemble_model"
+        "/tmp/data/ensemble/", schema.without(["click"]), batch, outputs, "executor_model"
     )
     assert len(response["click/binary_classification_task"]) == 3

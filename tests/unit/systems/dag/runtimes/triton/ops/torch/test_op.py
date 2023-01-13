@@ -27,7 +27,7 @@ from tritonclient.grpc import model_config_pb2
 
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
-from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_triton_server
 
 TRITON_SERVER_PATH = find_executable("tritonserver")
@@ -161,7 +161,6 @@ def test_torch_backend(tmpdir):
 @pytest.mark.parametrize(
     ["runtime", "model_name", "expected_model_name"],
     [
-        (TritonEnsembleRuntime(), None, "ensemble_model"),
         (TritonExecutorRuntime(), None, "executor_model"),
     ],
 )
@@ -211,7 +210,6 @@ def test_pytorch_op_serving(
 @pytest.mark.parametrize(
     ["runtime", "model_name", "expected_model_name"],
     [
-        (TritonEnsembleRuntime(), None, "ensemble_model"),
         (TritonExecutorRuntime(), None, "executor_model"),
     ],
 )

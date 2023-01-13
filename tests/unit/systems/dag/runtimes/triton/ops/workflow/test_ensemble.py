@@ -19,7 +19,7 @@ import numpy as np
 import pytest
 from tritonclient import grpc as grpcclient
 
-from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_triton_server
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
@@ -36,7 +36,6 @@ workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
 @pytest.mark.parametrize(
     ["runtime", "model_name", "expected_model_name"],
     [
-        (TritonEnsembleRuntime(), None, "ensemble_model"),
         (TritonExecutorRuntime(), None, "executor_model"),
     ],
 )

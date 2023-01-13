@@ -20,12 +20,11 @@ from distutils.spawn import find_executable  # pylint: disable=W0402
 import numpy as np
 import pytest
 
-from merlin.core.dispatch import make_df
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
-from merlin.systems.dag.runtimes.triton import TritonEnsembleRuntime, TritonExecutorRuntime
+from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
 triton = pytest.importorskip("merlin.systems.triton")
@@ -38,9 +37,6 @@ TRITON_SERVER_PATH = find_executable("tritonserver")
 @pytest.mark.parametrize(
     ["runtime", "model_name", "expected_model_name"],
     [
-        (None, None, "ensemble_model"),
-        (TritonEnsembleRuntime(), None, "ensemble_model"),
-        (TritonEnsembleRuntime(), "triton_model", "triton_model"),
         (TritonExecutorRuntime(), None, "executor_model"),
         (TritonExecutorRuntime(), "triton_model", "triton_model"),
     ],
@@ -73,7 +69,7 @@ def test_triton_runtime_export_and_run(runtime, model_name, expected_model_name,
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
-        make_df(request_data._columns),
+        request_data.to_df(),
         ensemble.output_schema.column_names,
         ensemble_config.name,
     )
