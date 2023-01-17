@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
+import merlin.dtypes as md
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag import DictArray
@@ -179,8 +180,8 @@ def test_feast_transform(prefix, is_ragged):
         )
         output_schema = Schema(
             [
-                ColumnSchema(feature_name),
-                ColumnSchema(feature_mh, is_list=True, is_ragged=is_ragged),
+                ColumnSchema(feature_name, dtype=md.float32),
+                ColumnSchema(feature_mh, dtype=md.float32, is_list=True, is_ragged=is_ragged),
             ]
         )
 
