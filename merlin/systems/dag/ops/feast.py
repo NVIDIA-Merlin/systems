@@ -306,7 +306,7 @@ class QueryFeast(PipelineableInferenceOperator):
 
             feature_value = feast_response[feature_name]
             feature_array = array_lib.array([feature_value]).T.astype(
-                self.output_schema[prefixed_name].dtype
+                self.output_schema[prefixed_name].dtype.to_numpy
             )
             output_tensors[prefixed_name] = feature_array
 
@@ -330,7 +330,7 @@ class QueryFeast(PipelineableInferenceOperator):
 
             # create a numpy array
             feature_array = array_lib.array(feature_value).T.astype(
-                self.output_schema[prefixed_name].dtype
+                self.output_schema[prefixed_name].dtype.to_numpy
             )
 
             # if we're a list but not ragged, construct row lengths
@@ -338,7 +338,7 @@ class QueryFeast(PipelineableInferenceOperator):
                 row_lengths = [len(feature_array)]
 
             feature_row_lengths = array_lib.array(
-                [row_lengths], dtype=self.output_schema[prefixed_name].dtype
+                [row_lengths], dtype=self.output_schema[prefixed_name].dtype.to_numpy
             ).T
 
             output_tensors[prefixed_name] = (feature_array, feature_row_lengths)
