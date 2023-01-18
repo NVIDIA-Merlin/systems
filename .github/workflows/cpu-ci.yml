@@ -7,8 +7,9 @@ on:
     tags:
       - v*
   pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, closed]
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
+
 
 jobs:
   build:
