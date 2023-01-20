@@ -3,32 +3,51 @@
 This folder contains the scripts necessary to build documentation. You can
 find the documentation at <https://nvidia-merlin.github.io/systems/main>.
 
-1. Follow the instructions to create a Python developer environment in
-   the repository README.
+## Contributing to Docs
 
-2. Install required documentation tools and extensions:
+You build the documentation with the `tox` command and specify the `docs` environment.
+The following steps are one way of many to build the documentation before opening a merge request.
 
-   ```shell
-   cd models
-   pip install -r requirements/dev.txt
-   ```
-
-3. Transform the documentation to HTML output:
+1. Create a virtual environment:
 
    ```shell
-   make -C docs clean html
+   python -m venv .venv
    ```
 
-   This should run Sphinx in your shell, and output HTML in
-   `docs/build/html/index.html`
-
-## Preview the documentation build
-
-1. To view the docs build, run the following command:
+1. Activate the virtual environment:
 
    ```shell
-   python -m http.server -d docs/build/html
+   source .venv/bin/activate
    ```
+
+1. Install tox in the virtual environment:
+
+   ```shell
+   python -m pip install --upgrade pip
+   python -m pip install tox
+   ```
+
+1. Build the documentation with tox:
+
+   ```shell
+   tox -e docs
+   ```
+
+These steps run Sphinx in your shell and create HTML in the `docs/build/html/`
+directory.
+
+## Preview the Changes
+
+View the docs web page by opening the HTML in your browser. First, navigate to
+the `build/html/` directory and then run the following command:
+
+```shell
+python -m http.server
+```
+
+Afterward, open a web browser and access <https://localhost:8000>.
+
+Check that yours edits formatted correctly and read well.
 
 ## Special Considerations for Examples and Copydirs
 
@@ -40,13 +59,3 @@ Be aware that `README.md` files are renamed to `index.md`
 during the build, due to the `copydirs_file_rename` setting.
 If you add `examples/blah/README.md`, then add an entry in
 the `toc.yaml` file for `examples/blah/index.md`.
-
-## Special Considerations for the fork of sphinx-multiversion
-
-So that we could use the `sphinx-external-toc` and `sphinxcontrib-copydirs`
-extensions with current development and still build a few older versions
-with `sphinx-multiversion`, the fork of `sphinx-multiversion` is enhanced
-so that when it begins a build for a tag, it checks for a `<tag>-docs` branch.
-
-If a ref for a `<tag>-docs` branch is found, then `sphinx-multiversion` builds
-from the source in the alternative branch.
