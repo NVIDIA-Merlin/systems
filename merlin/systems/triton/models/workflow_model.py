@@ -32,37 +32,10 @@ import triton_python_backend_utils as pb_utils
 import nvtabular
 from merlin.core.dispatch import is_list_dtype
 from merlin.systems.triton import _convert_tensor
+from merlin.systems.triton.utils import triton_error_handling, triton_multi_request
 from merlin.systems.workflow.hugectr import HugeCTRWorkflowRunner
 from merlin.systems.workflow.pytorch import PyTorchWorkflowRunner
 from merlin.systems.workflow.tensorflow import TensorflowWorkflowRunner
-
-
-def triton_error_handling(func):
-    def wrapper(*args, **kwargs):
-        try:
-            res = func(*args, **kwargs)
-        except Exception as exc:  # pylint: disable=broad-except
-            res = pb_utils.InferenceResponse(
-                output_tensors=[],
-                error=pb_utils.TritonError(f"{str(exc)}"),
-            )
-        return res
-
-    return wrapper
-
-
-def triton_multi_request(func):
-    def wrapper(*args, **kwargs):
-        requests = args[1]
-        if isinstance(requests, list):
-            res = []
-            for request in requests:
-                res.append(func(args[0], request, **kwargs))
-        else:
-            res = func(*args, **kwargs)
-        return res
-
-    return wrapper
 
 
 class TritonPythonModel:
@@ -128,45 +101,6 @@ class TritonPythonModel:
     def _set_output_dtype(self, name):
         conf = pb_utils.get_output_config_by_name(self.model_config, name)
         self.output_dtypes[name] = pb_utils.triton_string_to_numpy(conf["data_type"])
-
-    # def execute(self, requests):
-    #     """Transforms the input batches by running through a NVTabular workflow.transform
-    #     function.
-    #     """
-    #     responses = []
-    #     for request in requests:
-    #         try:
-    #             # transform the triton tensors to a dict of name:numpy tensor
-    #             input_tensors = {
-    #                 name: _convert_tensor(pb_utils.get_input_tensor_by_name(request, name))
-    #                 for name in self.input_dtypes
-    #             }
-
-    #             # multihots are represented as a tuple of (values, offsets)
-    #             for name, dtype in self.input_multihots.items():
-    #                 values = _convert_tensor(
-    #                     pb_utils.get_input_tensor_by_name(request, name + "__values")
-    #                 )
-    #                 offsets = _convert_tensor(
-    #                     pb_utils.get_input_tensor_by_name(request, name + "__lengths")
-    #                 )
-    #                 input_tensors[name] = (values, offsets)
-
-    #             # raise pb_utils.TritonModelException("Custom Error To check raised!")
-    #             raw_tensor_tuples = self.runner.run_workflow(input_tensors)
-
-    #             result = [pb_utils.Tensor(name, data) for name, data in raw_tensor_tuples]
-
-    #             responses.append(pb_utils.InferenceResponse(result))
-    #         except Exception as exc:
-    #             responses.append(
-    #                 pb_utils.InferenceResponse(
-    #                     output_tensors=[],
-    #                     error=pb_utils.TritonError(f"{str(exc)}"),
-    #                 )
-    #             )
-
-    #     return responses
 
     @triton_multi_request
     @triton_error_handling
