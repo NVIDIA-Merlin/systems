@@ -14,8 +14,9 @@
 # limitations under the License.
 #
 import os
-from distutils.spawn import find_executable
+from shutil import which
 
+import numpy
 import pytest
 
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -45,7 +46,7 @@ from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 from tests.unit.systems.utils.tf import create_tf_model  # noqa
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
@@ -109,6 +110,81 @@ def test_workflow_tf_e2e_config_verification(tmpdir, dataset, engine):
         str(tmpdir), request_schema, df, output_columns, ensemble_config.name
     )
     assert len(response["output"]) == df.shape[0]
+
+
+def raise_(col):
+    if (
+        isinstance(col.dtype, (type(numpy.dtype("float64")), type(numpy.dtype("int64"))))
+        and col.sum() != 0
+    ):
+        return col
+    else:
+        raise ValueError("Number Too High!!")
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+@pytest.mark.parametrize("engine", ["parquet"])
+def test_workflow_tf_e2e_error_propagation(tmpdir, dataset, engine):
+    # Create a Workflow
+    schema = dataset.schema
+    for name in ["x", "y", "id"]:
+        dataset.schema.column_schemas[name] = dataset.schema.column_schemas[name].with_tags(
+            [Tags.USER]
+        )
+    selector = ColumnSelector(["x", "y", "id"])
+
+    workflow_ops = selector >> wf_ops.Rename(postfix="_nvt") >> wf_ops.LambdaOp(raise_)
+    workflow = Workflow(workflow_ops["x_nvt"])
+    workflow.fit(dataset)
+
+    # Create Tensorflow Model
+    model = tf.keras.models.Sequential(
+        [
+            tf.keras.Input(name="x_nvt", dtype=tf.float64, shape=(1,)),
+            tf.keras.layers.Dense(16, activation="relu"),
+            tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(1, name="output"),
+        ]
+    )
+    model.compile(
+        optimizer="adam",
+        loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=[tf.metrics.SparseCategoricalAccuracy()],
+    )
+
+    # Creating Triton Ensemble
+    triton_chain = (
+        selector >> TransformWorkflow(workflow, cats=["x_nvt"]) >> PredictTensorflow(model)
+    )
+    triton_ens = Ensemble(triton_chain, schema)
+
+    # Creating Triton Ensemble Config
+    ensemble_config, node_configs = triton_ens.export(str(tmpdir))
+
+    config_path = tmpdir / ensemble_config.name / "config.pbtxt"
+
+    # Checking Triton Ensemble Config
+    with open(config_path, "rb") as f:
+        config = model_config.ModelConfig()
+        raw_config = f.read()
+        parsed = text_format.Parse(raw_config, config)
+
+        # The config file contents are correct
+        assert parsed.name == "executor_model"
+        assert parsed.platform == "merlin_executor"
+        assert hasattr(parsed, "ensemble_scheduling")
+
+    df = make_df({"x": [0.0, 0.0, 0.0], "y": [4.0, 5.0, 6.0], "id": [7, 8, 9]})
+
+    request_schema = Schema([schema["x"], schema["y"], schema["id"]])
+
+    output_columns = triton_ens.output_schema.column_names
+    with pytest.raises(Exception) as exc:
+        run_ensemble_on_tritonserver(
+            str(tmpdir), request_schema, df, output_columns, ensemble_config.name
+        )
+
+    assert "Number Too High!!" in str(exc.value)
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")

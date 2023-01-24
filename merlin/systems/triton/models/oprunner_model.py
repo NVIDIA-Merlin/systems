@@ -26,8 +26,6 @@
 
 import json
 import pathlib
-import sys
-import traceback
 
 import triton_python_backend_utils as pb_utils
 
@@ -102,13 +100,11 @@ class TritonPythonModel:
                 output_tensors = dict_array_to_triton_response(outputs)
                 responses.append(output_tensors)
 
-            except Exception:  # pylint: disable=broad-except
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                tb_string = repr(traceback.extract_tb(exc_traceback))
+            except Exception as exc:  # pylint: disable=broad-except
                 responses.append(
                     pb_utils.InferenceResponse(
                         output_tensors=[],
-                        error=pb_utils.TritonError(f"{exc_type}, {exc_value}, {tb_string}"),
+                        error=pb_utils.TritonError(f"{str(exc)}"),
                     )
                 )
 
