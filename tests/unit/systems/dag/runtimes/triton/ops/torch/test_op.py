@@ -56,9 +56,8 @@ model_input_schema = Schema(
     [
         ColumnSchema(
             "input",
-            properties={"value_count": {"min": 3, "max": 3}},
             dtype=np.float32,
-            properties={"is_list": True, "is_ragged": False},
+            properties={"value_count": {"min": 3, "max": 3}, "is_list": True, "is_ragged": False},
         )
     ]
 )
