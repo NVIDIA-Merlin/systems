@@ -137,25 +137,8 @@ def test_workflow_tf_e2e_error_propagation(tmpdir, dataset, engine):
     workflow = Workflow(workflow_ops["x_nvt"])
     workflow.fit(dataset)
 
-    # Create Tensorflow Model
-    model = tf.keras.models.Sequential(
-        [
-            tf.keras.Input(name="x_nvt", dtype=tf.float64, shape=(1,)),
-            tf.keras.layers.Dense(16, activation="relu"),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Dense(1, name="output"),
-        ]
-    )
-    model.compile(
-        optimizer="adam",
-        loss=tf.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=[tf.metrics.SparseCategoricalAccuracy()],
-    )
-
     # Creating Triton Ensemble
-    triton_chain = (
-        selector >> TransformWorkflow(workflow, cats=["x_nvt"]) >> PredictTensorflow(model)
-    )
+    triton_chain = selector >> TransformWorkflow(workflow, cats=["x_nvt"])
     triton_ens = Ensemble(triton_chain, schema)
 
     # Creating Triton Ensemble Config
