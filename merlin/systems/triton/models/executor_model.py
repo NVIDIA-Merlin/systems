@@ -24,11 +24,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import pathlib
-import sys
-import traceback
 from pathlib import Path
-
-import triton_python_backend_utils as pb_utils
 
 from merlin.dag import postorder_iter_nodes
 from merlin.systems.dag import Ensemble
@@ -37,6 +33,7 @@ from merlin.systems.triton.conversions import (
     dict_array_to_triton_response,
     triton_request_to_dict_array,
 )
+from merlin.systems.triton.utils import triton_error_handling, triton_multi_request
 
 
 class TritonPythonModel:
@@ -74,7 +71,9 @@ class TritonPythonModel:
             if hasattr(node.op, "load_artifacts"):
                 node.op.load_artifacts(str(ensemble_path))
 
-    def execute(self, requests):
+    @triton_multi_request
+    @triton_error_handling
+    def execute(self, request):
         """Receives a list of pb_utils.InferenceRequest as the only argument. This
         function is called when an inference is requested for this model. Depending on the
         batching configuration (e.g. Dynamic Batching) used, `requests` may contain
@@ -93,28 +92,9 @@ class TritonPythonModel:
           A list of pb_utils.InferenceResponse. The length of this list must
           be the same as `requests`
         """
-        responses = []
-
-        for request in requests:
-            try:
-                inputs = triton_request_to_dict_array(
-                    request, self.ensemble.input_schema.column_names
-                )
-                outputs = self.ensemble.transform(inputs, runtime=TritonExecutorRuntime())
-                output_tensors = dict_array_to_triton_response(outputs)
-                responses.append(output_tensors)
-
-            except Exception:  # pylint: disable=broad-except
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                tb_string = repr(traceback.extract_tb(exc_traceback))
-                responses.append(
-                    pb_utils.InferenceResponse(
-                        output_tensors=[],
-                        error=pb_utils.TritonError(f"{exc_type}, {exc_value}, {tb_string}"),
-                    )
-                )
-
-        return responses
+        inputs = triton_request_to_dict_array(request, self.ensemble.input_schema.column_names)
+        outputs = self.ensemble.transform(inputs, runtime=TritonExecutorRuntime())
+        return dict_array_to_triton_response(outputs)
 
 
 def _parse_model_repository(model_repository: str) -> str:
