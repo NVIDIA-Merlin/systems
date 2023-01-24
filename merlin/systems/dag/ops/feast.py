@@ -78,7 +78,13 @@ class QueryFeast(PipelineableInferenceOperator):
         mh_features = []
 
         input_schema = Schema(
-            [ColumnSchema(column, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged)]
+            [
+                ColumnSchema(
+                    column,
+                    dtype=entity_dtype,
+                    properties={"is_list": ent_is_list, "is_ragged": ent_is_ragged},
+                )
+            ]
         )
 
         output_schema = Schema([])
@@ -92,12 +98,16 @@ class QueryFeast(PipelineableInferenceOperator):
 
             name = cls._prefixed_name(output_prefix, feature.name)
             output_schema[name] = ColumnSchema(
-                name, dtype=feature_dtype, is_list=is_list, is_ragged=is_ragged
+                name,
+                dtype=feature_dtype,
+                properties={"is_list": ent_is_list, "is_ragged": ent_is_ragged},
             )
 
         if include_id:
             output_schema[entity_id] = ColumnSchema(
-                entity_id, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged
+                entity_id,
+                dtype=entity_dtype,
+                properties={"is_list": ent_is_list, "is_ragged": ent_is_ragged},
             )
         return QueryFeast(
             str(store.repo_path),
@@ -211,16 +221,14 @@ class QueryFeast(PipelineableInferenceOperator):
             in_schema[col_name] = ColumnSchema(
                 col_name,
                 dtype=col_rep["dtype"],
-                is_list=col_rep["is_list"],
-                is_ragged=col_rep["is_ragged"],
+                properties={"is_list": col_rep["is_list"], "is_ragged": col_rep["is_ragged"]},
             )
         out_schema = Schema([])
         for col_name, col_rep in out_dict.items():
             out_schema[col_name] = ColumnSchema(
                 col_name,
                 dtype=col_rep["dtype"],
-                is_list=col_rep["is_list"],
-                is_ragged=col_rep["is_ragged"],
+                properties={"is_list": col_rep["is_list"], "is_ragged": col_rep["is_ragged"]},
             )
 
         return QueryFeast(

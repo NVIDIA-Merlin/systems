@@ -153,20 +153,24 @@ def test_tf_op_infers_schema_for_input_tuples():
             ColumnSchema(
                 name="input_1",
                 tags=set(),
-                properties={"value_count": {"min": 128, "max": 128}},
+                properties={
+                    "value_count": {"min": 128, "max": 128},
+                    "is_list": True,
+                    "is_ragged": False,
+                },
                 dtype=np.dtype("float32"),
-                is_list=True,
-                is_ragged=False,
             ),
             ColumnSchema(
                 "input_2",
-                properties={"value_count": {"min": 128, "max": 128}},
+                properties={
+                    "value_count": {"min": 128, "max": 128},
+                    "is_list": True,
+                    "is_ragged": False,
+                },
                 dtype=np.float32,
-                is_list=True,
-                is_ragged=False,
             ),
         ]
     )
     assert op.output_schema == Schema(
-        [ColumnSchema("dot", dtype=np.float32, is_list=False, is_ragged=False)]
+        [ColumnSchema("dot", dtype=np.float32, properties={"is_list": False, "is_ragged": False})]
     )

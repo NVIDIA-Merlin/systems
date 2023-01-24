@@ -107,14 +107,12 @@ def test_feast_from_feature_view(tmpdir):
                 ColumnSchema(
                     name="prefix_int_list_feature",
                     dtype=np.int32,
-                    is_list=True,
-                    is_ragged=True,
+                    properties={"is_list": True, "is_ragged": True},
                 ),
                 ColumnSchema(
                     name="prefix_float_list_feature",
                     dtype=np.float32,
-                    is_list=True,
-                    is_ragged=True,
+                    properties={"is_list": True, "is_ragged": True},
                 ),
                 ColumnSchema(name="item_id", dtype=np.int32),
             ]
@@ -176,12 +174,17 @@ def test_feast_transform(prefix, is_ragged):
         feature_mh = f"{prefix}_mh_feature" if prefix else "mh_feature"
 
         input_schema = Schema(
-            [ColumnSchema("feature"), ColumnSchema("mh_feature", is_list=True, is_ragged=True)]
+            [
+                ColumnSchema("feature"),
+                ColumnSchema("mh_feature", properties={"is_list": True, "is_ragged": True}),
+            ]
         )
         output_schema = Schema(
             [
                 ColumnSchema(feature_name, dtype=md.float32),
-                ColumnSchema(feature_mh, dtype=md.float32, is_list=True, is_ragged=is_ragged),
+                ColumnSchema(
+                    feature_mh, dtype=md.float32, properties={"is_list": True, "is_ragged": False}
+                ),
             ]
         )
 

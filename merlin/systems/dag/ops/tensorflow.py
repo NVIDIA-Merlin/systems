@@ -177,6 +177,10 @@ class PredictTensorflow(InferenceOperator):
         return model
 
     def _set_list_length(self, col_schema, list_length):
-        return col_schema.with_dtype(
-            col_schema.dtype, is_list=True, is_ragged=False
-        ).with_properties({"value_count": {"min": list_length, "max": list_length}})
+        return col_schema.with_dtype(col_schema.dtype,).with_properties(
+            {
+                "is_list": True,
+                "is_ragged": False,
+                "value_count": {"min": list_length, "max": list_length},
+            }
+        )

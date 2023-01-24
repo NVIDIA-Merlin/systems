@@ -55,7 +55,7 @@ def test_load_from_config(tmpdir):
     node_config = json.loads(config.parameters[config.name].string_value)
 
     assert json.loads(node_config["output_dict"]) == {
-        "output__0": {"dtype": "float32", "is_list": False, "is_ragged": False}
+        "output__0": {"dtype": "float32", "properties": {"is_list": False, "is_ragged": False}}
     }
 
     cls = PredictForestTriton.from_config(node_config)
