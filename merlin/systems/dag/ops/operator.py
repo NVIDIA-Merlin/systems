@@ -62,7 +62,10 @@ class InferenceOperator(BaseOperator):
         DataFrame
             Returns a transformed dataframe for this operator
         """
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not have a Transform function."
+            "Please create one, if required."
+        )
 
     def load_artifacts(self, artifact_path):
         """
@@ -114,7 +117,11 @@ class InferenceOperator(BaseOperator):
         Node_configs: list
             A list of individual configs for each step (operator) in graph.
         """
-        raise NotImplementedError
+        raise NotImplementedError(
+            "Export function only exists for the specific runtimes, that use this function"
+            f" (i.e. Triton). Please replace {self.__class__.__name__} with the appropriate "
+            f"runtime specific operator, possibly {self.__class__.__name__}Triton"
+        )
 
     def create_node(self, selector: ColumnSelector) -> InferenceNode:
         """_summary_
