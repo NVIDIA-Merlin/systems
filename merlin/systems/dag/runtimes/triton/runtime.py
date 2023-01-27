@@ -58,12 +58,6 @@ try:
 except ImportError:
     ...
 
-feast = None
-try:
-    import feast
-except ImportError:
-    ...
-
 
 TRITON_OP_TABLE = {}
 TRITON_OP_TABLE[TransformWorkflow] = TransformWorkflowTriton
@@ -91,12 +85,6 @@ if implicit:
     from merlin.systems.dag.runtimes.triton.ops.implicit import PredictImplicitTriton
 
     TRITON_OP_TABLE[PredictImplicit] = PredictImplicitTriton
-
-if feast:
-    from merlin.systems.dag.ops.feast import QueryFeast
-    from merlin.systems.dag.runtimes.triton.ops.feast import QueryFeastTriton
-
-    TRITON_OP_TABLE[QueryFeast] = QueryFeastTriton
 
 
 class TritonExecutorRuntime(Runtime):
