@@ -1,4 +1,4 @@
-from typing import List
+import json
 
 import numpy as np
 from feast import FeatureStore, ValueType
@@ -6,7 +6,8 @@ from feast import FeatureStore, ValueType
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
+from merlin.systems.dag.ops.feast import QueryFeast
+from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator
 
 # Feast_key: (numpy dtype, is_list, is_ragged)
 feast_2_numpy = {
@@ -19,7 +20,7 @@ feast_2_numpy = {
 }
 
 
-class QueryFeast(InferenceOperator):
+class QueryFeastTriton(TritonOperator):
     """
     The QueryFeast operator is responsible for ensuring that your feast feature store [1]
     can communicate correctly with tritonserver for the ensemble feast feature look ups.
@@ -98,7 +99,7 @@ class QueryFeast(InferenceOperator):
             output_schema[entity_id] = ColumnSchema(
                 entity_id, dtype=entity_dtype, is_list=ent_is_list, is_ragged=ent_is_ragged
             )
-        return QueryFeast(
+        base_op = QueryFeast(
             str(store.repo_path),
             entity_id,
             view,
@@ -110,20 +111,9 @@ class QueryFeast(InferenceOperator):
             include_id=include_id,
             output_prefix=output_prefix or "",
         )
+        return QueryFeastTriton(base_op)
 
-    def __init__(
-        self,
-        repo_path: str,
-        entity_id: str,
-        entity_view: str,
-        entity_column: str,
-        features: List[str],
-        mh_features: List[str],
-        input_schema: Schema,
-        output_schema: Schema,
-        include_id: bool = False,
-        output_prefix: str = "",
-    ):
+    def __init__(self, op):
         """
         Create a new QueryFeast operator to handle link between tritonserver ensemble
         and a Feast feature store. This operator will create your feature store as well
@@ -152,20 +142,21 @@ class QueryFeast(InferenceOperator):
         output_prefix : str, optional
             _description_, by default ""
         """
-        self.repo_path = repo_path
-        self.entity_id = entity_id
-        self.entity_view = entity_view
-        self.entity_column = entity_column
+        if op:
+            self.repo_path = op.repo_path
+            self.entity_id = op.entity_id
+            self.entity_view = op.entity_view
+            self.entity_column = op.entity_column
 
-        self.features = features
-        self.mh_features = mh_features
-        self.input_schema = input_schema
-        self.output_schema = output_schema
-        self.include_id = include_id
-        self.output_prefix = output_prefix
+            self.features = op.features
+            self.mh_features = op.mh_features
+            self.input_schema = op.input_schema
+            self.output_schema = op.output_schema
+            self.include_id = op.include_id
+            self.output_prefix = op.output_prefix
 
-        self.store = FeatureStore(repo_path=repo_path)
-        super().__init__()
+            self.store = FeatureStore(repo_path=self.repo_path)
+        super().__init__(op)
 
     def __getstate__(self):
         # feature store objects aren't picklable - exclude from saved representation
@@ -189,6 +180,77 @@ class QueryFeast(InferenceOperator):
     ) -> Schema:
         """Compute the input schema for the operator."""
         return self.input_schema
+
+    @classmethod
+    def from_config(cls, config, **kwargs) -> "QueryFeast":
+        """Create the operator from a config."""
+        parameters = json.loads(config.get("params", ""))
+        entity_id = parameters["entity_id"]
+        entity_view = parameters["entity_view"]
+        entity_column = parameters["entity_column"]
+        repo_path = parameters["feast_repo_path"]
+        features = parameters["features"]
+        mh_features = parameters["mh_features"]
+        in_dict = json.loads(config.get("input_dict", "{}"))
+        out_dict = json.loads(config.get("output_dict", "{}"))
+        include_id = parameters["include_id"]
+        output_prefix = parameters["output_prefix"]
+
+        in_schema = Schema([])
+        for col_name, col_rep in in_dict.items():
+            in_schema[col_name] = ColumnSchema(
+                col_name,
+                dtype=col_rep["dtype"],
+                is_list=col_rep["is_list"],
+                is_ragged=col_rep["is_ragged"],
+            )
+        out_schema = Schema([])
+        for col_name, col_rep in out_dict.items():
+            out_schema[col_name] = ColumnSchema(
+                col_name,
+                dtype=col_rep["dtype"],
+                is_list=col_rep["is_list"],
+                is_ragged=col_rep["is_ragged"],
+            )
+
+        base_op = QueryFeast(
+            repo_path,
+            entity_id,
+            entity_view,
+            entity_column,
+            features,
+            mh_features,
+            in_schema,
+            out_schema,
+            include_id,
+            output_prefix,
+        )
+
+        return QueryFeastTriton(base_op)
+
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+        backend: str = "ensemble",
+    ):
+        params = params or {}
+        self_params = {
+            "entity_id": self.entity_id,
+            "entity_view": self.entity_view,
+            "entity_column": self.entity_column,
+            "features": self.features,
+            "mh_features": self.mh_features,
+            "feast_repo_path": self.repo_path,
+            "include_id": self.include_id,
+            "output_prefix": self.output_prefix,
+        }
+        self_params.update(params)
+        return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
