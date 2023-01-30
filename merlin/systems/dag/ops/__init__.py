@@ -38,10 +38,12 @@ def compute_dims(col_schema, scalar_shape=None):
     assert isinstance(column_dims, list)
 
     if col_schema.is_list:
-        value_count = col_schema.properties.get("value_count", None)
-        if value_count and value_count["max"] > 0 and value_count["min"] == value_count["max"]:
-            column_dims = [value_count["max"]]
+        value_count = col_schema.properties.get("value_count", {})
+        min_count = value_count.get("min", None)
+        max_count = value_count.get("max", None)
+        if min_count and max_count and max_count > 0 and min_count == max_count:
+            column_dims = [max_count]
         else:
-            column_dims = [-1]
+            return batch_dim
 
     return batch_dim + column_dims

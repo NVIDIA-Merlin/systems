@@ -23,19 +23,19 @@ import merlin.dtypes as md  # noqa
 from merlin.core.dispatch import is_string_dtype  # noqa
 
 
-def _add_model_param(col_schema, paramclass, params, dims=None):
+def _add_model_param(col_schema, paramclass, params, dims=None, suffixes=("__values", "__lengths")):
     dims = dims if dims is not None else [-1, 1]
     if col_schema.is_list and col_schema.is_ragged:
         params.append(
             paramclass(
-                name=col_schema.name + "__values",
+                name=col_schema.name + suffixes[0],
                 data_type=_convert_dtype(col_schema.dtype),
                 dims=dims,
             )
         )
         params.append(
             paramclass(
-                name=col_schema.name + "__lengths", data_type=model_config.TYPE_INT32, dims=dims
+                name=col_schema.name + suffixes[1], data_type=model_config.TYPE_INT32, dims=dims
             )
         )
     else:

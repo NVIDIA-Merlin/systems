@@ -146,18 +146,36 @@ class PredictTensorflow(InferenceOperator):
                 default_signature = reloaded.signatures["serving_default"]
 
         input_schema = Schema()
-        for col_name, col in default_signature.structured_input_signature[1].items():
-            col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype)
-            if col.shape[1] and col.shape[1] > 1:
-                col_schema = self._set_list_length(col_schema, col.shape[1])
-            input_schema.column_schemas[col_name] = col_schema
+        for input_name, input_ in default_signature.structured_input_signature[1].items():
+            if input_name.endswith("_1"):
+                input_name = input_name.replace("_1", "")
+                col_schema = ColumnSchema(input_name)
+                col_schema = col_schema.with_dtype(col_schema.dtype, is_list=True, is_ragged=True)
+            else:
+                col_schema = ColumnSchema(input_name)
+                col_schema = col_schema.with_dtype(input_.dtype.as_numpy_dtype)
+                if len(input_.shape) > 1 and input_.shape[1] and input_.shape[1] > 1:
+                    col_schema = self._set_list_length(col_schema, input_.shape[1])
+
+            input_schema.column_schemas[input_name] = input_schema.column_schemas.get(
+                input_name, col_schema
+            ).__merge__(col_schema)
 
         output_schema = Schema()
-        for col_name, col in default_signature.structured_outputs.items():
-            col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype)
-            if col.shape[1] and col.shape[1] > 1:
-                col_schema = self._set_list_length(col_schema, col.shape[1])
-            output_schema.column_schemas[col_name] = col_schema
+        for output_name, output_ in default_signature.structured_outputs.items():
+            col_schema = ColumnSchema(output_name)
+            if output_name.endswith("_1"):
+                #     output_name = output_name.replace("_1", "")
+                #     col_schema = col_schema.with_dtype(col_schema.dtype,
+                #                                        is_list=True, is_ragged=True)
+                # else:
+                col_schema = col_schema.with_dtype(output_.dtype.as_numpy_dtype)
+                if len(output_.shape) > 1 and output_.shape[1] and output_.shape[1] > 1:
+                    col_schema = self._set_list_length(col_schema, output_.shape[1])
+
+            output_schema.column_schemas[output_name] = output_schema.column_schemas.get(
+                output_name, ColumnSchema(output_name)
+            ).__merge__(col_schema)
 
         return input_schema, output_schema
 

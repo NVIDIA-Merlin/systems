@@ -129,6 +129,7 @@ class PredictTensorflowTriton(TritonOperator):
                 model_config.ModelInput,
                 col_schema,
                 compute_dims(col_schema, self.scalar_shape),
+                suffixes=("", "_1"),
             )
 
         for _, col_schema in self.output_schema.column_schemas.items():
@@ -137,6 +138,7 @@ class PredictTensorflowTriton(TritonOperator):
                 model_config.ModelOutput,
                 col_schema,
                 compute_dims(col_schema, self.scalar_shape),
+                suffixes=("", "_1"),
             )
 
         with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
