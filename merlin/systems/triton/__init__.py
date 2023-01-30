@@ -15,6 +15,7 @@
 import json
 import os
 
+import numpy as np
 import pandas as pd
 
 # this needs to be before any modules that import protobuf
@@ -25,14 +26,6 @@ from tritonclient.utils import np_to_triton_dtype  # noqa
 
 from merlin.core.dispatch import is_string_dtype, make_df  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
-from merlin.systems.triton.export import (  # noqa
-    _convert_string2pytorch_dtype,
-    export_hugectr_ensemble,
-    export_pytorch_ensemble,
-    export_tensorflow_ensemble,
-    generate_hugectr_model,
-    generate_nvtabular_model,
-)
 
 
 def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput, dtype="int32"):
@@ -76,25 +69,37 @@ def _convert_df_to_dict(schema, batch, dtype="int32"):
 
             if col_schema.is_ragged:
                 df_dict[col_name + "__values"] = col.list.leaves.values_host.astype(
-                    col_schema.dtype
+                    col_schema.dtype.to_numpy
                 )
                 df_dict[col_name + "__lengths"] = col._column.offsets.values_host.astype(dtype)
             else:
                 values = col.list.leaves.values_host
-                values = values.reshape(*shape).astype(col_schema.dtype)
+                values = values.reshape(*shape).astype(col_schema.dtype.to_numpy)
                 df_dict[col_name] = values
 
         else:
             values = col.values if isinstance(col, pd.Series) else col.values_host
-            values = values.reshape(*shape).astype(col_schema.dtype)
+            values = values.reshape(*shape).astype(col_schema.dtype.to_numpy)
             df_dict[col_name] = values
     return df_dict
 
 
 def _convert_column_to_triton_input(col_name, col_values, input_class=grpcclient.InferInput):
-    dtype = np_to_triton_dtype(col_values.dtype)
+    # Triton's mapping of numpy types to Triton types doesn't know how to handle string types,
+    # so we need to map them to object ourselves before we call np_to_triton_dtype
+    col_dtype = col_values.dtype
+    if isinstance(col_dtype, type(np.dtype("str"))):
+        col_dtype = np.dtype("O")
+
+    dtype = np_to_triton_dtype(col_dtype)
     input_tensor = input_class(col_name, col_values.shape, dtype)
+
+    # set_data_from_numpy checks the type against what was supplied when we created the tensor
+    # using np_to_triton_dtype, so the workaround above isn't enough to make them match here.
+    # Do one last `astype` cast to make absolutely sure the dtypes match.
+    col_values = col_values.astype(col_dtype)
     input_tensor.set_data_from_numpy(col_values)
+
     return input_tensor
 
 

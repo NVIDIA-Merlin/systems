@@ -1,14 +1,17 @@
 name: lint
 
 on:
-  pull_request:
+  workflow_dispatch:
   push:
-    branches: [main]
+    branches: [ main ]
     tags:
       - v*
+  pull_request:
+    branches: [ main ]
+    types: [opened, synchronize, reopened]
 
 jobs:
-  pre-commit:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

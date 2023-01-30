@@ -11,6 +11,11 @@ repos:
       additional_dependencies: [toml]
       exclude: examples/.*
   # code style
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v2.7.1
+    hooks:
+      - id: prettier
+        types_or: [yaml, markdown]
   - repo: https://github.com/python/black
     rev: 22.12.0
     hooks:
@@ -25,6 +30,7 @@ repos:
     rev: v2.15.9
     hooks:
     - id: pylint
+
   # notebooks
   - repo: https://github.com/s-weigand/flake8-nb
     rev: v0.5.2
