@@ -32,7 +32,9 @@ def test_single_value_list_column():
         "user_id": np.array([1]),
     }
     request_data = DictArray(request_features)
-    assert request_data["user_id"].values() == np.array([1])
+    assert request_data["user_id"].values == np.array(  # pylint:disable=comparison-with-callable
+        [1]
+    )
 
 
 def test_multiple_arrays_to_dict():
