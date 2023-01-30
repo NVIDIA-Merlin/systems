@@ -19,6 +19,7 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 
+import merlin.dtypes as md  # noqa
 from merlin.core.dispatch import is_string_dtype  # noqa
 
 
@@ -45,31 +46,14 @@ def _add_model_param(col_schema, paramclass, params, dims=None):
 
 def _convert_dtype(dtype):
     """converts a dtype to the appropriate triton proto type"""
-
-    if dtype and not isinstance(dtype, str):
-        dtype_name = dtype.name if hasattr(dtype, "name") else dtype.__name__
-    else:
-        dtype_name = dtype
-
-    dtypes = {
-        "float64": model_config.TYPE_FP64,
-        "float32": model_config.TYPE_FP32,
-        "float16": model_config.TYPE_FP16,
-        "int64": model_config.TYPE_INT64,
-        "int32": model_config.TYPE_INT32,
-        "int16": model_config.TYPE_INT16,
-        "int8": model_config.TYPE_INT8,
-        "uint64": model_config.TYPE_UINT64,
-        "uint32": model_config.TYPE_UINT32,
-        "uint16": model_config.TYPE_UINT16,
-        "uint8": model_config.TYPE_UINT8,
-        "bool": model_config.TYPE_BOOL,
-    }
+    dtype = md.dtype(dtype)
+    try:
+        return dtype.to("triton")
+    except ValueError:
+        dtype = dtype.to_numpy
 
     if is_string_dtype(dtype):
         return model_config.TYPE_STRING
-    elif dtype_name in dtypes:
-        return dtypes[dtype_name]
     else:
         raise ValueError(f"Can't convert {dtype} to a Triton dtype")
 
