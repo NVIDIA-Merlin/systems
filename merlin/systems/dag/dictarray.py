@@ -19,14 +19,13 @@ from typing import Dict, Optional
 import numpy as np
 import pandas as pd
 
+import merlin.dtypes as md
 from merlin.core.dispatch import (
     build_cudf_list_column,
     build_pandas_list_column,
     get_lib,
     is_list_dtype,
 )
-
-import merlin.dtypes as md
 from merlin.core.protocols import SeriesLike
 
 try:
