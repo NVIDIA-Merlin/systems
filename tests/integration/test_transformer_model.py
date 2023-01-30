@@ -26,7 +26,7 @@ grpcclient = pytest.importorskip("tritonclient.grpc")
 import merlin.models.tf as mm  # noqa
 from merlin.datasets.synthetic import generate_data  # noqa
 from merlin.io import Dataset  # noqa
-from merlin.schema import Tags  # noqa
+from merlin.schema import ColumnSchema, Schema, Tags  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
@@ -93,8 +93,19 @@ def test_serve_tf_with_libtensorflow(tmpdir):
     # ===========================================
     # Build a simple Ensemble graph
     # ===========================================
+    embedding_schema = Schema(
+        [
+            ColumnSchema(
+                "output_1",
+                is_list=True,
+                is_ragged=False,
+                properties={"value_counts": {"min": 48, "max": 48}},
+            )
+        ]
+    )
+
     tf_op = input_schema.column_names >> PredictTensorflow(
-        model.query_encoder, input_schema, output_schema
+        model.query_encoder, input_schema, embedding_schema
     )
 
     # len(input_schema.column_names) = 2
@@ -113,8 +124,14 @@ def test_serve_tf_with_libtensorflow(tmpdir):
     # ===========================================
     # Send request to Triton and check response
     # ===========================================
+
     response = run_ensemble_on_tritonserver(
-        tmpdir, input_schema, request_df, output_schema.column_names, node_configs[0].name
+        tmpdir,
+        input_schema,
+        request_df,
+        embedding_schema.column_names,
+        node_configs[0].name,
+        suffixes=("", "_1"),
     )
 
-    assert response
+    assert response["output_1"].shape == (1, 48)

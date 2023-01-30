@@ -5,7 +5,7 @@ import signal
 import socket
 import subprocess
 import time
-from distutils.spawn import find_executable
+from shutil import which
 
 import tritonclient
 import tritonclient.grpc as grpcclient
@@ -14,7 +14,7 @@ from merlin.systems import triton
 
 LOG = logging.getLogger("merlin-systems")
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = which("tritonserver")
 
 
 @contextlib.contextmanager
@@ -112,6 +112,7 @@ def run_ensemble_on_tritonserver(
     df,
     output_columns,
     model_name,
+    suffixes=("__values", "__lengths"),
 ):
     """Starts up a Triton server instance, loads up the ensemble model,
     prepares the inference request and returns the unparsed inference
@@ -138,7 +139,7 @@ def run_ensemble_on_tritonserver(
     response = None
     with run_triton_server(tmpdir) as client:
         response = send_triton_request(
-            schema, df, output_columns, client=client, triton_model=model_name
+            schema, df, output_columns, client=client, triton_model=model_name, suffixes=suffixes
         )
 
     return response
@@ -152,6 +153,7 @@ def send_triton_request(
     endpoint="localhost:8001",
     request_id="1",
     triton_model="executor_model",
+    suffixes=("__values", "__lengths"),
 ):
     """This function checks if the triton server is available and sends a request to the Triton
     server that has already been started.
@@ -186,7 +188,7 @@ def send_triton_request(
     if not client.is_server_live():
         raise ValueError("Client could not establish commuincation with Triton Inference Server.")
 
-    inputs = triton.convert_df_to_triton_input(schema, df, grpcclient.InferInput)
+    inputs = triton.convert_df_to_triton_input(schema, df, grpcclient.InferInput, suffixes=suffixes)
 
     outputs = [grpcclient.InferRequestedOutput(col) for col in outputs_list]
     with client:

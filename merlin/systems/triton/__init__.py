@@ -28,7 +28,13 @@ from merlin.core.dispatch import is_string_dtype, make_df  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
 
 
-def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput, dtype="int32"):
+def convert_df_to_triton_input(
+    schema,
+    batch,
+    input_class=grpcclient.InferInput,
+    dtype="int32",
+    suffixes=("__values", "__lengths"),
+):
     """
     Convert a dataframe to a set of Triton inputs
 
@@ -48,7 +54,7 @@ def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput,
     List[input_class]
         A list of Triton inputs of the requested input class
     """
-    df_dict = _convert_df_to_dict(schema, batch, dtype)
+    df_dict = _convert_df_to_dict(schema, batch, dtype=dtype, suffixes=suffixes)
     inputs = [
         _convert_column_to_triton_input(col_name, col_values, input_class)
         for col_name, col_values in df_dict.items()
@@ -56,7 +62,7 @@ def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput,
     return inputs
 
 
-def _convert_df_to_dict(schema, batch, dtype="int32"):
+def _convert_df_to_dict(schema, batch, dtype="int32", suffixes=("__values", "__lengths")):
     df_dict = {}
     for col_name, col_schema in schema.column_schemas.items():
         col = batch[col_name]
@@ -68,10 +74,10 @@ def _convert_df_to_dict(schema, batch, dtype="int32"):
                 raise ValueError("this function doesn't support CPU list values yet")
 
             if col_schema.is_ragged:
-                df_dict[col_name + "__values"] = col.list.leaves.values_host.astype(
+                df_dict[col_name + suffixes[0]] = col.list.leaves.values_host.astype(
                     col_schema.dtype.to_numpy
                 )
-                df_dict[col_name + "__lengths"] = col._column.offsets.values_host.astype(dtype)
+                df_dict[col_name + suffixes[1]] = col._column.offsets.values_host.astype(dtype)[1:]
             else:
                 values = col.list.leaves.values_host
                 values = values.reshape(*shape).astype(col_schema.dtype.to_numpy)

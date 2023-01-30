@@ -316,18 +316,18 @@ def _schema_to_dict(schema: Schema) -> dict:
     return schema_dict
 
 
-def add_model_param(params, paramclass, col_schema, dims=None):
+def add_model_param(params, paramclass, col_schema, dims=None, suffixes=("", "_1")):
     if col_schema.is_list and col_schema.is_ragged:
         params.append(
             paramclass(
-                name=col_schema.name + "__values",
+                name=col_schema.name + suffixes[0],
                 data_type=_convert_dtype(col_schema.dtype),
                 dims=dims,
             )
         )
         params.append(
             paramclass(
-                name=col_schema.name + "__lengths", data_type=model_config.TYPE_INT32, dims=dims
+                name=col_schema.name + suffixes[1], data_type=model_config.TYPE_INT32, dims=dims
             )
         )
     else:

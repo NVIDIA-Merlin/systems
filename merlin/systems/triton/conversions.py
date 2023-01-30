@@ -41,7 +41,7 @@ from merlin.systems.dag import DictArray
 from merlin.systems.dag.ops.compat import pb_utils
 
 
-def triton_request_to_dict_array(request, column_names):
+def triton_request_to_dict_array(request, column_names, suffixes=("__values", "__lengths")):
     """
     Turns a Triton request into a DictArray by extracting individual tensors
     from the request using pb_utils.
@@ -61,8 +61,8 @@ def triton_request_to_dict_array(request, column_names):
     dict_inputs = {}
     for name in column_names:
         try:
-            values = _array_from_triton_tensor(request, f"{name}__values")
-            lengths = _array_from_triton_tensor(request, f"{name}__lengths")
+            values = _array_from_triton_tensor(request, f"{name}{suffixes[0]}")
+            lengths = _array_from_triton_tensor(request, f"{name}{suffixes[1]}")
             dict_inputs[name] = (values, lengths)
         except (AttributeError, ValueError):
             dict_inputs[name] = _array_from_triton_tensor(request, name)
