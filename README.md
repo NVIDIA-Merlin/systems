@@ -125,7 +125,7 @@ Merlin Systems is installed on multiple Docker containers that are available fro
 The following table lists the containers that include Triton Inference Server for use with Merlin.
 
 | Container Name      | Container Location                                                                     | Functionality                                                                      |
-| --------------------| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| ------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `merlin-hugectr`    | <https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-hugectr>    | Merlin frameworks, HugeCTR, and Triton Inference Server                            |
 | `merlin-tensorflow` | <https://catalog.ngc.nvidia.com/orgs/nvidia/teams/merlin/containers/merlin-tensorflow> | Merlin frameworks selected for only Tensorflow support and Triton Inference Server |
 
