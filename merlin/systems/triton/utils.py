@@ -5,7 +5,7 @@ import signal
 import socket
 import subprocess
 import time
-from shutil import which
+from distutils.spawn import find_executable
 
 import tritonclient
 import tritonclient.grpc as grpcclient
@@ -14,7 +14,7 @@ from merlin.systems import triton
 
 LOG = logging.getLogger("merlin-systems")
 
-TRITON_SERVER_PATH = which("tritonserver")
+TRITON_SERVER_PATH = find_executable("tritonserver")
 
 
 @contextlib.contextmanager
