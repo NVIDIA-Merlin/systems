@@ -5,7 +5,7 @@ import signal
 import socket
 import subprocess
 import time
-from distutils.spawn import find_executable
+from shutil import which
 
 import tritonclient
 import tritonclient.grpc as grpcclient
@@ -14,7 +14,7 @@ from merlin.systems import triton
 
 LOG = logging.getLogger("merlin-systems")
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = which("tritonserver")
 
 
 @contextlib.contextmanager
@@ -74,7 +74,7 @@ def run_triton_server(
         try:
             with grpcclient.InferenceServerClient(grpc_url) as client:
                 # wait until server is ready
-                time_ranges = [20, 20, 20]
+                time_ranges = [30, 30, 30]
                 for seconds in time_ranges:
                     for _ in range(seconds):
                         if process.poll() is not None:
