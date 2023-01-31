@@ -33,10 +33,10 @@ from merlin.systems.dag.ops.compat import (
     treelite_sklearn,
     xgboost,
 )
-from merlin.systems.dag.ops.operator import InferenceOperator, PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import InferenceOperator
 
 
-class PredictForest(PipelineableInferenceOperator):
+class PredictForest(InferenceOperator):
     """Operator for running inference on Forest models.
 
     This works for gradient-boosted decision trees (GBDTs) and Random forests (RF).

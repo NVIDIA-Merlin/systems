@@ -23,10 +23,10 @@ from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.dictarray import DictArray
-from merlin.systems.dag.ops.operator import PipelineableInferenceOperator  # noqa
+from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 
 
-class PredictPyTorch(PipelineableInferenceOperator):
+class PredictPyTorch(InferenceOperator):
     """
     This operator takes a pytorch model and packages it correctly for tritonserver
     to run, on the pytorch backend.

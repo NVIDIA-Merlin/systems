@@ -103,7 +103,7 @@ def run_triton_server(
         try:
             with grpcclient.InferenceServerClient(grpc_url) as client:
                 # wait until server is ready
-                time_ranges = [60, 120, 300]
+                time_ranges = [20, 20, 20]
                 for seconds in time_ranges:
                     for _ in range(seconds):
                         if process.poll() is not None:

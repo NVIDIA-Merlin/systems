@@ -31,9 +31,9 @@ from merlin.systems.dag.ops.compat import (
     treelite_sklearn,
     xgboost,
 )
-from merlin.systems.dag.ops.operator import add_model_param
 from merlin.systems.dag.ops.workflow import TransformWorkflow
 from merlin.systems.dag.runtimes import Runtime
+from merlin.systems.dag.runtimes.triton.ops.operator import add_model_param
 from merlin.systems.dag.runtimes.triton.ops.workflow import TransformWorkflowTriton
 
 tensorflow = None
@@ -49,6 +49,12 @@ except ImportError:
 torch = None
 try:
     import torch
+except ImportError:
+    ...
+
+implicit = None
+try:
+    import implicit
 except ImportError:
     ...
 
@@ -73,6 +79,12 @@ if torch:
     from merlin.systems.dag.runtimes.triton.ops.pytorch import PredictPyTorchTriton
 
     TRITON_OP_TABLE[PredictPyTorch] = PredictPyTorchTriton
+
+if implicit:
+    from merlin.systems.dag.ops.implicit import PredictImplicit
+    from merlin.systems.dag.runtimes.triton.ops.implicit import PredictImplicitTriton
+
+    TRITON_OP_TABLE[PredictImplicit] = PredictImplicitTriton
 
 
 class TritonExecutorRuntime(Runtime):

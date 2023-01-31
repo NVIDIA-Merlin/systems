@@ -28,10 +28,10 @@ from merlin.core.dispatch import HAS_GPU
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import InferenceOperator
 
 
-class QueryFaiss(PipelineableInferenceOperator):
+class QueryFaiss(InferenceOperator):
     """
     This operator creates an interface between a FAISS[1] Approximate Nearest Neighbors (ANN)
     Index and Triton Infrence Server. The operator allows users to perform different supported
