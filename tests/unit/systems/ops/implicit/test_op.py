@@ -26,9 +26,11 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.implicit import PredictImplicit
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
+from merlin.systems.dag.runtimes.triton.ops.implicit import PredictImplicitTriton
 from merlin.systems.triton.utils import run_triton_server
 
 TRITON_SERVER_PATH = shutil.which("tritonserver")
+
 
 triton = pytest.importorskip("merlin.systems.triton")
 
@@ -47,13 +49,14 @@ def test_reload_from_config(model_cls, tmpdir):
     user_items = csr_matrix(np.random.choice([0, 1], size=n * n).reshape(n, n))
     model.fit(user_items)
 
-    op = PredictImplicit(model)
+    base = PredictImplicit(model)
+    op = PredictImplicitTriton(base)
 
     config = op.export(tmpdir, Schema(), Schema())
 
     node_config = json.loads(config.parameters[config.name].string_value)
 
-    cls = PredictImplicit.from_config(
+    cls = PredictImplicitTriton.from_config(
         node_config,
         model_repository=tmpdir,
         model_name=config.name,

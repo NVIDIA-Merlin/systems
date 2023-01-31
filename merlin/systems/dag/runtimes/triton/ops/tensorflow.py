@@ -27,8 +27,8 @@ from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
-from merlin.systems.dag.ops.operator import add_model_param  # noqa
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
+from merlin.systems.dag.runtimes.triton.ops.operator import add_model_param  # noqa
 from merlin.systems.triton.conversions import (  # noqa
     dict_array_to_triton_request,
     triton_response_to_dict_array,

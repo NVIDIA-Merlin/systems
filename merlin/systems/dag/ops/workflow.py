@@ -19,10 +19,10 @@ from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import Schema
 from merlin.systems.dag.dictarray import DictArray
-from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import InferenceOperator
 
 
-class TransformWorkflow(PipelineableInferenceOperator):
+class TransformWorkflow(InferenceOperator):
     """
     This operator takes a workflow and turns it into a ensemble operator so that we can
     execute feature engineering during ensemble on tritonserver.

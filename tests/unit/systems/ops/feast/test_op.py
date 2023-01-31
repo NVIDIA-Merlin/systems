@@ -1,4 +1,3 @@
-import json
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
@@ -17,46 +16,6 @@ from feast.protos.feast.serving import ServingService_pb2  # noqa
 from feast.protos.feast.types import Value_pb2  # noqa
 
 from merlin.systems.dag.ops.feast import QueryFeast  # noqa
-
-
-def test_feast_config_round_trip(tmpdir):
-    """
-    This builds a QueryFeast op via the constructor, exports the config, and then builds another
-    QueryFeast op via from_config to ensure that the constructor arguments match the original.
-    """
-    input_schema = Schema()
-    output_schema = Schema()
-
-    # We need to mock the FeatureStore constructor so it doesn't look for a real store, and the
-    # QueryFeast constructor so that we can ensure that it gets called with the correct args.
-    # These must be done in a context manager so we don't modify the classes globally and
-    # affect other tests.
-    with patch("feast.FeatureStore.__init__", MagicMock(return_value=None)), patch(
-        "merlin.systems.dag.ops.feast.QueryFeast", MagicMock(side_effect=QueryFeast)
-    ) as qf_init:
-
-        # Define the args & kwargs. We want to ensure the round-tripped version uses these same
-        # arguments.
-        args = [
-            "repo_path",
-            "entity_id",
-            "entity_view",
-            "entity_column",
-            ["features"],
-            ["mh_features"],
-            input_schema,
-            output_schema,
-            True,  # include_id
-            "prefix",  # output_prefix
-        ]
-        feast_op = QueryFeast(*args)
-
-        created_config = feast_op.export(tmpdir + "/export_path/", input_schema, output_schema)
-        created_config_dict = json.loads(created_config.parameters["queryfeast"].string_value)
-
-        # now mock the QueryFeast constructor so we can inspect its arguments.
-        QueryFeast.from_config(created_config_dict)
-        qf_init.assert_called_with(*args)
 
 
 def test_feast_from_feature_view(tmpdir):

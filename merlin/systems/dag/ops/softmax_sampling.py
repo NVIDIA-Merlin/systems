@@ -6,10 +6,10 @@ from merlin.core.protocols import Transformable
 from merlin.dag.node import Node
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import InferenceOperator
 
 
-class SoftmaxSampling(PipelineableInferenceOperator):
+class SoftmaxSampling(InferenceOperator):
     """
     Given inputs of ID and prediction, this operator will sort all
     inputs in descending order.
