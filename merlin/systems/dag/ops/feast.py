@@ -1,4 +1,3 @@
-import json
 from typing import List
 
 import numpy as np
@@ -7,7 +6,7 @@ from feast import FeatureStore, ValueType
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import PipelineableInferenceOperator
+from merlin.systems.dag.ops.operator import InferenceOperator
 
 # Feast_key: (numpy dtype, is_list, is_ragged)
 feast_2_numpy = {
@@ -20,7 +19,7 @@ feast_2_numpy = {
 }
 
 
-class QueryFeast(PipelineableInferenceOperator):
+class QueryFeast(InferenceOperator):
     """
     The QueryFeast operator is responsible for ensuring that your feast feature store [1]
     can communicate correctly with tritonserver for the ensemble feast feature look ups.
@@ -190,75 +189,6 @@ class QueryFeast(PipelineableInferenceOperator):
     ) -> Schema:
         """Compute the input schema for the operator."""
         return self.input_schema
-
-    @classmethod
-    def from_config(cls, config, **kwargs) -> "QueryFeast":
-        """Create the operator from a config."""
-        parameters = json.loads(config.get("params", ""))
-        entity_id = parameters["entity_id"]
-        entity_view = parameters["entity_view"]
-        entity_column = parameters["entity_column"]
-        repo_path = parameters["feast_repo_path"]
-        features = parameters["features"]
-        mh_features = parameters["mh_features"]
-        in_dict = json.loads(config.get("input_dict", "{}"))
-        out_dict = json.loads(config.get("output_dict", "{}"))
-        include_id = parameters["include_id"]
-        output_prefix = parameters["output_prefix"]
-
-        in_schema = Schema([])
-        for col_name, col_rep in in_dict.items():
-            in_schema[col_name] = ColumnSchema(
-                col_name,
-                dtype=col_rep["dtype"],
-                is_list=col_rep["is_list"],
-                is_ragged=col_rep["is_ragged"],
-            )
-        out_schema = Schema([])
-        for col_name, col_rep in out_dict.items():
-            out_schema[col_name] = ColumnSchema(
-                col_name,
-                dtype=col_rep["dtype"],
-                is_list=col_rep["is_list"],
-                is_ragged=col_rep["is_ragged"],
-            )
-
-        return QueryFeast(
-            repo_path,
-            entity_id,
-            entity_view,
-            entity_column,
-            features,
-            mh_features,
-            in_schema,
-            out_schema,
-            include_id,
-            output_prefix,
-        )
-
-    def export(
-        self,
-        path: str,
-        input_schema: Schema,
-        output_schema: Schema,
-        params: dict = None,
-        node_id: int = None,
-        version: int = 1,
-        backend: str = "ensemble",
-    ):
-        params = params or {}
-        self_params = {
-            "entity_id": self.entity_id,
-            "entity_view": self.entity_view,
-            "entity_column": self.entity_column,
-            "features": self.features,
-            "mh_features": self.mh_features,
-            "feast_repo_path": self.repo_path,
-            "include_id": self.include_id,
-            "output_prefix": self.output_prefix,
-        }
-        self_params.update(params)
-        return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable

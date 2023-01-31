@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import importlib
+import json
 import pathlib
 
 import numpy as np
@@ -21,7 +22,7 @@ import numpy as np
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
+from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator
 
 try:
     import implicit
@@ -35,10 +36,10 @@ except ImportError:
     implicit = None
 
 
-class PredictImplicit(InferenceOperator):
+class PredictImplicitTriton(TritonOperator):
     """Operator for running inference on Implicit models.."""
 
-    def __init__(self, model, num_to_recommend: int = 10, **kwargs):
+    def __init__(self, op):
         """Instantiate an Implicit prediction operator.
 
         Parameters
@@ -47,11 +48,12 @@ class PredictImplicit(InferenceOperator):
         num_to_recommend : int
            the number of items to return
         """
-        self.model = model
-        self.model_module_name: str = self.model.__module__
-        self.model_class_name: str = self.model.__class__.__name__
-        self.num_to_recommend = num_to_recommend
-        super().__init__(**kwargs)
+        super().__init__(op)
+        if op:
+            self.model = op.model
+            self.model_module_name: str = self.model.__module__
+            self.model_class_name: str = self.model.__class__.__name__
+            self.num_to_recommend = op.num_to_recommend
 
     def __getstate__(self):
         return {k: v for k, v in self.__dict__.items() if k != "model"}
@@ -88,6 +90,76 @@ class PredictImplicit(InferenceOperator):
     @property
     def exportable_backends(self):
         return ["ensemble", "executor"]
+
+    def export(
+        self,
+        path: str,
+        input_schema: Schema,
+        output_schema: Schema,
+        params: dict = None,
+        node_id: int = None,
+        version: int = 1,
+        backend: str = "ensemble",
+    ):
+        """Export the class and related files to the path specified."""
+        node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
+
+        if backend == "ensemble":
+            artifact_path = pathlib.Path(path) / node_name / str(version)
+        else:
+            artifact_path = pathlib.Path(path) / "executor_model" / str(version) / "ensemble"
+
+        artifact_path.mkdir(parents=True, exist_ok=True)
+        model_path = artifact_path / "model.npz"
+        self.model.save(str(model_path))
+
+        if backend == "ensemble":
+            params = params or {}
+            params["model_module_name"] = self.model.__module__
+            params["model_class_name"] = self.model.__class__.__name__
+            params["num_to_recommend"] = self.num_to_recommend
+            return super().export(
+                path,
+                input_schema,
+                output_schema,
+                params=params,
+                node_id=node_id,
+                version=version,
+            )
+        else:
+            return ({}, [])
+
+    @classmethod
+    def from_config(cls, config: dict, **kwargs) -> "PredictImplicitTriton":
+        """Instantiate the class from a dictionary representation.
+
+        Expected config structure:
+        {
+            "input_dict": str  # JSON dict with input names and schemas
+            "params": str  # JSON dict with params saved at export
+        }
+
+        """
+        params = json.loads(config["params"])
+
+        model_repository = kwargs["model_repository"]
+        model_name = kwargs["model_name"]
+        model_version = kwargs["model_version"]
+
+        # load implicit model
+        cls_instance = cls(None)
+        model_module_name = params["model_module_name"]
+        model_class_name = params["model_class_name"]
+        model_module = importlib.import_module(model_module_name)
+        model_cls = getattr(model_module, model_class_name)
+        model_file = pathlib.Path(model_repository) / model_name / str(model_version) / "model.npz"
+        cls_instance.model_module_name = model_module_name
+        cls_instance.model_class_name = model_class_name
+        cls_instance.model = model_cls.load(str(model_file))
+
+        cls_instance.num_to_recommend = params["num_to_recommend"]
+
+        return cls_instance
 
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable

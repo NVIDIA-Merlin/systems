@@ -20,10 +20,13 @@ from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.systems.dag import DictArray
 
-inf_op = pytest.importorskip("merlin.systems.dag.ops.operator")
+inf_op = pytest.importorskip("merlin.systems.dag.runtimes.triton.ops.operator")
 
 
-class PlusTwoOp(inf_op.PipelineableInferenceOperator):
+class PlusTwoOp(inf_op.TritonOperator):
+    def __init__(self):
+        super().__init__(self)
+
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
     ) -> Transformable:
