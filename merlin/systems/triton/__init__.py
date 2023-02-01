@@ -71,7 +71,9 @@ def _convert_df_to_dict(schema, batch, dtype="int32"):
                 df_dict[col_name + "__values"] = col.list.leaves.values_host.astype(
                     col_schema.dtype.to_numpy
                 )
-                df_dict[col_name + "__lengths"] = col._column.offsets.values_host.astype(dtype)
+                offsets = col._column.offsets.values_host.astype(dtype)
+                row_lengths = offsets[1:] - offsets[:-1]
+                df_dict[col_name + "__lengths"] = row_lengths
             else:
                 values = col.list.leaves.values_host
                 values = values.reshape(*shape).astype(col_schema.dtype.to_numpy)
