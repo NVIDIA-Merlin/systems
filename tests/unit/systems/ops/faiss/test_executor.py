@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from distutils.spawn import find_executable  # pylint: disable=W0402
+import shutil
 
 import numpy as np
 import pytest
@@ -23,7 +23,7 @@ from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.faiss import QueryFaiss, setup_faiss
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 pytest.importorskip("merlin.dataloader.tf_utils")
 from merlin.dataloader.tf_utils import configure_tensorflow  # noqa
 

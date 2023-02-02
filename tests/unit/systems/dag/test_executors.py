@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import random
-from distutils.spawn import find_executable
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -28,7 +28,7 @@ from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 def test_run_dag_on_dictarray_with_local_executor():

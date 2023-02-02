@@ -1,11 +1,11 @@
 import contextlib
 import logging
 import os
+import shutil
 import signal
 import socket
 import subprocess
 import time
-from shutil import which
 
 import tritonclient
 import tritonclient.grpc as grpcclient
@@ -14,7 +14,7 @@ from merlin.systems import triton
 
 LOG = logging.getLogger("merlin-systems")
 
-TRITON_SERVER_PATH = which("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 @contextlib.contextmanager

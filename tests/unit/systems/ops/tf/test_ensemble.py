@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import os
-from distutils.spawn import find_executable
+import shutil
 
 import pytest
 
@@ -45,7 +45,7 @@ from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 from tests.unit.systems.utils.tf import create_tf_model  # noqa
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import random
-from distutils.spawn import find_executable
+import shutil
 
 import numpy as np
 import pytest
@@ -26,7 +26,7 @@ from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.dag.ops.softmax_sampling import SoftmaxSampling
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
