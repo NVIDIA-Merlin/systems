@@ -1,4 +1,4 @@
-from distutils.spawn import find_executable  # pylint: disable=deprecated-module
+import shutil
 
 import pytest
 from testbook import testbook
@@ -17,7 +17,7 @@ try:
 except ImportError:
     _TRAIN_ON_GPU = [False]
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 @pytest.mark.notebook

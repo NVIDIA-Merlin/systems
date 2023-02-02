@@ -16,7 +16,7 @@
 
 import glob
 import random
-from distutils.spawn import find_executable
+import shutil
 from pathlib import Path
 
 import dask
@@ -50,7 +50,7 @@ except ImportError:
 
 
 REPO_ROOT = Path(__file__).parent.parent
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 allcols_csv = ["timestamp", "id", "label", "name-string", "x", "y", "z"]

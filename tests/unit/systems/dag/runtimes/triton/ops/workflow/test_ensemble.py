@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from distutils.spawn import find_executable  # pylint: disable=deprecated-module
+import shutil
 
 import numpy as np
 import pytest
@@ -24,7 +24,7 @@ from merlin.systems.triton.utils import run_triton_server
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 triton = pytest.importorskip("merlin.systems.triton")
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")

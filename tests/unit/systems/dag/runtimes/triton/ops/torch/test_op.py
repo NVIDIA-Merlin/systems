@@ -15,7 +15,7 @@
 #
 
 import pathlib
-from distutils.spawn import find_executable  # pylint: disable=deprecated-module
+import shutil
 from pathlib import Path
 from typing import Dict
 
@@ -30,7 +30,7 @@ from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_triton_server
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 torch = pytest.importorskip("torch")
 triton = pytest.importorskip("merlin.systems.triton")

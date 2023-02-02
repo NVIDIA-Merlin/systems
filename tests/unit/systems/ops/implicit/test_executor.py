@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from distutils.spawn import find_executable
+import shutil
 
 import implicit
 import numpy as np
@@ -25,7 +25,7 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.implicit import PredictImplicit
 
-TRITON_SERVER_PATH = find_executable("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")

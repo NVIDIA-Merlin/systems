@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import json
-from shutil import which
+import shutil
 
 import implicit
 import numpy as np
@@ -29,7 +29,8 @@ from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.dag.runtimes.triton.ops.implicit import PredictImplicitTriton
 from merlin.systems.triton.utils import run_triton_server
 
-TRITON_SERVER_PATH = which("tritonserver")
+TRITON_SERVER_PATH = shutil.which("tritonserver")
+
 
 triton = pytest.importorskip("merlin.systems.triton")
 
