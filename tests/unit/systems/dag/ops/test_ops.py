@@ -22,11 +22,27 @@ import pytest
 from merlin.core.dispatch import make_df
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
+from merlin.systems.dag.ops import compute_dims
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.dag.ops.softmax_sampling import SoftmaxSampling
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
 
 TRITON_SERVER_PATH = shutil.which("tritonserver")
+
+
+@pytest.mark.parametrize(
+    ["column_schema", "expected_dims"],
+    [
+        [ColumnSchema("col"), [-1, 1]],
+        [ColumnSchema("col", is_list=True), [-1, -1]],
+        [ColumnSchema("col", dims=(None, 2)), [-1, 2]],
+        [ColumnSchema("col", dims=(None, None)), [-1, -1]],
+        [ColumnSchema("col", dims=(None, (1, 4))), [-1, -1]],
+        [ColumnSchema("col", dims=(None, 3, 4)), [-1, 3, 4]],
+    ],
+)
+def test_compute_dims(column_schema, expected_dims):
+    assert compute_dims(column_schema) == expected_dims
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
