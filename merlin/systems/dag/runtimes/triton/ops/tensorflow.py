@@ -48,6 +48,16 @@ class PredictTensorflowTriton(TritonOperator):
 
         self._tf_model_name = None
 
+    def __getstate__(self) -> dict:
+        """Return state of instance when pickled.
+
+        Returns
+        -------
+        dict
+            Returns object state excluding model attribute.
+        """
+        return {k: v for k, v in self.__dict__.items() if k != "model"}
+
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
         """Run transform of operator callling TensorFlow model with a Triton InferenceRequest.
 
