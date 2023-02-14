@@ -99,7 +99,7 @@ class SoftmaxSampling(InferenceOperator):
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
         """Describe the operator's outputs"""
-        return Schema([ColumnSchema("ordered_ids", dtype=np.int32, is_list=True, is_ragged=False)])
+        return Schema([ColumnSchema("ordered_ids", dtype=np.int32, dims=(None, 1))])
 
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
