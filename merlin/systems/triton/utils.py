@@ -11,10 +11,39 @@ import tritonclient
 import tritonclient.grpc as grpcclient
 
 from merlin.systems import triton
+from merlin.systems.dag.ops.compat import pb_utils
 
 LOG = logging.getLogger("merlin-systems")
 
 TRITON_SERVER_PATH = shutil.which("tritonserver")
+
+
+def triton_error_handling(func):
+    def wrapper(*args, **kwargs):
+        try:
+            res = func(*args, **kwargs)
+        except Exception as exc:  # pylint: disable=broad-except
+            res = pb_utils.InferenceResponse(
+                output_tensors=[],
+                error=pb_utils.TritonError(f"{str(exc)}"),
+            )
+        return res
+
+    return wrapper
+
+
+def triton_multi_request(func):
+    def wrapper(*args, **kwargs):
+        requests = args[1]
+        if isinstance(requests, list):
+            res = []
+            for request in requests:
+                res.append(func(args[0], request, **kwargs))
+        else:
+            res = func(*args, **kwargs)
+        return res
+
+    return wrapper
 
 
 @contextlib.contextmanager
