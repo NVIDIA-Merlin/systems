@@ -99,7 +99,12 @@ class SoftmaxSampling(InferenceOperator):
         self, input_schema: Schema, col_selector: ColumnSelector, prev_output_schema: Schema = None
     ) -> Schema:
         """Describe the operator's outputs"""
-        return Schema([ColumnSchema("ordered_ids", dtype=np.int32, dims=(None, 1))])
+        return Schema(
+            [
+                ColumnSchema("ordered_ids", dtype=np.int32, dims=(None, 1)),
+                ColumnSchema("ordered_scores", dtype=np.float32, dims=(None, 1)),
+            ]
+        )
 
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
@@ -133,6 +138,10 @@ class SoftmaxSampling(InferenceOperator):
         # This is just bookkeeping to produce the final ordered list of recs
         sorted_indices = np.argsort(exponentials)
         topk_item_ids = candidate_ids[sorted_indices][: self.topk]
+        topk_item_scores = predicted_scores[sorted_indices][: self.topk]
         ordered_item_ids = topk_item_ids.reshape(1, -1).T
+        ordered_item_scores = topk_item_scores.reshape(1, -1).T
 
-        return type(transformable)({"ordered_ids": ordered_item_ids})
+        return type(transformable)(
+            {"ordered_ids": ordered_item_ids, "ordered_scores": ordered_item_scores}
+        )
