@@ -52,7 +52,6 @@ class OperatorRunner:
 
     def execute(self, tensors):
         """Run transform on multiple operators"""
-
         selector = ColumnSelector("*")
         for operator in self.operators:
             input_type = type(tensors)
