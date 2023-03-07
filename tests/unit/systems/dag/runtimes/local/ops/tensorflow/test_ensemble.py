@@ -163,8 +163,6 @@ def test_workflow_tf_python_wrapper(tmpdir, dataset, engine, python, runtime):
     triton_ens = Ensemble(triton_chain, schema)
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
-    # dictarray = tensor_table_from_df(df)
-
     response = triton_ens.transform(df, runtime=runtime)
 
     assert len(response["output"]) == df.shape[0]
