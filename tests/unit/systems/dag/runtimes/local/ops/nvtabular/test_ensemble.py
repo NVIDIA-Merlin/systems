@@ -16,8 +16,8 @@
 import numpy as np
 import pytest
 
-from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.runtimes.base_runtime import Runtime
+from merlin.table import TensorTable
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
 
@@ -47,9 +47,9 @@ def test_workflow_op_serving_triton(tmpdir, dataset, engine, runtime):
     input_data = {}
     for col_name, col_schema in workflow.input_schema.column_schemas.items():
         col_dtype = col_schema.dtype
-        input_data[col_name] = np.array([[2], [3], [4]]).astype(col_dtype.to_numpy)
-    dictarray = DictArray(input_data)
-    response = wkflow_ensemble.transform(dictarray, runtime=runtime)
+        input_data[col_name] = np.array([2, 3, 4]).astype(col_dtype.to_numpy)
+    table = TensorTable(input_data)
+    response = wkflow_ensemble.transform(table, runtime=runtime)
 
     for col_name in workflow.output_schema.column_names:
-        assert response[col_name].shape[0] == input_data[col_name.split("_")[0]].shape[0]
+        assert response[col_name].shape.dims[0] == table[col_name.split("_")[0]].shape.dims[0]

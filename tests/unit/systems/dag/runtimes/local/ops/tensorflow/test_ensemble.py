@@ -13,15 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import numpy as np
 import pytest
 
-from merlin.core.dispatch import make_df  # noqa
-from merlin.dag import ColumnSelector  # noqa
-from merlin.schema import Tags  # noqa
-from merlin.systems.dag.dictarray import DictArray
+from merlin.dag import ColumnSelector
+from merlin.schema import Tags
 from merlin.systems.dag.runtimes.base_runtime import Runtime
-from nvtabular import Workflow  # noqa
-from nvtabular import ops as wf_ops  # noqa
+from nvtabular import Workflow
+from nvtabular import ops as wf_ops
 
 loader_tf_utils = pytest.importorskip("nvtabular.loader.tf_utils")
 
@@ -34,6 +33,7 @@ export = pytest.importorskip("merlin.systems.dag.ensemble")
 from merlin.systems.dag.ensemble import Ensemble  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
+from merlin.table import TensorTable  # noqa
 from tests.unit.systems.utils.tf import create_tf_model  # noqa
 
 
@@ -74,14 +74,13 @@ def test_workflow_tf_e2e_config_verification(tmpdir, dataset, engine, runtime):
     triton_ens = Ensemble(triton_chain, schema)
 
     # Creating Triton Ensemble Config
+    inputs_table = TensorTable(
+        {"x": np.array([1.0, 2.0, 3.0]), "y": np.array([4.0, 5.0, 6.0]), "id": np.array([7, 8, 9])}
+    )
 
-    df = make_df({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "id": [7, 8, 9]})
+    response = triton_ens.transform(inputs_table, runtime=runtime)
 
-    dictarray = DictArray().from_df(df)
-
-    response = triton_ens.transform(dictarray, runtime=runtime)
-
-    assert response["output"].shape[0] == df.shape[0]
+    assert response["output"].shape.dims[0] == inputs_table["x"].shape.dims[0]
 
 
 @pytest.mark.parametrize("engine", ["parquet"])
@@ -117,9 +116,15 @@ def test_workflow_tf_e2e_multi_op_run(tmpdir, dataset, engine, runtime):
     triton_ens = Ensemble(triton_chain, schema)
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
-    dictarray = DictArray().from_df(df)
 
-    response = triton_ens.transform(dictarray, runtime=runtime)
+    inputs = {
+        "name-string": np.array(df["name-string"].to_list()),
+        "name-cat": np.array(df["name-string"].to_list()),
+    }
+
+    inputs_table = TensorTable(inputs)
+
+    response = triton_ens.transform(inputs_table, runtime=runtime)
 
     assert response["output"].shape[0] == df.shape[0]
 
@@ -158,8 +163,8 @@ def test_workflow_tf_python_wrapper(tmpdir, dataset, engine, python, runtime):
     triton_ens = Ensemble(triton_chain, schema)
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
-    dictarray = DictArray().from_df(df)
+    # dictarray = tensor_table_from_df(df)
 
-    response = triton_ens.transform(dictarray, runtime=runtime)
+    response = triton_ens.transform(df, runtime=runtime)
 
     assert len(response["output"]) == df.shape[0]

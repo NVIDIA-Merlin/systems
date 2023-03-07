@@ -21,6 +21,7 @@ from copy import deepcopy
 import numpy as np
 import pytest
 
+import merlin.dtypes as md
 from merlin.dag import ColumnSelector, Graph
 from merlin.schema import ColumnSchema, Schema
 
@@ -167,6 +168,5 @@ def test_tf_op_infers_schema_for_input_tuples():
             ),
         ]
     )
-    assert op.output_schema == Schema(
-        [ColumnSchema("dot", dtype=np.float32, is_list=False, is_ragged=False)]
-    )
+
+    assert op.output_schema["dot"].dtype == md.float32

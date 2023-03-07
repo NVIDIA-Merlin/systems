@@ -1,3 +1,19 @@
+#
+# Copyright (c) 2023, NVIDIA CORPORATION.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
@@ -7,7 +23,6 @@ import pytest
 import merlin.dtypes as md
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag import DictArray
 
 feast = pytest.importorskip("feast")  # noqa
 
@@ -16,6 +31,7 @@ from feast.protos.feast.serving import ServingService_pb2  # noqa
 from feast.protos.feast.types import Value_pb2  # noqa
 
 from merlin.systems.dag.ops.feast import QueryFeast  # noqa
+from merlin.table import TensorTable  # noqa
 
 
 def test_feast_from_feature_view(tmpdir):
@@ -157,11 +173,11 @@ def test_feast_transform(prefix, is_ragged):
             output_prefix=prefix,
         )
 
-        df = DictArray({"entity_id": [1]})
+        df = TensorTable({"entity_id": np.array([1])})
         resp = feast_op.transform(ColumnSelector("*"), df)
 
-        array_lib = resp["entity_id"]._array_lib
-        assert resp["entity_id"].values == array_lib.array([1])  # pylint: disable=W0143
-        assert resp[feature_name].values == array_lib.array([[1.0]])
-        assert np.all(resp[feature_mh].values == array_lib.array([[1.0], [2.0], [3.0]]))
-        assert resp[feature_mh].row_lengths == array_lib.array([[3.0]])
+        array_constructor = resp["entity_id"].array_constructor()
+        assert resp["entity_id"].values == array_constructor([1])  # pylint: disable=W0143
+        assert resp[feature_name].values == array_constructor([[1.0]])
+        assert np.all(resp[feature_mh].values == array_constructor([[1.0], [2.0], [3.0]]))
+        assert np.all(resp[feature_mh].offsets == array_constructor([[0.0, 3.0]]))

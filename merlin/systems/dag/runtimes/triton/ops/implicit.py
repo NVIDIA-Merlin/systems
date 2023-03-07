@@ -168,12 +168,12 @@ class PredictImplicitTriton(TritonOperator):
 
         Parameters
         -----------
-        df: DictArray
+        df: TensorTable
             A pandas or cudf dataframe that this operator will work on
 
         Returns
         -------
-        DictArray
+        TensorTable
             Returns a transformed dataframe for this operator"""
         user_id = transformable["user_id"].values.ravel()
         user_items = None
