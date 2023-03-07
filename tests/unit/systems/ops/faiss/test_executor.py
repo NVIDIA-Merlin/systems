@@ -76,7 +76,7 @@ def test_faiss_in_triton_executor_model(tmpdir):
     retrieval = ["user_id"] >> PredictTensorflow(model) >> QueryFaiss(faiss_path)
 
     ensemble = Ensemble(retrieval, request_schema)
-    ensemble_config, node_configs = ensemble.export(tmpdir, runtime=TritonExecutorRuntime())
+    ensemble_config, _ = ensemble.export(tmpdir, runtime=TritonExecutorRuntime())
 
     response = run_ensemble_on_tritonserver(
         tmpdir,
@@ -87,5 +87,4 @@ def test_faiss_in_triton_executor_model(tmpdir):
     )
 
     assert response is not None
-    # assert isinstance(response, TensorTable)
     assert len(response["candidate_ids"]) == 10
