@@ -2,13 +2,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from merlin.core.dispatch import tensor_table_from_df
 from merlin.dag import ColumnSelector
 from merlin.dtypes.shape import Shape
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.fil import PredictForest
 from merlin.systems.dag.runtimes.base_runtime import Runtime
+from merlin.table import TensorTable
 
 sklearn_datasets = pytest.importorskip("sklearn.datasets")
 sklearn_ensemble = pytest.importorskip("sklearn.ensemble")
@@ -46,7 +46,7 @@ def test_sklearn_regressor_forest_inference(runtime, tmpdir):
 
     response = None
 
-    dict_array = tensor_table_from_df(request_df)
+    dict_array = TensorTable.from_df(request_df)
     response = ensemble.transform(dict_array, runtime=runtime)
 
     assert response["output__0"].shape == Shape((5,))
@@ -81,7 +81,7 @@ def test_sklearn_classify_forest_inference(runtime, tmpdir):
 
     request_df = df[:5]
 
-    dict_array = tensor_table_from_df(request_df)
+    dict_array = TensorTable.from_df(request_df)
     response = ensemble.transform(dict_array, runtime=runtime)
 
     assert response["output__0"].shape == Shape((5,))

@@ -19,7 +19,6 @@ import numpy as np
 import torch
 import torch.utils.dlpack
 
-from merlin.core.dispatch import df_from_tensor_table, tensor_table_from_df
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import Schema
@@ -100,7 +99,7 @@ class PredictPyTorch(InferenceOperator):
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
         output_type = type(transformable)
         if not isinstance(transformable, TensorTable):
-            transformable = tensor_table_from_df(transformable)
+            transformable = TensorTable.from_df(transformable)
 
         tensor_dict = {}
         for column in transformable.columns:
@@ -113,7 +112,7 @@ class PredictPyTorch(InferenceOperator):
 
         output = TensorTable(output)
         if not isinstance(output, output_type):
-            output = df_from_tensor_table(output)
+            output = output.to_df()
 
         return output
 

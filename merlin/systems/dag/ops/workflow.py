@@ -15,7 +15,6 @@
 #
 from typing import List
 
-from merlin.core.dispatch import df_from_tensor_table, tensor_table_from_df
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import Schema
@@ -110,12 +109,12 @@ class TransformWorkflow(InferenceOperator):
         """
         output_type = type(transformable)
         if isinstance(transformable, TensorTable):
-            transformable = df_from_tensor_table(transformable)
+            transformable = transformable.to_df()
 
         output = self.workflow._transform_df(transformable)
 
         if not isinstance(output, output_type):
-            output = tensor_table_from_df(output)
+            output = TensorTable.from_df(output)
 
         return output
 
