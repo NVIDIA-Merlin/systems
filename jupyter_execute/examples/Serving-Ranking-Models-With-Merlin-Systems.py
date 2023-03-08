@@ -19,6 +19,9 @@
 # limitations under the License.
 # ==============================================================================
 
+# Each user is responsible for checking the content of datasets and the
+# applicable licenses and determining if suitable for the intended use.
+
 
 # <img src="https://developer.download.nvidia.com/notebooks/dlsw-notebooks/merlin_systems_serving-ranking-models-with-merlin-systems/nvidia_logo.png" style="width: 90px; float: right;">
 # 
@@ -307,7 +310,7 @@ outputs = [
 
 # send request to tritonserver
 with grpcclient.InferenceServerClient("localhost:8001") as client:
-    response = client.infer("ensemble_model", inputs, request_id="1", outputs=outputs)
+    response = client.infer("executor_model", inputs, request_id="1", outputs=outputs)
 
 
 # When the server completes the inference request, it returns a response. This response is parsed to get the desired predictions.
