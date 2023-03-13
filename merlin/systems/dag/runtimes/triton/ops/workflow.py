@@ -19,21 +19,19 @@ import os
 import pathlib
 from shutil import copyfile
 
-# this needs to be before any modules that import protobuf
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+import tritonclient.grpc.model_config_pb2 as model_config
+import tritonclient.utils
+from google.protobuf import text_format
 
-import tritonclient.grpc.model_config_pb2 as model_config  # noqa
-from google.protobuf import text_format  # noqa
-
-from merlin.core.protocols import Transformable  # noqa
-from merlin.dag import ColumnSelector  # noqa
-from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
-from merlin.systems.triton.conversions import (  # noqa
+from merlin.core.protocols import Transformable
+from merlin.dag import ColumnSelector
+from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator
+from merlin.systems.triton.conversions import (
     dict_array_to_triton_request,
     triton_response_to_dict_array,
 )
-from merlin.systems.triton.export import _add_model_param, _convert_dtype  # noqa
+from merlin.systems.triton.export import _add_model_param, _convert_dtype
 
 
 class TransformWorkflowTriton(TritonOperator):
@@ -92,6 +90,13 @@ class TransformWorkflowTriton(TritonOperator):
         )
 
         inference_response = inference_request.exec()
+
+        # check inference response for errors:
+        if inference_response.has_error():
+            # Cannot raise inference response error because it is not derived from BaseException
+            raise tritonclient.utils.InferenceServerException(
+                str(inference_response.error().message())
+            )
 
         return triton_response_to_dict_array(
             inference_response, type(transformable), self.output_schema.column_names

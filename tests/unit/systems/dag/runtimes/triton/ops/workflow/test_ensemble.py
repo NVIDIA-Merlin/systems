@@ -19,8 +19,11 @@ import numpy as np
 import pytest
 from tritonclient import grpc as grpcclient
 
-from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
-from merlin.systems.triton.utils import run_triton_server
+from merlin.core.dispatch import make_df  # noqa
+from merlin.dag import ColumnSelector  # noqa
+from merlin.schema import Schema, Tags  # noqa
+from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
+from merlin.systems.triton.utils import run_ensemble_on_tritonserver, run_triton_server
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
 
@@ -34,14 +37,12 @@ workflow_op = pytest.importorskip("merlin.systems.dag.ops.workflow")
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.parametrize("engine", ["parquet"])
 @pytest.mark.parametrize(
-    ["runtime", "model_name", "expected_model_name"],
+    ["model_name", "expected_model_name"],
     [
-        (TritonExecutorRuntime(), None, "executor_model"),
+        (None, "executor_model"),
     ],
 )
-def test_workflow_op_serving_triton(
-    tmpdir, dataset, engine, runtime, model_name, expected_model_name
-):
+def test_workflow_op_serving_triton(tmpdir, dataset, engine, model_name, expected_model_name):
     input_columns = ["x", "y", "id"]
 
     # NVT
@@ -57,7 +58,7 @@ def test_workflow_op_serving_triton(
     )
 
     wkflow_ensemble = ensemble.Ensemble(triton_op, workflow.input_schema)
-    ens_config, node_configs = wkflow_ensemble.export(tmpdir, runtime=runtime, name=model_name)
+    ens_config, node_configs = wkflow_ensemble.export(tmpdir, name=model_name)
 
     assert ens_config.name == expected_model_name
 
@@ -85,3 +86,47 @@ def test_workflow_op_serving_triton(
 
     for col_name in workflow.output_schema.column_names:
         assert response.as_numpy(col_name).shape[0] == input_data[col_name.split("_")[0]].shape[0]
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+@pytest.mark.parametrize("engine", ["parquet"])
+def test_workflow_tf_e2e_error_propagation(tmpdir, dataset, engine):
+    def raise_(col):
+        if (
+            isinstance(col.dtype, (type(np.dtype("float64")), type(np.dtype("int64"))))
+            and col.sum() != 0
+        ):
+            return col
+        else:
+            raise ValueError("Number Too High!!")
+
+    # Create a Workflow
+    schema = dataset.schema
+    for name in ["x", "y", "id"]:
+        dataset.schema.column_schemas[name] = dataset.schema.column_schemas[name].with_tags(
+            [Tags.USER]
+        )
+    selector = ColumnSelector(["x", "y", "id"])
+
+    workflow_ops = selector >> wf_ops.Rename(postfix="_nvt") >> wf_ops.LambdaOp(raise_)
+    workflow = Workflow(workflow_ops["x_nvt"])
+    workflow.fit(dataset)
+
+    # Creating Triton Ensemble
+    triton_chain = selector >> TransformWorkflow(workflow, cats=["x_nvt"])
+    triton_ens = ensemble.Ensemble(triton_chain, schema)
+
+    # Creating Triton Ensemble Config
+    ensemble_config, node_configs = triton_ens.export(str(tmpdir))
+
+    df = make_df({"x": [0.0, 0.0, 0.0], "y": [4.0, 5.0, 6.0], "id": [7, 8, 9]})
+
+    request_schema = Schema([schema["x"], schema["y"], schema["id"]])
+
+    output_columns = triton_ens.output_schema.column_names
+    with pytest.raises(Exception) as exc:
+        run_ensemble_on_tritonserver(
+            str(tmpdir), request_schema, df, output_columns, ensemble_config.name
+        )
+
+    assert "Number Too High!!" in str(exc.value)

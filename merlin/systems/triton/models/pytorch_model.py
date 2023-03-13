@@ -32,6 +32,7 @@ import cloudpickle
 import torch
 import triton_python_backend_utils as pb_utils
 
+from merlin.systems.triton.utils import triton_error_handling, triton_multi_request
 from nvtabular.inference.triton import _convert_string2pytorch_dtype, _convert_tensor
 
 LOG = logging.getLogger("nvtabular")
@@ -105,77 +106,73 @@ class TritonPythonModel:
         for val in self.model_config["output"]:
             self.outputs[val["name"]] = _convert_string2pytorch_dtype(val["data_type"])
 
-    def execute(self, requests):
+    @triton_multi_request
+    @triton_error_handling
+    def execute(self, request):
         """Predicts the input batches by running through a PyTorch predict function."""
 
         # To be able to execute the queries, the PyTorch model must accept a dict input
         # and generates a dict output that has the output in the the "predictions"
         # bucket. Otherwise, it'll throw an error.
-
         with torch.no_grad():
-            responses = []
-            for request in requests:
-                # Convert the input data to dict to pass it into the PyTorch model
-                input_dict = {}
-                for name, dtype in self.inputs.items():
-                    # Convert to fixed dtypes if requested
-                    if self.model_info["use_fix_dtypes"]:
-                        dtype = _convert_dtype(dtype)
-                    input_dict[name] = torch.tensor(
-                        _convert_tensor(pb_utils.get_input_tensor_by_name(request, name)),
-                        dtype=dtype,
-                    ).cuda()
+            # Convert the input data to dict to pass it into the PyTorch model
+            input_dict = {}
+            for name, dtype in self.inputs.items():
+                # Convert to fixed dtypes if requested
+                if self.model_info["use_fix_dtypes"]:
+                    dtype = _convert_dtype(dtype)
+                input_dict[name] = torch.tensor(
+                    _convert_tensor(pb_utils.get_input_tensor_by_name(request, name)),
+                    dtype=dtype,
+                ).cuda()
 
-                # Sparse inputs have a special format
-                for name, dtype in self.sparse_inputs.items():
+            # Sparse inputs have a special format
+            for name, dtype in self.sparse_inputs.items():
 
-                    # Get __values and __lengths
-                    input_val = _convert_tensor(
-                        pb_utils.get_input_tensor_by_name(request, name + sparse_value_marker)
-                    )
-                    input_lengths = _convert_tensor(
-                        pb_utils.get_input_tensor_by_name(request, name + sparse_lengths_marker)
-                    )
-                    input_lengths = torch.tensor(input_lengths, dtype=torch.int64)
-                    input_values = torch.tensor(input_val, dtype=dtype)
+                # Get __values and __lengths
+                input_val = _convert_tensor(
+                    pb_utils.get_input_tensor_by_name(request, name + sparse_value_marker)
+                )
+                input_lengths = _convert_tensor(
+                    pb_utils.get_input_tensor_by_name(request, name + sparse_lengths_marker)
+                )
+                input_lengths = torch.tensor(input_lengths, dtype=torch.int64)
+                input_values = torch.tensor(input_val, dtype=dtype)
 
-                    # Get the PyTorch sparse_coo_tensor
-                    sparse_to_dense = False
-                    seq_limit = 0
-                    if self.model_info is not None:
-                        if self.model_info["sparse_max"].get(name) is not None:
-                            sparse_to_dense = True
-                            seq_limit = self.model_info["sparse_max"][name]
+                # Get the PyTorch sparse_coo_tensor
+                sparse_to_dense = False
+                seq_limit = 0
+                if self.model_info is not None:
+                    if self.model_info["sparse_max"].get(name) is not None:
+                        sparse_to_dense = True
+                        seq_limit = self.model_info["sparse_max"][name]
 
-                    if seq_limit == 0:
-                        seq_limit = int(input_lengths.max())
+                if seq_limit == 0:
+                    seq_limit = int(input_lengths.max())
 
-                    input_dict[name] = _build_sparse_tensor(
-                        input_values, input_lengths, seq_limit, sparse_to_dense
-                    )
+                input_dict[name] = _build_sparse_tensor(
+                    input_values, input_lengths, seq_limit, sparse_to_dense
+                )
 
-                # Call forward function to get the predictions
-                # Forward function should return a dict with the "predictions" bucket
-                out = self.model(input_dict)  # , training=False)
-                if not isinstance(out, dict):
-                    raise ValueError("output of the forward function should be a dict")
+            # Call forward function to get the predictions
+            # Forward function should return a dict with the "predictions" bucket
+            out = self.model(input_dict)  # , training=False)
+            if not isinstance(out, dict):
+                raise ValueError("output of the forward function should be a dict")
 
-                # Get the predictions from the out
-                pred = out.get("predictions")
-                if pred is None:
-                    raise KeyError(
-                        "output of the forward function should have a bucket named as predictions"
-                    )
+            # Get the predictions from the out
+            pred = out.get("predictions")
+            if pred is None:
+                raise KeyError(
+                    "output of the forward function should have a bucket named as predictions"
+                )
 
-                pred_numpy = pred.cpu().detach().numpy()
+            pred_numpy = pred.cpu().detach().numpy()
 
-                # There is one output in the config file
-                # since the PyTorch models generate a tensor as an output
-                output_info = self.model_config["output"][0]
-                output_tensor = pb_utils.Tensor(output_info["name"], pred_numpy)
-                responses.append(pb_utils.InferenceResponse([output_tensor]))
-
-        return responses
+            # There is one output in the config file
+            # since the PyTorch models generate a tensor as an output
+            output_info = self.model_config["output"][0]
+            return pb_utils.Tensor(output_info["name"], pred_numpy)
 
 
 def _get_indices(lengths, device="cuda"):
