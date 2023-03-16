@@ -60,19 +60,6 @@ class PredictPyTorch(InferenceOperator):
                 self.path = None
                 self.model = model_or_path
 
-            # This is a hack to enable the ensemble to use the same shape as this
-            # these lines mutate the input and output schema with the additional property
-            # `triton_scalar_shape` which represents the expected shape for this feature
-            for col_name, col_schema in self.input_schema.column_schemas.items():
-                self.input_schema[col_name] = col_schema.with_properties(
-                    {"triton_scalar_shape": self.scalar_shape}
-                )
-
-            for col_name, col_schema in self.output_schema.column_schemas.items():
-                self.output_schema[col_name] = col_schema.with_properties(
-                    {"triton_scalar_shape": self.scalar_shape}
-                )
-
     def __getstate__(self):
         return {k: v for k, v in self.__dict__.items() if k != "model"}
 

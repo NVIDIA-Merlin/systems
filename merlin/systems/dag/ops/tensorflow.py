@@ -148,14 +148,14 @@ class PredictTensorflow(InferenceOperator):
         input_schema = Schema()
         for col_name, col in default_signature.structured_input_signature[1].items():
             col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype)
-            if col.shape[1] and col.shape[1] > 1:
+            if len(col.shape) > 1 and col.shape[1] and col.shape[1] > 1:
                 col_schema = self._set_list_length(col_schema, col.shape[1])
             input_schema.column_schemas[col_name] = col_schema
 
         output_schema = Schema()
         for col_name, col in default_signature.structured_outputs.items():
             col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype)
-            if col.shape[1] and col.shape[1] > 1:
+            if len(col.shape) > 1 and col.shape[1] and col.shape[1] > 1:
                 col_schema = self._set_list_length(col_schema, col.shape[1])
             output_schema.column_schemas[col_name] = col_schema
 

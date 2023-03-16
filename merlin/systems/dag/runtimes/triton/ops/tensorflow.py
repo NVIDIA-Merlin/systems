@@ -28,7 +28,7 @@ from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import Schema  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
-from merlin.systems.dag.runtimes.triton.ops.operator import add_model_param  # noqa
+from merlin.systems.dag.runtimes.triton.ops.operator import _convert_dtype  # noqa
 from merlin.systems.triton.conversions import (  # noqa
     dict_array_to_triton_request,
     triton_response_to_dict_array,
@@ -138,16 +138,10 @@ class PredictTensorflowTriton(TritonOperator):
                 config.input,
                 model_config.ModelInput,
                 col_schema,
-                compute_dims(col_schema, self.scalar_shape),
             )
 
         for _, col_schema in self.output_schema.column_schemas.items():
-            add_model_param(
-                config.output,
-                model_config.ModelOutput,
-                col_schema,
-                compute_dims(col_schema, self.scalar_shape),
-            )
+            add_model_param(config.output, model_config.ModelOutput, col_schema, reshape=False)
 
         with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
             text_format.PrintMessage(config, o)
@@ -167,3 +161,41 @@ class PredictTensorflowTriton(TritonOperator):
             Triton model directory name
         """
         self._tf_model_name = tf_model_name
+
+
+def add_model_param(params, paramclass, col_schema, reshape=True):
+    dims = compute_dims(col_schema)
+
+    if col_schema.is_list:
+        if col_schema.is_ragged:
+            params.append(
+                paramclass(
+                    name=col_schema.name + "__values",
+                    data_type=_convert_dtype(col_schema.dtype),
+                    dims=dims,
+                )
+            )
+            params.append(
+                paramclass(
+                    name=col_schema.name + "__lengths", data_type=model_config.TYPE_INT32, dims=dims
+                )
+            )
+        else:
+            params.append(
+                paramclass(
+                    name=col_schema.name, data_type=_convert_dtype(col_schema.dtype), dims=dims
+                )
+            )
+    elif reshape:
+        params.append(
+            paramclass(
+                name=col_schema.name,
+                data_type=_convert_dtype(col_schema.dtype),
+                dims=[1],
+                reshape={"shape": []},
+            )
+        )
+    else:
+        params.append(
+            paramclass(name=col_schema.name, data_type=_convert_dtype(col_schema.dtype), dims=[1])
+        )

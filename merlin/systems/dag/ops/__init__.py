@@ -15,7 +15,7 @@
 #
 
 
-def compute_dims(col_schema, scalar_shape=None):
+def compute_dims(col_schema):
     """
     Compute Triton dimensions for a column from its schema
 
@@ -23,8 +23,6 @@ def compute_dims(col_schema, scalar_shape=None):
     ----------
     col_schema : ColumnSchema
         Schema of the column to compute dimensions for
-    scalar_shape : List[int], optional
-        The shape of a single scalar element, by default None
 
     Returns
     -------
@@ -33,8 +31,12 @@ def compute_dims(col_schema, scalar_shape=None):
     """
     batch_dim = [-1]
 
-    default_scalar_shape = col_schema.properties.get("triton_scalar_shape", [1])
-    column_dims = scalar_shape if scalar_shape is not None else default_scalar_shape
+    # [] - UNAVAILABLE: Internal: unable to autofill for '1_predicttensorflowtriton', model tensor configurations are contradicting each other in terms of whether batching is supported
+    # [1] - UNAVAILABLE: Invalid argument: model '1_predicttensorflowtriton', tensor 'item_brand': the model expects 1 dimensions (shape [-1]) but the model configuration specifies 2 dimensions (shape [-1,1])
+    # [-1] - UNAVAILABLE: Invalid argument: model '1_predicttensorflowtriton', tensor 'item_brand': the model expects 1 dimensions (shape [-1]) but the model configuration specifies 2 dimensions (shape [-1,-1])
+    # [0] - Don't even get to Triton
+
+    column_dims = []
     assert isinstance(column_dims, list)
 
     if col_schema.is_list:

@@ -24,7 +24,7 @@ from merlin.core.dispatch import is_string_dtype  # noqa
 
 
 def _add_model_param(col_schema, paramclass, params, dims=None):
-    dims = dims if dims is not None else [-1, 1]
+    dims = dims if dims is not None else [-1]
     if col_schema.is_list and col_schema.is_ragged:
         params.append(
             paramclass(
