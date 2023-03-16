@@ -82,7 +82,7 @@ class TritonPythonModel:
         self.output_dtypes = {}
         for col_name, col_schema in self.workflow.output_schema.column_schemas.items():
             if col_schema.is_list and col_schema.is_ragged:
-                self._set_output_dtype(col_name + "__lengths")
+                self._set_output_dtype(col_name + "__offsets")
                 self._set_output_dtype(col_name + "__values")
             else:
                 self._set_output_dtype(col_name)
@@ -118,7 +118,7 @@ class TritonPythonModel:
         for name, dtype in self.input_multihots.items():
             values = _convert_tensor(pb_utils.get_input_tensor_by_name(request, name + "__values"))
             offsets = _convert_tensor(
-                pb_utils.get_input_tensor_by_name(request, name + "__lengths")
+                pb_utils.get_input_tensor_by_name(request, name + "__offsets")
             )
             input_tensors[name] = (values, offsets)
 

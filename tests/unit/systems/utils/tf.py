@@ -31,7 +31,7 @@ def create_tf_model(cat_columns: list, cat_mh_columns: list, embed_tbl_shapes: d
     for col in cat_mh_columns:
         inputs[col] = (
             tf.keras.Input(name=f"{col}__values", dtype=tf.int64, shape=(1,)),
-            tf.keras.Input(name=f"{col}__lengths", dtype=tf.int64, shape=(1,)),
+            tf.keras.Input(name=f"{col}__offsets", dtype=tf.int64, shape=(1,)),
         )
     for col in cat_columns + cat_mh_columns:
         emb_layers.append(
