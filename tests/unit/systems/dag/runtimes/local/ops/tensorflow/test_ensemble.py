@@ -117,16 +117,10 @@ def test_workflow_tf_e2e_multi_op_run(tmpdir, dataset, engine, runtime):
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
 
-    inputs = {
-        "name-string": np.array(df["name-string"].to_list()),
-        "name-cat": np.array(df["name-string"].to_list()),
-    }
+    response = triton_ens.transform(df, runtime=runtime)
 
-    inputs_table = TensorTable(inputs)
-
-    response = triton_ens.transform(inputs_table, runtime=runtime)
-
-    assert response["output"].shape[0] == df.shape[0]
+    assert response["output"].shape[0].min == df.shape[0]
+    assert response["output"].shape[0].max == df.shape[0]
 
 
 @pytest.mark.parametrize("engine", ["parquet"])
