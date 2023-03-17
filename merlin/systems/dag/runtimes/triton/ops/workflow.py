@@ -28,8 +28,8 @@ from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator
 from merlin.systems.triton.conversions import (
-    dict_array_to_triton_request,
-    triton_response_to_dict_array,
+    tensor_table_to_triton_request,
+    triton_response_to_tensor_table,
 )
 from merlin.systems.triton.export import _add_model_param, _convert_dtype
 
@@ -82,7 +82,7 @@ class TransformWorkflowTriton(TritonOperator):
         -------
         TensorTable
             Returns a transformed dataframe for this operator"""
-        inference_request = dict_array_to_triton_request(
+        inference_request = tensor_table_to_triton_request(
             self._nvt_model_name,
             transformable,
             self.input_schema.column_names,
@@ -98,7 +98,7 @@ class TransformWorkflowTriton(TritonOperator):
                 str(inference_response.error().message())
             )
 
-        return triton_response_to_dict_array(
+        return triton_response_to_tensor_table(
             inference_response, type(transformable), self.output_schema.column_names
         )
 
