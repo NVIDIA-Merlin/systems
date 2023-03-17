@@ -62,7 +62,7 @@ def triton_request_to_dict_array(request, column_names):
     for name in column_names:
         try:
             values = _array_from_triton_tensor(request, f"{name}__values")
-            lengths = _array_from_triton_tensor(request, f"{name}__lengths")
+            lengths = _array_from_triton_tensor(request, f"{name}__offsets")
             dict_inputs[name] = (values, lengths)
         except (AttributeError, ValueError):
             dict_inputs[name] = _array_from_triton_tensor(request, name)
@@ -89,8 +89,8 @@ def dict_array_to_triton_response(dictarray):
     for name, column in dictarray.items():
         if column.is_ragged:
             values = _triton_tensor_from_array(f"{name}__values", column.values)
-            lengths = _triton_tensor_from_array(f"{name}__lengths", column.row_lengths)
-            output_tensors.extend([values, lengths])
+            offsets = _triton_tensor_from_array(f"{name}__offsets", column.offsets)
+            output_tensors.extend([values, offsets])
         else:
             col_tensor = _triton_tensor_from_array(name, column.values)
             output_tensors.append(col_tensor)

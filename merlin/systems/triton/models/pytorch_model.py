@@ -38,7 +38,7 @@ from nvtabular.inference.triton import _convert_string2pytorch_dtype, _convert_t
 LOG = logging.getLogger("nvtabular")
 
 sparse_value_marker = "__values"
-sparse_lengths_marker = "__lengths"
+sparse_offsets_marker = "__offsets"
 
 
 class TritonPythonModel:
@@ -81,24 +81,24 @@ class TritonPythonModel:
         self.sparse_inputs = {}
         self.outputs = {}
         len_svm = len(sparse_value_marker)
-        len_snm = len(sparse_lengths_marker)
+        len_snm = len(sparse_offsets_marker)
 
         for val in self.model_config["input"]:
             name = val["name"]
 
             # NVTabular adds this specific marker "__values" into the name of the sparse inputs
-            # The ones that has the marker "__lengths" are for the sparse values
+            # The ones that has the marker "__offsets" are for the sparse values
             # Hence, dense and sparse inputs are identified based on these markers
             if len(name) > len_svm:
                 if name[-len_svm:] == sparse_value_marker:
                     self.sparse_inputs[
                         name[0 : (len(name) - len_svm)]
                     ] = _convert_string2pytorch_dtype(val["data_type"])
-                elif name[-len_snm:] != sparse_lengths_marker:
+                elif name[-len_snm:] != sparse_offsets_marker:
                     self.inputs[name] = _convert_string2pytorch_dtype(val["data_type"])
             else:
                 if len(name) > len_snm:
-                    if name[-len_snm:] != sparse_lengths_marker:
+                    if name[-len_snm:] != sparse_offsets_marker:
                         self.inputs[name] = _convert_string2pytorch_dtype(val["data_type"])
                 else:
                     self.inputs[name] = _convert_string2pytorch_dtype(val["data_type"])
@@ -129,12 +129,12 @@ class TritonPythonModel:
             # Sparse inputs have a special format
             for name, dtype in self.sparse_inputs.items():
 
-                # Get __values and __lengths
+                # Get __values and __offsets
                 input_val = _convert_tensor(
                     pb_utils.get_input_tensor_by_name(request, name + sparse_value_marker)
                 )
                 input_lengths = _convert_tensor(
-                    pb_utils.get_input_tensor_by_name(request, name + sparse_lengths_marker)
+                    pb_utils.get_input_tensor_by_name(request, name + sparse_offsets_marker)
                 )
                 input_lengths = torch.tensor(input_lengths, dtype=torch.int64)
                 input_values = torch.tensor(input_val, dtype=dtype)
@@ -198,7 +198,7 @@ def _get_sparse_tensor(values, indices, num_rows, seq_limit, sparse_as_dense, de
 
 
 def _build_sparse_tensor(values, lengths, seq_limit, sparse_as_dense, device="cuda"):
-    """Builds PyTorch sparse_coo_tensor by converting the __values and __lengths inputs"""
+    """Builds PyTorch sparse_coo_tensor by converting the __values and __offsets inputs"""
     indices = _get_indices(lengths, device)
     num_rows = len(lengths)
     return _get_sparse_tensor(values, indices, num_rows, seq_limit, sparse_as_dense, device)

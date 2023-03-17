@@ -15,7 +15,6 @@
 import json
 import os
 
-import numpy as np
 import pandas as pd
 
 # this needs to be before any modules that import protobuf
@@ -88,13 +87,15 @@ def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput,
     """
     df_dict = _convert_df_to_dict(schema, batch, dtype)
     inputs = [
-        _convert_column_to_triton_input(col_name, col_values, input_class)
+        _convert_array_to_triton_input(col_name, col_values, input_class)
         for col_name, col_values in df_dict.items()
     ]
     return inputs
 
 
 def _convert_array_to_triton_input(col_name, col_values, input_class=grpcclient.InferInput):
+    # Triton's mapping of numpy types to Triton types doesn't know how to handle string types,
+    # so we need to map them to object ourselves before we call np_to_triton_dtype
     col_dtype = md.dtype(col_values.dtype).to_numpy
     dtype = np_to_triton_dtype(col_dtype)
     input_tensor = input_class(col_name, col_values.shape, dtype)
@@ -182,22 +183,3 @@ def _convert_df_to_dict(schema, batch, dtype="int32"):
             values = values.reshape(*shape).astype(col_schema.dtype.to_numpy)
             df_dict[col_name] = values
     return df_dict
-
-
-def _convert_column_to_triton_input(col_name, col_values, input_class=grpcclient.InferInput):
-    # Triton's mapping of numpy types to Triton types doesn't know how to handle string types,
-    # so we need to map them to object ourselves before we call np_to_triton_dtype
-    col_dtype = col_values.dtype
-    if isinstance(col_dtype, type(np.dtype("str"))):
-        col_dtype = np.dtype("O")
-
-    dtype = np_to_triton_dtype(col_dtype)
-    input_tensor = input_class(col_name, col_values.shape, dtype)
-
-    # set_data_from_numpy checks the type against what was supplied when we created the tensor
-    # using np_to_triton_dtype, so the workaround above isn't enough to make them match here.
-    # Do one last `astype` cast to make absolutely sure the dtypes match.
-    col_values = col_values.astype(col_dtype)
-    input_tensor.set_data_from_numpy(col_values)
-
-    return input_tensor
