@@ -214,7 +214,7 @@ class QueryFeast(InferenceOperator):
                 "No entity ids provided when querying Feast. Must provide "
                 "at least one id in order to fetch features."
             )
-        entity_rows = [{self.entity_id: int(entity_id)} for entity_id in entity_ids]
+        entity_rows = [{self.entity_id: int(entity_id)} for entity_id in entity_ids.values]
 
         feature_names = self.features + self.mh_features
         feature_refs = [
@@ -235,7 +235,7 @@ class QueryFeast(InferenceOperator):
             prefixed_name = self.__class__._prefixed_name(self.output_prefix, feature_name)
 
             feature_value = feast_response[feature_name]
-            feature_array = array_constructor([feature_value]).T.astype(
+            feature_array = array_constructor(feature_value).astype(
                 self.output_schema[prefixed_name].dtype.to_numpy
             )
             output_tensors[prefixed_name] = feature_array
@@ -259,7 +259,7 @@ class QueryFeast(InferenceOperator):
                 feature_value = [flattened_value]
 
             # create a numpy array
-            feature_array = array_constructor(feature_value).T.astype(
+            feature_array = array_constructor(feature_value).astype(
                 self.output_schema[prefixed_name].dtype.to_numpy
             )
 
@@ -271,7 +271,8 @@ class QueryFeast(InferenceOperator):
                 offsets, dtype=self.output_schema[prefixed_name].dtype.to_numpy
             )
 
-            output_tensors[prefixed_name] = (feature_array, feature_offsets)
+            output_tensors["{prefixed_name}__values"] = feature_array
+            output_tensors["{prefixed_name}__offsets"] = feature_offsets
 
         return type(transformable)(output_tensors)
 
