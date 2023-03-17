@@ -57,8 +57,7 @@ class TensorflowWorkflowRunner(WorkflowRunner):
                 output_tensors.append((name + "__values", values))
 
                 offsets = value[1].astype(self.output_dtypes[name + "__offsets"])
-                lengths = offsets[1:] - offsets[:-1]
-                output_tensors.append((name + "__offsets", lengths))
+                output_tensors.append((name + "__offsets", offsets))
             else:
                 d = value.astype(self.output_dtypes[name])
                 output_tensors.append((name, d))
