@@ -65,7 +65,7 @@ class Ensemble:
         Parameters
         ----------
         transformable : Transformable
-            Input data to the graph (DataFrame or DictArray).
+            Input data to the graph (DataFrame or TensorTable).
         runtime : Runtime, optional
             The graph runtime to use to transform the inputs, by default None
 

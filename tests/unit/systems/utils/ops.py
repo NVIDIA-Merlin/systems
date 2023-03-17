@@ -18,7 +18,7 @@ import pytest
 
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
-from merlin.systems.dag import DictArray
+from merlin.table import TensorTable
 
 inf_op = pytest.importorskip("merlin.systems.dag.runtimes.triton.ops.operator")
 
@@ -30,10 +30,10 @@ class PlusTwoOp(inf_op.TritonOperator):
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
     ) -> Transformable:
-        result = DictArray()
+        result = TensorTable()
 
         for name, column in transformable.items():
-            result[f"{name}_plus_2"] = column.values + 2
+            result[f"{name}_plus_2"] = type(column)(column.values + 2, column.offsets)
 
         return result
 

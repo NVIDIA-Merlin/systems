@@ -23,12 +23,12 @@ from google.protobuf import text_format  # noqa
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag import DictArray
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
 from merlin.systems.triton.conversions import (
     dict_array_to_triton_request,
     triton_response_to_dict_array,
 )
+from merlin.table import TensorTable
 
 
 class PredictForestTriton(TritonOperator):
@@ -155,12 +155,12 @@ class PredictForestTriton(TritonOperator):
 
         Parameters
         -----------
-        df: DictArray
+        df: TensorTable
             A pandas or cudf dataframe that this operator will work on
 
         Returns
         -------
-        DictArray
+        TensorTable
             Returns a transformed dataframe for this operator"""
 
         input0 = (
@@ -169,7 +169,7 @@ class PredictForestTriton(TritonOperator):
             .T
         )
 
-        inputs = DictArray({"input__0": input0})
+        inputs = TensorTable({"input__0": input0})
 
         inference_request = dict_array_to_triton_request(
             self.fil_model_name, inputs, ["input__0"], ["output__0"]

@@ -21,10 +21,11 @@ import tritonclient.grpc.model_config_pb2 as model_config  # noqa
 
 import merlin.dtypes as md  # noqa
 from merlin.core.dispatch import is_string_dtype  # noqa
+from merlin.systems.dag.ops import compute_dims  # noqa
 
 
 def _add_model_param(col_schema, paramclass, params, dims=None):
-    dims = dims if dims is not None else [-1, 1]
+    dims = dims if dims is not None else compute_dims(col_schema)
     if col_schema.is_list and col_schema.is_ragged:
         params.append(
             paramclass(

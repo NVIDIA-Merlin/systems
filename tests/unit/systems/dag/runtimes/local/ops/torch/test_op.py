@@ -19,9 +19,9 @@ import numpy as np
 import pytest
 
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.runtimes.base_runtime import Runtime
+from merlin.table import TensorTable
 
 torch = pytest.importorskip("torch")
 ptorch_op = pytest.importorskip("merlin.systems.dag.ops.pytorch")
@@ -79,7 +79,7 @@ def test_pytorch_op_serving(tmpdir, use_path, torchscript, runtime):
 
     input_data = {"input": np.array([[2.0, 3.0, 4.0], [4.0, 8.0, 1.0]]).astype(np.float32)}
 
-    inputs = DictArray(input_data)
+    inputs = TensorTable(input_data)
     response = ensemble.transform(inputs, runtime=runtime)
 
     assert response["OUTPUT__0"].values.shape[0] == input_data["input"].shape[0]
@@ -109,6 +109,6 @@ def test_pytorch_op_serving_python(tmpdir, use_path, torchscript, runtime):
 
     input_data = {"input": np.array([[2.0, 3.0, 4.0], [4.0, 8.0, 1.0]]).astype(np.float32)}
 
-    inputs = DictArray(input_data)
+    inputs = TensorTable(input_data)
     response = ensemble.transform(inputs, runtime=runtime)
     assert response["OUTPUT__0"].values.shape[0] == input_data["input"].shape[0]

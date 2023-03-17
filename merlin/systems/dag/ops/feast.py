@@ -198,16 +198,16 @@ class QueryFeast(InferenceOperator):
 
         Parameters
         ----------
-        df : DictArray
+        df : TensorTable
             Input tensor dictionary, data that will be manipulated
 
         Returns
         -------
-        DictArray
+        TensorTable
             Transformed tensor dictionary
         """
         entity_ids = transformable[self.entity_column]
-        array_lib = entity_ids._array_lib
+        array_constructor = entity_ids.array_constructor()
 
         if len(entity_ids) < 1:
             raise ValueError(
@@ -235,7 +235,7 @@ class QueryFeast(InferenceOperator):
             prefixed_name = self.__class__._prefixed_name(self.output_prefix, feature_name)
 
             feature_value = feast_response[feature_name]
-            feature_array = array_lib.array([feature_value]).T.astype(
+            feature_array = array_constructor([feature_value]).T.astype(
                 self.output_schema[prefixed_name].dtype.to_numpy
             )
             output_tensors[prefixed_name] = feature_array
@@ -245,7 +245,7 @@ class QueryFeast(InferenceOperator):
             feature_value = feast_response[feature_name]
             prefixed_name = self.__class__._prefixed_name(self.output_prefix, feature_name)
 
-            row_lengths = None
+            offsets = None
             if isinstance(feature_value[0], list) and self.output_schema[prefixed_name].is_ragged:
                 # concatenate lists we got back from Feast
                 flattened_value = []
@@ -254,24 +254,24 @@ class QueryFeast(InferenceOperator):
 
                 # get the lengths of the lists
                 row_lengths = [len(vals) for vals in feature_value]
-
+                offsets = np.cumsum([0] + row_lengths)
                 # wrap the flattened values with a list to get the shape right
                 feature_value = [flattened_value]
 
             # create a numpy array
-            feature_array = array_lib.array(feature_value).T.astype(
+            feature_array = array_constructor(feature_value).T.astype(
                 self.output_schema[prefixed_name].dtype.to_numpy
             )
 
             # if we're a list but not ragged, construct row lengths
-            if not row_lengths:
-                row_lengths = [len(feature_array)]
+            if offsets is None:
+                offsets = [0, len(feature_array)]
 
-            feature_row_lengths = array_lib.array(
-                [row_lengths], dtype=self.output_schema[prefixed_name].dtype.to_numpy
-            ).T
+            feature_offsets = array_constructor(
+                offsets, dtype=self.output_schema[prefixed_name].dtype.to_numpy
+            )
 
-            output_tensors[prefixed_name] = (feature_array, feature_row_lengths)
+            output_tensors[prefixed_name] = (feature_array, feature_offsets)
 
         return type(transformable)(output_tensors)
 

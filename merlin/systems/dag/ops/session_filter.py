@@ -169,18 +169,18 @@ class FilterCandidates(InferenceOperator):
 
         Parameters
         ----------
-        df : DictArray
+        df : TensorTable
             Input tensor dictionary, data that will be manipulated
 
         Returns
         -------
-        DictArray
+        TensorTable
             Transformed tensor dictionary
         """
         candidate_ids = transformable[self._input_col]
         filter_ids = transformable[self._filter_out_col]
 
-        filtered_results = candidate_ids[~np.isin(candidate_ids, filter_ids)]
+        filtered_results = candidate_ids.values[~np.isin(candidate_ids.values, filter_ids.values)]
         return type(transformable)({"filtered_ids": filtered_results})
 
     def export(

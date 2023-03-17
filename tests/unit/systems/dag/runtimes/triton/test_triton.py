@@ -20,12 +20,12 @@ import shutil
 import numpy as np
 import pytest
 
-from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag import DictArray
+from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
+from merlin.table import TensorTable
 
 triton = pytest.importorskip("merlin.systems.triton")
 export = pytest.importorskip("merlin.systems.dag.ensemble")
@@ -44,8 +44,8 @@ TRITON_SERVER_PATH = shutil.which("tritonserver")
 def test_triton_runtime_export_and_run(runtime, model_name, expected_model_name, tmpdir):
     request_schema = Schema(
         [
-            ColumnSchema("candidate_ids", dtype=np.int32),
-            ColumnSchema("movie_ids", dtype=np.int32),
+            ColumnSchema("candidate_ids", dtype=np.int32, dims=(None, 100)),
+            ColumnSchema("movie_ids", dtype=np.int32, dims=(None, 100)),
         ]
     )
 
@@ -54,11 +54,11 @@ def test_triton_runtime_export_and_run(runtime, model_name, expected_model_name,
     movie_ids_1[:20] = np.unique(candidate_ids)[:20]
 
     combined_features = {
-        "candidate_ids": candidate_ids,
-        "movie_ids": movie_ids_1,
+        "candidate_ids": np.expand_dims(candidate_ids, axis=0),
+        "movie_ids": np.expand_dims(movie_ids_1, axis=0),
     }
 
-    request_data = DictArray(combined_features)
+    request_data = TensorTable(combined_features)
 
     filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
 
@@ -69,10 +69,9 @@ def test_triton_runtime_export_and_run(runtime, model_name, expected_model_name,
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
-        request_data.to_df(),
+        request_data,
         ensemble.output_schema.column_names,
         ensemble_config.name,
     )
     assert response is not None
-    # assert isinstance(response, DictArray)
     assert len(response["filtered_ids"]) == 80

@@ -3,11 +3,12 @@ import pandas as pd
 import pytest
 
 from merlin.dag import ColumnSelector
+from merlin.dtypes.shape import Shape
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.fil import PredictForest
 from merlin.systems.dag.runtimes.base_runtime import Runtime
+from merlin.table import TensorTable
 
 sklearn_datasets = pytest.importorskip("sklearn.datasets")
 xgboost = pytest.importorskip("xgboost")
@@ -43,10 +44,10 @@ def test_xgboost_regressor_forest_inference(runtime, tmpdir):
 
     request_df = df[:5]
 
-    dict_array = DictArray().from_df(request_df)
+    dict_array = TensorTable.from_df(request_df)
     response = ensemble.transform(dict_array, runtime=runtime)
 
-    assert response["output__0"].shape == (5,)
+    assert response["output__0"].shape == Shape((5,))
 
 
 @pytest.mark.parametrize("runtime", [Runtime()])
@@ -78,7 +79,7 @@ def test_xgboost_classify_forest_inference(runtime, tmpdir):
 
     request_df = df[:5]
 
-    dict_array = DictArray().from_df(request_df)
+    dict_array = TensorTable.from_df(request_df)
     response = ensemble.transform(dict_array, runtime=runtime)
 
-    assert response["output__0"].shape == (5,)
+    assert response["output__0"].shape == Shape((5,))

@@ -75,12 +75,12 @@ class TransformWorkflowTriton(TritonOperator):
 
         Parameters
         -----------
-        df: DictArray
+        df: TensorTable
             A pandas or cudf dataframe that this operator will work on
 
         Returns
         -------
-        DictArray
+        TensorTable
             Returns a transformed dataframe for this operator"""
         inference_request = dict_array_to_triton_request(
             self._nvt_model_name,

@@ -170,12 +170,12 @@ class QueryFaiss(InferenceOperator):
 
         Parameters
         ----------
-        df : DictArray
+        df : TensorTable
             Input tensor dictionary, data that will be manipulated
 
         Returns
         -------
-        DictArray
+        TensorTable
             Transformed tensor dictionary
         """
         user_vector = list(transformable.values())[0]
@@ -249,7 +249,7 @@ class QueryFaiss(InferenceOperator):
         """
         return Schema(
             [
-                ColumnSchema("candidate_ids", dtype=np.int32),
+                ColumnSchema("candidate_ids", dtype=np.int32, dims=(None, self.topk)),
             ]
         )
 

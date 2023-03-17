@@ -103,7 +103,7 @@ def test_ensemble(model_cls, runtime, tmpdir):
 
     implicit_op = PredictImplicit(model, num_to_recommend=num_to_recommend)
 
-    input_schema = Schema([ColumnSchema("user_id", dtype="int64")])
+    input_schema = Schema([ColumnSchema("user_id", dtype="int64", dims=(None, 1))])
 
     triton_chain = input_schema.column_names >> implicit_op
 

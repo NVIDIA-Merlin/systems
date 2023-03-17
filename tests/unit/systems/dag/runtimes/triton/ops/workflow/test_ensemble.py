@@ -66,7 +66,7 @@ def test_workflow_op_serving_triton(tmpdir, dataset, engine, model_name, expecte
     inputs = []
     for col_name, col_schema in workflow.input_schema.column_schemas.items():
         col_dtype = col_schema.dtype.to_numpy
-        input_data[col_name] = np.array([[2], [3], [4]]).astype(col_dtype)
+        input_data[col_name] = np.array([2, 3, 4]).astype(col_dtype)
 
         triton_input = grpcclient.InferInput(
             col_name, input_data[col_name].shape, triton.np_to_triton_dtype(col_dtype)
