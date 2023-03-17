@@ -23,6 +23,7 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 import tritonclient.grpc as grpcclient  # noqa
 from tritonclient.utils import np_to_triton_dtype  # noqa
 
+import merlin.dtypes as md  # noqa
 from merlin.core.dispatch import is_string_dtype, make_df  # noqa
 from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.table import NumpyColumn, TensorTable  # noqa
@@ -95,7 +96,7 @@ def convert_df_to_triton_input(schema, batch, input_class=grpcclient.InferInput,
 def _convert_array_to_triton_input(col_name, col_values, input_class=grpcclient.InferInput):
     # Triton's mapping of numpy types to Triton types doesn't know how to handle string types,
     # so we need to map them to object ourselves before we call np_to_triton_dtype
-    col_dtype = col_values.dtype.to_numpy
+    col_dtype = md.dtype(col_values.dtype).to_numpy
     dtype = np_to_triton_dtype(col_dtype)
     input_tensor = input_class(col_name, col_values.shape, dtype)
 
