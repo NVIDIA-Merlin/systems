@@ -123,8 +123,13 @@ def tensor_table_to_triton_request(model_name, tensor_table, input_col_names, ou
 
     for name, column in tensor_table.items():
         if name in input_col_names:
-            col_tensor = _triton_tensor_from_array(name, column.values)
-            input_tensors.append(col_tensor)
+            if column.is_ragged:
+                values = _triton_tensor_from_array(f"{name}__values", column.values)
+                offsets = _triton_tensor_from_array(f"{name}__offsets", column.offsets)
+                input_tensors.extend([values, offsets])
+            else:
+                col_tensor = _triton_tensor_from_array(name, column.values)
+                input_tensors.append(col_tensor)
 
     return pb_utils.InferenceRequest(
         model_name=model_name,
@@ -155,6 +160,13 @@ def triton_response_to_tensor_table(response, transformable_type, output_column_
     outputs_dict = {}
 
     for out_col_name in output_column_names:
+        try:
+            values = _array_from_triton_tensor(response, f"{out_col_name}__values")
+            lengths = _array_from_triton_tensor(response, f"{out_col_name}__offsets")
+            outputs_dict[out_col_name] = (values, lengths)
+        except (AttributeError, ValueError):
+            outputs_dict[out_col_name] = _array_from_triton_tensor(response, out_col_name)
+
         output_val = _array_from_triton_tensor(response, out_col_name)
         outputs_dict[out_col_name] = output_val
 
