@@ -54,15 +54,12 @@ class TensorflowWorkflowRunner(WorkflowRunner):
             elif isinstance(value, tuple):
                 # convert list values to match TF dataloader
                 values = value[0].astype(self.output_dtypes[name + "__values"])
-                values = values.reshape(len(values), 1)
                 output_tensors.append((name + "__values", values))
 
                 offsets = value[1].astype(self.output_dtypes[name + "__offsets"])
                 lengths = offsets[1:] - offsets[:-1]
-                lengths = lengths.reshape(len(lengths), 1)
                 output_tensors.append((name + "__offsets", lengths))
             else:
                 d = value.astype(self.output_dtypes[name])
-                d = d.reshape(len(d), 1)
                 output_tensors.append((name, d))
         return output_tensors
