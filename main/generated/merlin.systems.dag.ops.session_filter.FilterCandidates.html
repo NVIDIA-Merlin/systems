@@ -83,7 +83,7 @@
 <dl class="py class">
 <dt id="merlin.systems.dag.ops.session_filter.FilterCandidates">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">merlin.systems.dag.ops.session_filter.</span></code><code class="sig-name descname"><span class="pre">FilterCandidates</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter_out</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_col</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/session_filter.html#FilterCandidates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.session_filter.FilterCandidates" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">merlin.systems.dag.ops.operator.PipelineableInferenceOperator</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">merlin.systems.dag.ops.operator.InferenceOperator</span></code></p>
 <p>This operator takes the input column and filters out elements of that column
 based on the supplied criteria.</p>
 <dl class="py method">
@@ -283,13 +283,13 @@ operator</p></li>
 <dd><p>Transform input dataframe to output dataframe using function logic.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>df</strong> (<em>DictArray</em>) – Input tensor dictionary, data that will be manipulated</p>
+<dd class="field-odd"><p><strong>df</strong> (<em>TensorTable</em>) – Input tensor dictionary, data that will be manipulated</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Transformed tensor dictionary</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>DictArray</p>
+<dd class="field-odd"><p>TensorTable</p>
 </dd>
 </dl>
 </dd></dl>
@@ -357,12 +357,12 @@ operator</p></li>
   <div class="rst-other-versions">
     <dl>
       <dt>Tags</dt>
-      <dd><a href="../../v0.3.0/index.html">v0.3.0</a></dd>
-      <dd><a href="../../v0.4.0/index.html">v0.4.0</a></dd>
       <dd><a href="../../v0.5.0/index.html">v0.5.0</a></dd>
       <dd><a href="../../v0.6.0/index.html">v0.6.0</a></dd>
       <dd><a href="../../v0.7.0/index.html">v0.7.0</a></dd>
       <dd><a href="../../v0.8.0/index.html">v0.8.0</a></dd>
+      <dd><a href="../../v0.9.0/index.html">v0.9.0</a></dd>
+      <dd><a href="../../v23.02.00/index.html">v23.02.00</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>

@@ -24,7 +24,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling" href="merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html" />
-    <link rel="prev" title="merlin.systems.dag.ops.fil.PredictForest" href="merlin.systems.dag.ops.fil.PredictForest.html" /> 
+    <link rel="prev" title="API Documentation" href="../api.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -83,7 +83,7 @@
 <dl class="py class">
 <dt id="merlin.systems.dag.ops.implicit.PredictImplicit">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">merlin.systems.dag.ops.implicit.</span></code><code class="sig-name descname"><span class="pre">PredictImplicit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_to_recommend</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/implicit.html#PredictImplicit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.implicit.PredictImplicit" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">merlin.systems.dag.ops.operator.PipelineableInferenceOperator</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">merlin.systems.dag.ops.operator.InferenceOperator</span></code></p>
 <p>Operator for running inference on Implicit models..</p>
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.implicit.PredictImplicit.__init__">
@@ -127,28 +127,25 @@
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
 <td><p>_summary_</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.implicit.PredictImplicit.export" title="merlin.systems.dag.ops.implicit.PredictImplicit.export"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code></a>(path, input_schema, output_schema[, …])</p></td>
-<td><p>Export the class and related files to the path specified.</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code>(path, input_schema, output_schema[, …])</p></td>
+<td><p>Export the class object as a config and all related files to the user defined path.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.implicit.PredictImplicit.from_config" title="merlin.systems.dag.ops.implicit.PredictImplicit.from_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_config</span></code></a>(config, **kwargs)</p></td>
-<td><p>Instantiate the class from a dictionary representation.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
 <td><p>Loads the InferenceOperator from the provided ModelRegistry.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code>(path, **kwargs)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code>(path, **kwargs)</p></td>
 <td><p>Loads the InferenceOperator from the path where it was exported after training.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.implicit.PredictImplicit.load_artifacts" title="merlin.systems.dag.ops.implicit.PredictImplicit.load_artifacts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_artifacts</span></code></a>(artifact_path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.implicit.PredictImplicit.load_artifacts" title="merlin.systems.dag.ops.implicit.PredictImplicit.load_artifacts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_artifacts</span></code></a>(artifact_path)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
 <td><p>Given a set of columns names returns the names of the transformed columns this operator will produce</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.implicit.PredictImplicit.transform" title="merlin.systems.dag.ops.implicit.PredictImplicit.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(col_selector, transformable)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.implicit.PredictImplicit.transform" title="merlin.systems.dag.ops.implicit.PredictImplicit.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(col_selector, transformable)</p></td>
 <td><p>Transform the dataframe by applying this operator to the set of input columns.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schemas</span></code>(parents_schema, …[, …])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schemas</span></code>(parents_schema, …[, …])</p></td>
 <td><p>Provides a hook method that sub-classes can override to implement schema validation logic.</p></td>
 </tr>
 </tbody>
@@ -215,37 +212,18 @@
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="merlin.systems.dag.ops.implicit.PredictImplicit.export">
-<code class="sig-name descname"><span class="pre">export</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.schema.schema.Schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.schema.schema.Schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><span class="pre">int</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'ensemble'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/implicit.html#PredictImplicit.export"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.implicit.PredictImplicit.export" title="Permalink to this definition"></a></dt>
-<dd><p>Export the class and related files to the path specified.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="merlin.systems.dag.ops.implicit.PredictImplicit.from_config">
-<em class="property"><span class="pre">classmethod</span> </em><code class="sig-name descname"><span class="pre">from_config</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#merlin.systems.dag.ops.implicit.PredictImplicit" title="merlin.systems.dag.ops.implicit.PredictImplicit"><span class="pre">merlin.systems.dag.ops.implicit.PredictImplicit</span></a><a class="reference internal" href="../_modules/merlin/systems/dag/ops/implicit.html#PredictImplicit.from_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.implicit.PredictImplicit.from_config" title="Permalink to this definition"></a></dt>
-<dd><p>Instantiate the class from a dictionary representation.</p>
-<p>Expected config structure:
-{</p>
-<blockquote>
-<div><p>“input_dict”: str  # JSON dict with input names and schemas
-“params”: str  # JSON dict with params saved at export</p>
-</div></blockquote>
-<p>}</p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="merlin.systems.dag.ops.implicit.PredictImplicit.transform">
 <code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_selector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.dag.selector.ColumnSelector</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.core.protocols.Transformable</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">merlin.core.protocols.Transformable</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/implicit.html#PredictImplicit.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.implicit.PredictImplicit.transform" title="Permalink to this definition"></a></dt>
 <dd><p>Transform the dataframe by applying this operator to the set of input columns.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>df</strong> (<em>DictArray</em>) – A pandas or cudf dataframe that this operator will work on</p>
+<dd class="field-odd"><p><strong>df</strong> (<em>TensorTable</em>) – A pandas or cudf dataframe that this operator will work on</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Returns a transformed dataframe for this operator</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>DictArray</p>
+<dd class="field-odd"><p>TensorTable</p>
 </dd>
 </dl>
 </dd></dl>
@@ -258,7 +236,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="merlin.systems.dag.ops.fil.PredictForest.html" class="btn btn-neutral float-left" title="merlin.systems.dag.ops.fil.PredictForest" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api.html" class="btn btn-neutral float-left" title="API Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html" class="btn btn-neutral float-right" title="merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
@@ -288,12 +266,12 @@
   <div class="rst-other-versions">
     <dl>
       <dt>Tags</dt>
-      <dd><a href="../../v0.3.0/index.html">v0.3.0</a></dd>
-      <dd><a href="../../v0.4.0/index.html">v0.4.0</a></dd>
       <dd><a href="../../v0.5.0/index.html">v0.5.0</a></dd>
       <dd><a href="../../v0.6.0/index.html">v0.6.0</a></dd>
       <dd><a href="../../v0.7.0/index.html">v0.7.0</a></dd>
       <dd><a href="../../v0.8.0/index.html">v0.8.0</a></dd>
+      <dd><a href="../../v0.9.0/index.html">v0.9.0</a></dd>
+      <dd><a href="../../v23.02.00/index.html">v23.02.00</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>
