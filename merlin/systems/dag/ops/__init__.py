@@ -15,7 +15,7 @@
 #
 
 
-def compute_dims(col_schema, scalar_shape=None):
+def compute_dims(col_schema):
     """
     Compute Triton dimensions for a column from its schema
 
@@ -23,26 +23,17 @@ def compute_dims(col_schema, scalar_shape=None):
     ----------
     col_schema : ColumnSchema
         Schema of the column to compute dimensions for
-    scalar_shape : List[int], optional
-        The shape of a single scalar element, by default None
 
     Returns
     -------
     List[int]
         Triton dimensions for the column
     """
-    batch_dim = [-1]
+    dims = [-1]
 
-    default_scalar_shape = col_schema.properties.get("triton_scalar_shape", [1])
-    column_dims = scalar_shape if scalar_shape is not None else default_scalar_shape
-    assert isinstance(column_dims, list)
+    if col_schema.shape is not None and col_schema.shape.dims is not None:
+        for dim in col_schema.shape.as_tuple[1:]:
+            dim = dim if isinstance(dim, int) else -1
+            dims.append(dim)
 
-    if col_schema.is_list:
-        column_dims = []
-        for dim in col_schema.shape.dims[1:]:
-            if dim.is_fixed:
-                column_dims.append(dim.max)
-            else:
-                column_dims.append(-1)
-
-    return batch_dim + column_dims
+    return dims

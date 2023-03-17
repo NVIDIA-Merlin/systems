@@ -19,7 +19,6 @@ import numpy as np
 import pytest
 
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.faiss import QueryFaiss, setup_faiss
 
@@ -38,6 +37,7 @@ import tensorflow as tf  # noqa
 
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime  # noqa
+from merlin.table import TensorTable  # noqa
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
@@ -63,27 +63,28 @@ def test_faiss_in_triton_executor_model(tmpdir):
 
     request_schema = Schema(
         [
-            ColumnSchema("user_id", dtype=np.int32),
+            ColumnSchema("user_id", dtype=np.int32, dims=(None, 1)),
         ]
     )
 
-    request_features = {
-        "user_id": np.array([1]),
-    }
-    request_data = DictArray(request_features)
+    request_data = TensorTable(
+        {
+            "user_id": np.array([[1]], dtype=np.int32),
+        }
+    )
 
-    filtering = ["user_id"] >> PredictTensorflow(model) >> QueryFaiss(faiss_path)
+    retrieval = ["user_id"] >> PredictTensorflow(model) >> QueryFaiss(faiss_path)
 
-    ensemble = Ensemble(filtering, request_schema)
+    ensemble = Ensemble(retrieval, request_schema)
     ensemble_config, _ = ensemble.export(tmpdir, runtime=TritonExecutorRuntime())
 
     response = run_ensemble_on_tritonserver(
         tmpdir,
         ensemble.input_schema,
-        request_data.to_df(),
+        request_data,
         ensemble.output_schema.column_names,
         ensemble_config.name,
     )
+
     assert response is not None
-    # assert isinstance(response, DictArray)
     assert len(response["candidate_ids"]) == 10

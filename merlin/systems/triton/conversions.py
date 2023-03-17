@@ -37,13 +37,13 @@ import pandas as pd
 
 from merlin.core.dispatch import build_cudf_list_column, is_list_dtype
 from merlin.dag import Supports
-from merlin.systems.dag import DictArray
 from merlin.systems.dag.ops.compat import pb_utils
+from merlin.table import TensorTable
 
 
 def triton_request_to_dict_array(request, column_names):
     """
-    Turns a Triton request into a DictArray by extracting individual tensors
+    Turns a Triton request into a TensorTable by extracting individual tensors
     from the request using pb_utils.
 
     Parameters
@@ -55,7 +55,7 @@ def triton_request_to_dict_array(request, column_names):
 
     Returns
     -------
-    DictArray
+    TensorTable
         Dictionary-like representation of the input columns
     """
     dict_inputs = {}
@@ -67,17 +67,17 @@ def triton_request_to_dict_array(request, column_names):
         except (AttributeError, ValueError):
             dict_inputs[name] = _array_from_triton_tensor(request, name)
 
-    return DictArray(dict_inputs)
+    return TensorTable(dict_inputs)
 
 
 def dict_array_to_triton_response(dictarray):
     """
-    Turns a DictArray into a Triton response that can be returned
+    Turns a TensorTable into a Triton response that can be returned
     to resolve an incoming request.
 
     Parameters
     ----------
-    dictarray : DictArray
+    dictarray : TensorTable
         Dictionary-like representation of the output columns
 
     Returns
@@ -100,14 +100,14 @@ def dict_array_to_triton_response(dictarray):
 
 def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_col_names):
     """
-    Turns a DictArray into a Triton request that can, for example, be used to make a
+    Turns a TensorTable into a Triton request that can, for example, be used to make a
     Business Logic Scripting call to a Triton model on the same Triton instance.
 
     Parameters
     ----------
     model_name : String
         Name of model registered in triton
-    dictarray : DictArray
+    dictarray : TensorTable
         Dictionary-like representation of the output columns
     input_col_names : List[str]
         List of the input columns to create triton request
@@ -117,7 +117,7 @@ def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_
     Returns
     -------
     TritonInferenceRequest
-        The DictArray reformatted as a Triton request
+        The TensorTable reformatted as a Triton request
     """
     input_tensors = []
 
@@ -135,14 +135,14 @@ def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_
 
 def triton_response_to_dict_array(response, transformable_type, output_column_names):
     """
-    Turns a Triton response into a DictArray by extracting individual tensors
+    Turns a Triton response into a TensorTable by extracting individual tensors
     from the request using pb_utils.
 
     Parameters
     ----------
     response : pb_utils.InferenceResponse
         Response received from triton containing prediction
-    transformable_type : Union[pd.DataFrame, cudf.DataFrame, DictArray]
+    transformable_type : Union[pd.DataFrame, cudf.DataFrame, TensorTable]
         The specific type of object matching the Transformable protocol to create
     output_col_names : List[str]
         List of the output columns to extract from the response
@@ -150,7 +150,7 @@ def triton_response_to_dict_array(response, transformable_type, output_column_na
     Returns
     -------
     Transformable
-        A DictArray or DataFrame representing the response columns from a Triton request
+        A TensorTable or DataFrame representing the response columns from a Triton request
     """
     outputs_dict = {}
 

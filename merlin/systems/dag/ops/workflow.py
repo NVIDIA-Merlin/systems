@@ -18,8 +18,8 @@ from typing import List
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import Schema
-from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.ops.operator import InferenceOperator
+from merlin.table import TensorTable
 
 
 class TransformWorkflow(InferenceOperator):
@@ -108,13 +108,13 @@ class TransformWorkflow(InferenceOperator):
             workflow transform
         """
         output_type = type(transformable)
-        if isinstance(transformable, DictArray):
+        if isinstance(transformable, TensorTable):
             transformable = transformable.to_df()
 
         output = self.workflow._transform_df(transformable)
 
         if not isinstance(output, output_type):
-            output = DictArray().from_df(output)
+            output = TensorTable.from_df(output)
 
         return output
 

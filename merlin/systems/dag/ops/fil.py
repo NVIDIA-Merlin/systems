@@ -23,7 +23,6 @@ from merlin.core.dispatch import HAS_GPU
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag.dictarray import DictArray
 from merlin.systems.dag.ops.compat import (
     cuml_ensemble,
     cuml_fil,
@@ -34,6 +33,7 @@ from merlin.systems.dag.ops.compat import (
     xgboost,
 )
 from merlin.systems.dag.ops.operator import InferenceOperator
+from merlin.table import TensorTable
 
 
 class PredictForest(InferenceOperator):
@@ -128,12 +128,12 @@ class PredictForest(InferenceOperator):
 
         Parameters
         -----------
-        df: DictArray
+        df: TensorTable
             A pandas or cudf dataframe that this operator will work on
 
         Returns
         -------
-        DictArray
+        TensorTable
             Returns a transformed dataframe for this operator"""
 
         input0 = (
@@ -425,7 +425,7 @@ class XGBoost(FILModel):
             super().__init__(model)
 
     def predict(self, inputs):
-        if isinstance(inputs, DictArray):
+        if isinstance(inputs, TensorTable):
             inputs = inputs.to_df()
         inputs = xgboost.DMatrix(inputs)
         return self.model.predict(inputs)

@@ -16,14 +16,14 @@
 import os
 
 import numpy as np
-import torch  # noqa
-import torch.utils.dlpack  # noqa
+import torch
+import torch.utils.dlpack
 
-from merlin.core.protocols import Transformable  # noqa
-from merlin.dag import ColumnSelector  # noqa
-from merlin.schema import Schema  # noqa
-from merlin.systems.dag.dictarray import DictArray
-from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
+from merlin.core.protocols import Transformable
+from merlin.dag import ColumnSelector
+from merlin.schema import Schema
+from merlin.systems.dag.ops.operator import InferenceOperator
+from merlin.table import TensorTable
 
 
 class PredictPyTorch(InferenceOperator):
@@ -98,8 +98,8 @@ class PredictPyTorch(InferenceOperator):
 
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
         output_type = type(transformable)
-        if not isinstance(transformable, DictArray):
-            transformable = DictArray.from_df(transformable)
+        if not isinstance(transformable, TensorTable):
+            transformable = TensorTable.from_df(transformable)
 
         tensor_dict = {}
         for column in transformable.columns:
@@ -110,9 +110,9 @@ class PredictPyTorch(InferenceOperator):
         for idx, col in enumerate(self.output_schema.column_names):
             output[col] = result[:, idx].detach().numpy()
 
-        output = DictArray(output)
+        output = TensorTable(output)
         if not isinstance(output, output_type):
-            output = output.to_df(transformable)
+            output = output.to_df()
 
         return output
 

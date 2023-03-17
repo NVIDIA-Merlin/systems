@@ -24,9 +24,9 @@ from merlin.core.dispatch import HAS_GPU, make_df
 from merlin.dag.executors import DaskExecutor, LocalExecutor
 from merlin.io import Dataset
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag import DictArray
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.session_filter import FilterCandidates
+from merlin.table import TensorTable
 
 TRITON_SERVER_PATH = shutil.which("tritonserver")
 
@@ -48,7 +48,7 @@ def test_run_dag_on_dictarray_with_local_executor():
         "movie_ids": movie_ids_1,
     }
 
-    request_data = DictArray(combined_features)
+    request_data = TensorTable(combined_features)
 
     filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
 
@@ -58,7 +58,7 @@ def test_run_dag_on_dictarray_with_local_executor():
     response = executor.transform(request_data, [ensemble.graph.output_node])
 
     assert response is not None
-    assert isinstance(response, DictArray)
+    assert isinstance(response, TensorTable)
     assert len(response["filtered_ids"]) == 80
 
 

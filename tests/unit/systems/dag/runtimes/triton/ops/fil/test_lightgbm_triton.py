@@ -44,7 +44,11 @@ def test_lightgbm_regressor_forest_inference(runtime, model_name, expected_model
     model = lightgbm.LGBMRegressor()
     model.fit(X, y)
 
-    input_column_schemas = [ColumnSchema(col, dtype=np.float32) for col in feature_names]
+    request_df = df[:5]
+
+    input_column_schemas = [
+        ColumnSchema(col, dtype=np.float32, dims=request_df[col].shape) for col in feature_names
+    ]
     input_schema = Schema(input_column_schemas)
     selector = ColumnSelector(feature_names)
 
@@ -52,7 +56,6 @@ def test_lightgbm_regressor_forest_inference(runtime, model_name, expected_model
 
     ensemble = Ensemble(triton_chain, input_schema)
 
-    request_df = df[:5]
     ensemble_config, _ = ensemble.export(tmpdir, runtime=runtime, name=model_name)
 
     assert ensemble_config.name == expected_model_name

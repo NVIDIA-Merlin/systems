@@ -19,13 +19,13 @@ import shutil
 import numpy as np
 import pytest
 
-from merlin.core.dispatch import make_df
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops import compute_dims
 from merlin.systems.dag.ops.session_filter import FilterCandidates
 from merlin.systems.dag.ops.softmax_sampling import SoftmaxSampling
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver
+from merlin.table import TensorTable
 
 TRITON_SERVER_PATH = shutil.which("tritonserver")
 
@@ -33,7 +33,7 @@ TRITON_SERVER_PATH = shutil.which("tritonserver")
 @pytest.mark.parametrize(
     ["column_schema", "expected_dims"],
     [
-        [ColumnSchema("col"), [-1, 1]],
+        [ColumnSchema("col"), [-1]],
         [ColumnSchema("col", is_list=True), [-1, -1]],
         [ColumnSchema("col", dims=(None, 2)), [-1, 2]],
         [ColumnSchema("col", dims=(None, None)), [-1, -1]],
@@ -49,17 +49,20 @@ def test_compute_dims(column_schema, expected_dims):
 def test_softmax_sampling(tmpdir):
     request_schema = Schema(
         [
-            ColumnSchema("movie_ids", dtype=np.int32),
-            ColumnSchema("output_1", dtype=np.float32),
+            ColumnSchema("movie_ids", dtype=np.int32, dims=(None, 100)),
+            ColumnSchema("output_1", dtype=np.float32, dims=(None, 100)),
         ]
     )
 
+    movie_ids = np.array(random.sample(range(10000), 100), dtype=np.int32)
+    output_1 = np.random.random(100).astype(np.float32)
+
     combined_features = {
-        "movie_ids": np.array(random.sample(range(10000), 100), dtype=np.int32),
-        "output_1": np.random.random(100).astype(np.float32),
+        "movie_ids": np.expand_dims(movie_ids, axis=0),
+        "output_1": np.expand_dims(output_1, axis=0),
     }
 
-    request_df = make_df(combined_features)
+    request_table = TensorTable(combined_features)
 
     ordering = ["movie_ids"] >> SoftmaxSampling(relevance_col="output_1", topk=10, temperature=20.0)
 
@@ -67,7 +70,7 @@ def test_softmax_sampling(tmpdir):
     ens_config, node_configs = ensemble.export(tmpdir)
 
     response = run_ensemble_on_tritonserver(
-        tmpdir, request_schema, request_df, ensemble.output_schema.column_names, "executor_model"
+        tmpdir, request_schema, request_table, ensemble.output_schema.column_names, "executor_model"
     )
     assert response is not None
     assert len(response["ordered_ids"]) == 10
@@ -77,8 +80,8 @@ def test_softmax_sampling(tmpdir):
 def test_filter_candidates_with_triton(tmpdir):
     request_schema = Schema(
         [
-            ColumnSchema("candidate_ids", dtype=np.int32),
-            ColumnSchema("movie_ids", dtype=np.int32),
+            ColumnSchema("candidate_ids", dtype=np.int32, dims=(None, 100)),
+            ColumnSchema("movie_ids", dtype=np.int32, dims=(None, 100)),
         ]
     )
 
@@ -87,11 +90,11 @@ def test_filter_candidates_with_triton(tmpdir):
     movie_ids_1[:20] = np.unique(candidate_ids)[:20]
 
     combined_features = {
-        "candidate_ids": candidate_ids,
-        "movie_ids": movie_ids_1,
+        "candidate_ids": np.expand_dims(candidate_ids, axis=0),
+        "movie_ids": np.expand_dims(movie_ids_1, axis=0),
     }
 
-    request_df = make_df(combined_features)
+    inputs_table = TensorTable(combined_features)
 
     filtering = ["candidate_ids"] >> FilterCandidates(filter_out=["movie_ids"])
 
@@ -99,7 +102,7 @@ def test_filter_candidates_with_triton(tmpdir):
     ens_config, node_configs = ensemble.export(tmpdir)
 
     response = run_ensemble_on_tritonserver(
-        tmpdir, request_schema, request_df, ensemble.output_schema.column_names, "executor_model"
+        tmpdir, request_schema, inputs_table, ensemble.output_schema.column_names, "executor_model"
     )
 
     assert response is not None

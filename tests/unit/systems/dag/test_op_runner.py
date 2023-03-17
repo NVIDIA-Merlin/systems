@@ -26,7 +26,7 @@ import nvtabular as nvt
 import nvtabular.ops as wf_ops
 from merlin.dag import Graph
 from merlin.schema import Tags
-from merlin.systems.dag import Column, DictArray
+from merlin.table import TensorColumn, TensorTable
 from tests.unit.systems.utils.ops import PlusTwoOp
 
 op_runner = pytest.importorskip("merlin.systems.dag.op_runner")
@@ -151,11 +151,12 @@ def test_op_runner_loads_multiple_ops_same_execute(tmpdir, dataset, engine):
 
     inputs = {}
     for col_name in schema.column_names:
-        inputs[col_name] = Column(np.random.randint(10, size=(10,)))
+        inputs[col_name] = TensorColumn(np.random.randint(10, size=(10,)))
 
-    outputs = runner.execute(DictArray(inputs))
+    table = TensorTable(inputs)
+    outputs = runner.execute(table)
 
-    assert outputs["x_plus_2_plus_2"] == Column(inputs["x"].values + 4)
+    assert outputs["x_plus_2_plus_2"] == TensorColumn(inputs["x"].values + 4)
 
 
 @pytest.mark.parametrize("engine", ["parquet"])
@@ -196,11 +197,11 @@ def test_op_runner_single_node_export(mock_from_config, tmpdir, dataset, engine)
         model_name=config.name,
         model_version="1",
     )
-    inputs = DictArray({"x": np.array([1], dtype=np.int32), "y": np.array([5], dtype=np.int32)})
+    inputs = TensorTable({"x": np.array([1], dtype=np.int32), "y": np.array([5], dtype=np.int32)})
     outputs = runner.execute(inputs)
 
-    assert outputs["x_plus_2"] == Column(np.array([3], dtype=np.int32))
-    assert outputs["y_plus_2"] == Column(np.array([7], dtype=np.int32))
+    assert outputs["x_plus_2"] == TensorColumn(np.array([3], dtype=np.int32))
+    assert outputs["y_plus_2"] == TensorColumn(np.array([7], dtype=np.int32))
 
     assert mock_from_config.call_count == 1
     assert mock_from_config.call_args.kwargs == {

@@ -175,7 +175,7 @@ def run_ensemble_on_tritonserver(
 
 def send_triton_request(
     schema,
-    df,
+    inputs,
     outputs_list,
     client=None,
     endpoint="localhost:8001",
@@ -189,8 +189,8 @@ def send_triton_request(
     ----------
     schema : Schema
         The schema of the inputs in the dataframe
-    df : dataframe
-        The dataframe with the inputs to predict on.
+    inputs : Union[dataframe, TensorTable]
+        The table or dataframe with the inputs to predict on.
     outputs_list : [string]
         A list of the output columns from the prediction.
     endpoint : str, optional
@@ -206,6 +206,8 @@ def send_triton_request(
         A dictionary of parsed output column results from the prediction.
 
     """
+    from merlin.table import TensorTable
+
     if not client:
         try:
             client = grpcclient.InferenceServerClient(url=endpoint)
@@ -215,11 +217,14 @@ def send_triton_request(
     if not client.is_server_live():
         raise ValueError("Client could not establish commuincation with Triton Inference Server.")
 
-    inputs = triton.convert_df_to_triton_input(schema, df, grpcclient.InferInput)
+    if isinstance(inputs, TensorTable):
+        triton_inputs = triton.convert_table_to_triton_input(schema, inputs, grpcclient.InferInput)
+    else:
+        triton_inputs = triton.convert_df_to_triton_input(schema, inputs, grpcclient.InferInput)
 
     outputs = [grpcclient.InferRequestedOutput(col) for col in outputs_list]
     with client:
-        response = client.infer(triton_model, inputs, request_id=request_id, outputs=outputs)
+        response = client.infer(triton_model, triton_inputs, request_id=request_id, outputs=outputs)
 
     results = {}
     for col in outputs_list:
