@@ -255,8 +255,7 @@ class QueryFeast(InferenceOperator):
                 # get the lengths of the lists
                 row_lengths = [len(vals) for vals in feature_value]
                 offsets = np.cumsum([0] + row_lengths)
-                # wrap the flattened values with a list to get the shape right
-                feature_value = [flattened_value]
+                feature_value = flattened_value
 
             # create a numpy array
             feature_array = array_constructor(feature_value).astype(
@@ -271,8 +270,8 @@ class QueryFeast(InferenceOperator):
                 offsets, dtype=self.output_schema[prefixed_name].dtype.to_numpy
             )
 
-            output_tensors["{prefixed_name}__values"] = feature_array
-            output_tensors["{prefixed_name}__offsets"] = feature_offsets
+            output_tensors[f"{prefixed_name}__values"] = feature_array
+            output_tensors[f"{prefixed_name}__offsets"] = feature_offsets
 
         return type(transformable)(output_tensors)
 
