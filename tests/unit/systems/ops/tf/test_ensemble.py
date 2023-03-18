@@ -163,9 +163,9 @@ def test_workflow_tf_e2e_multi_op_run(tmpdir, dataset, engine):
     request_schema = workflow.input_schema + workflow_2.input_schema
 
     response = run_ensemble_on_tritonserver(
-        str(tmpdir), request_schema, df, ["output"], ensemble_config.name
+        str(tmpdir), request_schema, df, ["output_1"], ensemble_config.name
     )
-    assert len(response["output"]) == df.shape[0]
+    assert len(response["output_1"]) == df.shape[0]
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
@@ -220,6 +220,6 @@ def test_workflow_tf_python_wrapper(tmpdir, dataset, engine, python):
     request_schema = workflow.input_schema + workflow_2.input_schema
 
     response = run_ensemble_on_tritonserver(
-        str(tmpdir), request_schema, df, ["output"], ensemble_config.name
+        str(tmpdir), request_schema, df, ["output_1"], ensemble_config.name
     )
-    assert len(response["output"]) == df.shape[0]
+    assert len(response["output_1"]) == df.shape[0]
