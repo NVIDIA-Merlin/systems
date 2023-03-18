@@ -182,6 +182,15 @@ def _ensure_input_spec_includes_names(model):
 def _build_schema_from_signature(signature):
     schema = Schema()
     for col_name, col in signature.items():
-        col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype, dims=col.shape)
+        if "__offsets" in col_name or "__values" in col_name:
+            col_name = col_name.replace("__offsets", "").replace("__values", "")
+            col_values_sig = signature[f"{col_name}__values"]
+            col_offsets_sig = signature[f"{col_name}__offsets"]
+            col_dtype = col_values_sig.dtype.as_numpy_dtype
+            col_dims = (col_offsets_sig.shape[0], None)
+        else:
+            col_dtype = col.dtype.as_numpy_dtype
+            col_dims = col.shape
+        col_schema = ColumnSchema(col_name, dtype=col_dtype, dims=col_dims)
         schema.column_schemas[col_name] = col_schema
     return schema

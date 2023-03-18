@@ -25,14 +25,14 @@ grpcclient = pytest.importorskip("tritonclient.grpc")
 
 import merlin.models.tf as mm  # noqa
 from merlin.datasets.synthetic import generate_data  # noqa
-from merlin.io import Dataset
+from merlin.io import Dataset  # noqa
 from merlin.schema import Tags  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 
-def test_serve_tf_with_libtensorflow(tmpdir):
+def test_serve_tf_session_based_with_libtensorflow(tmpdir):
 
     # ===========================================
     # Generate training data
@@ -40,10 +40,8 @@ def test_serve_tf_with_libtensorflow(tmpdir):
 
     train = generate_data("sequence-testing", num_rows=100)
 
-    # len(train.schema.column_names) = 11
-
     # ===========================================
-    # Build, train, test, and JIT the model
+    # Build and train the model
     # ===========================================
 
     seq_schema = train.schema.select_by_tag(Tags.SEQUENCE).select_by_tag(Tags.CATEGORICAL)
@@ -57,15 +55,6 @@ def test_serve_tf_with_libtensorflow(tmpdir):
     train = Dataset(train.to_ddf(columns=input_schema.column_names).compute())
     train.schema = input_schema
     loader = mm.Loader(train, batch_size=16, shuffle=False)
-
-    # TODO: Figure out why the model signature picks up everything from the dataloader, not just the columns it uses
-    # TODO: Figure out why the outputs are wrong vs the schema (why doesn't models provide an output schema?)
-    # TODO: Fix the suffixes
-    #           - is it always `name` and `name_1`?
-    #           - what happened to `name_1` and `name_2`? Is this caused by Tensorflow versions?
-    #           - where are we using `__values`/`__nnzs`?
-    #           - Just the dataloader? Elsewhere in Systems?
-    # TODO: Make the ensemble config line up with the model config
 
     d_model = 48
     query_encoder = mm.Encoder(
@@ -95,9 +84,6 @@ def test_serve_tf_with_libtensorflow(tmpdir):
         model.query_encoder, input_schema, output_schema
     )
 
-    # len(input_schema.column_names) = 2
-    # len(model.input_schema.column_names) = 17
-
     ensemble = Ensemble(tf_op, input_schema)
     ens_config, node_configs = ensemble.export(str(tmpdir))
 
@@ -112,7 +98,8 @@ def test_serve_tf_with_libtensorflow(tmpdir):
     # Send request to Triton and check response
     # ===========================================
     response = run_ensemble_on_tritonserver(
-        tmpdir, input_schema, request_df, output_schema.column_names, node_configs[0].name
+        tmpdir, input_schema, request_df, ["output_1"], node_configs[0].name
     )
 
     assert response
+    assert len(response["output_1"][0]) == d_model
