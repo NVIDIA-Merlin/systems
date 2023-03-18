@@ -72,8 +72,13 @@ def test_softmax_sampling(tmpdir):
     response = run_ensemble_on_tritonserver(
         tmpdir, request_schema, request_table, ensemble.output_schema.column_names, "executor_model"
     )
+
     assert response is not None
-    assert len(response["ordered_ids"]) == 10
+
+    num_rows = len(response["ordered_ids"])
+    row_length = len(response["ordered_ids"][0])
+    assert num_rows == 1
+    assert row_length == 10
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
