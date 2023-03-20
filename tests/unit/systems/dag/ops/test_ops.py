@@ -50,21 +50,23 @@ def test_softmax_sampling(tmpdir):
     request_schema = Schema(
         [
             ColumnSchema("movie_ids", dtype=np.int32, dims=(None, 100)),
-            ColumnSchema("output_1", dtype=np.float32, dims=(None, 100)),
+            ColumnSchema("predicted_scores", dtype=np.float32, dims=(None, 100)),
         ]
     )
 
     movie_ids = np.array(random.sample(range(10000), 100), dtype=np.int32)
-    output_1 = np.random.random(100).astype(np.float32)
+    predicted_scores = np.random.random(100).astype(np.float32)
 
     combined_features = {
         "movie_ids": np.expand_dims(movie_ids, axis=0),
-        "output_1": np.expand_dims(output_1, axis=0),
+        "predicted_scores": np.expand_dims(predicted_scores, axis=0),
     }
 
     request_table = TensorTable(combined_features)
 
-    ordering = ["movie_ids"] >> SoftmaxSampling(relevance_col="output_1", topk=10, temperature=20.0)
+    ordering = ["movie_ids"] >> SoftmaxSampling(
+        relevance_col="predicted_scores", topk=10, temperature=20.0
+    )
 
     ensemble = Ensemble(ordering, request_schema)
     ens_config, node_configs = ensemble.export(tmpdir)

@@ -52,7 +52,7 @@ class ExampleModel(tf.keras.Model):
         x_emb_output = self.emb_layer(reshaped_inputs)
         x = self.dense_layer(x_emb_output)
         x = self.output_layer(x)
-        return x
+        return {"predictions": x}
 
 
 def create_tf_model(cat_columns: list, cat_mh_columns: list, embed_tbl_shapes: dict):
