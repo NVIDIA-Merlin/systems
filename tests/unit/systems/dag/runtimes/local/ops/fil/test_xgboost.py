@@ -44,8 +44,8 @@ def test_xgboost_regressor_forest_inference(runtime, tmpdir):
 
     request_df = df[:5]
 
-    dict_array = TensorTable.from_df(request_df)
-    response = ensemble.transform(dict_array, runtime=runtime)
+    tensor_table = TensorTable.from_df(request_df)
+    response = ensemble.transform(tensor_table, runtime=runtime)
 
     assert response["output__0"].shape == Shape((5,))
 
@@ -79,7 +79,7 @@ def test_xgboost_classify_forest_inference(runtime, tmpdir):
 
     request_df = df[:5]
 
-    dict_array = TensorTable.from_df(request_df)
-    response = ensemble.transform(dict_array, runtime=runtime)
+    tensor_table = TensorTable.from_df(request_df)
+    response = ensemble.transform(tensor_table, runtime=runtime)
 
     assert response["output__0"].shape == Shape((5,))

@@ -178,6 +178,6 @@ def test_feast_transform(prefix, is_ragged):
 
         array_constructor = resp["entity_id"].array_constructor()
         assert resp["entity_id"].values == array_constructor([1])  # pylint: disable=W0143
-        assert resp[feature_name].values == array_constructor([[1.0]])
-        assert np.all(resp[feature_mh].values == array_constructor([[1.0], [2.0], [3.0]]))
-        assert np.all(resp[feature_mh].offsets == array_constructor([[0.0, 3.0]]))
+        assert resp[feature_name].values == array_constructor([1.0])
+        assert np.all(resp[feature_mh].values == array_constructor([1.0, 2.0, 3.0]))
+        assert np.all(resp[feature_mh].offsets == array_constructor([0.0, 3.0]))

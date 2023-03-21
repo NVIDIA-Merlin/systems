@@ -99,7 +99,10 @@ class PredictTensorflow(InferenceOperator):
 
         dict_outputs = {}
         for col in self.output_schema.column_names:
-            dict_outputs[col] = outputs.numpy()
+            dict_outputs[col] = (
+                outputs[col].numpy() if isinstance(outputs, dict) else outputs.numpy()
+            )
+
         # TODO: map output schema names to outputs produced by prediction
         return type(transformable)(dict_outputs)
 

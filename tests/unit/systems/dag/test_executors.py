@@ -31,7 +31,7 @@ from merlin.table import TensorTable
 TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
-def test_run_dag_on_dictarray_with_local_executor():
+def test_run_dag_on_tensor_table_with_local_executor():
     request_schema = Schema(
         [
             ColumnSchema("candidate_ids", dtype=np.int32),

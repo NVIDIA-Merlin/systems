@@ -25,8 +25,8 @@ from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
 from merlin.systems.triton.conversions import (
-    dict_array_to_triton_request,
-    triton_response_to_dict_array,
+    tensor_table_to_triton_request,
+    triton_response_to_tensor_table,
 )
 from merlin.table import TensorTable
 
@@ -171,11 +171,11 @@ class PredictForestTriton(TritonOperator):
 
         inputs = TensorTable({"input__0": input0})
 
-        inference_request = dict_array_to_triton_request(
+        inference_request = tensor_table_to_triton_request(
             self.fil_model_name, inputs, ["input__0"], ["output__0"]
         )
         inference_response = inference_request.exec()
-        return triton_response_to_dict_array(inference_response, type(inputs), ["output__0"])
+        return triton_response_to_tensor_table(inference_response, type(inputs), ["output__0"])
 
 
 class FILTriton(TritonOperator):
