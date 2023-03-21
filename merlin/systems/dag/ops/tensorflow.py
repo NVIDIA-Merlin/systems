@@ -26,7 +26,7 @@ from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
-from merlin.table import TensorflowColumn, TensorTable  # noqa
+from merlin.table import Device, NumpyColumn, TensorflowColumn, TensorTable  # noqa
 from merlin.table.conversions import convert_col  # noqa
 
 
@@ -90,12 +90,14 @@ class PredictTensorflow(InferenceOperator):
         if not isinstance(transformable, TensorTable):
             transformable = TensorTable.from_df(transformable)
 
-        tf_columns = {
-            col_name: convert_col(column, TensorflowColumn)
-            for col_name, column in transformable.items()
-        }
+        col_type = TensorflowColumn if Device.GPU == transformable.device else NumpyColumn
 
-        outputs = self.model(TensorTable(tf_columns).to_dict())
+        tf_columns = {
+            col_name: convert_col(column, col_type) for col_name, column in transformable.items()
+        }
+        model_inputs = TensorTable(tf_columns)
+
+        outputs = self.model(model_inputs.to_dict())
 
         dict_outputs = {}
         for col in self.output_schema.column_names:
