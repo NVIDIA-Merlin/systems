@@ -212,7 +212,7 @@ def add_model_param(params, paramclass, col_schema, dims=None):
         )
         params.append(
             paramclass(
-                name=col_schema.name + "__lengths", data_type=model_config.TYPE_INT32, dims=dims
+                name=col_schema.name + "__offsets", data_type=model_config.TYPE_INT32, dims=dims
             )
         )
     else:

@@ -29,8 +29,8 @@ import pathlib
 
 from merlin.systems.dag.op_runner import OperatorRunner
 from merlin.systems.triton.conversions import (
-    dict_array_to_triton_response,
-    triton_request_to_dict_array,
+    tensor_table_to_triton_response,
+    triton_request_to_tensor_table,
 )
 from merlin.systems.triton.utils import triton_error_handling, triton_multi_request
 
@@ -92,9 +92,9 @@ class TritonPythonModel:
         operator_params = json.loads(params[first_operator_name]["string_value"])
         input_column_names = list(json.loads(operator_params["input_dict"]).keys())
 
-        inputs = triton_request_to_dict_array(request, input_column_names)
+        inputs = triton_request_to_tensor_table(request, input_column_names)
         outputs = self.runner.execute(inputs)
-        return dict_array_to_triton_response(outputs)
+        return tensor_table_to_triton_response(outputs)
 
 
 def _parse_model_repository(model_repository: str) -> str:

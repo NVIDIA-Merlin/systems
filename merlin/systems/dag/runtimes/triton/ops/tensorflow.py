@@ -30,8 +30,8 @@ from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
 from merlin.systems.dag.runtimes.triton.ops.operator import add_model_param  # noqa
 from merlin.systems.triton.conversions import (  # noqa
-    dict_array_to_triton_request,
-    triton_response_to_dict_array,
+    tensor_table_to_triton_request,
+    triton_response_to_tensor_table,
 )
 
 
@@ -68,7 +68,7 @@ class PredictTensorflowTriton(TritonOperator):
         """
         # TODO: Validate that the inputs match the schema
         # TODO: Should we coerce the dtypes to match the schema here?
-        inference_request = dict_array_to_triton_request(
+        inference_request = tensor_table_to_triton_request(
             self.tf_model_name,
             transformable,
             self.input_schema.column_names,
@@ -77,7 +77,7 @@ class PredictTensorflowTriton(TritonOperator):
         inference_response = inference_request.exec()
 
         # TODO: Validate that the outputs match the schema
-        return triton_response_to_dict_array(
+        return triton_response_to_tensor_table(
             inference_response, type(transformable), self.output_schema.column_names
         )
 

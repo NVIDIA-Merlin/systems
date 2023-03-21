@@ -84,7 +84,7 @@ class UnrollFeatures(InferenceOperator):
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
     ) -> Transformable:
-        num_items = transformable[self.item_id_col].shape[0]
+        num_items = transformable[self.item_id_col].shape[0].max
         outputs = {}
         for col_name, col_value in transformable.items():
             outputs[col_name] = col_value

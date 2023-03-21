@@ -27,8 +27,8 @@ from merlin.systems.dag.ops import compute_dims  # noqa
 from merlin.systems.dag.runtimes.triton.ops.operator import add_model_param  # noqa
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator
 from merlin.systems.triton.conversions import (  # noqa
-    dict_array_to_triton_request,
-    triton_response_to_dict_array,
+    tensor_table_to_triton_request,
+    triton_response_to_tensor_table,
 )
 
 
@@ -74,7 +74,7 @@ class PredictPyTorchTriton(TritonOperator):
         self._torch_model_name = torch_model_name
 
     def transform(self, col_selector: ColumnSelector, transformable: Transformable):
-        inference_request = dict_array_to_triton_request(
+        inference_request = tensor_table_to_triton_request(
             self.torch_model_name,
             transformable,
             self.input_schema.column_names,
@@ -83,7 +83,7 @@ class PredictPyTorchTriton(TritonOperator):
 
         inference_response = inference_request.exec()
 
-        return triton_response_to_dict_array(
+        return triton_response_to_tensor_table(
             inference_response, type(transformable), self.output_schema.column_names
         )
 
