@@ -8,7 +8,7 @@ on:
       - v*
 
 jobs:
-  cpu-ci-postmerge:
+  gpu-ci-postmerge:
     runs-on: 1GPU
 
     steps:
