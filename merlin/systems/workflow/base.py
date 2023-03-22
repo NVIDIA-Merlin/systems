@@ -60,15 +60,10 @@ class WorkflowRunner(ABC):
         workflow_outputs = set(workflow.output_schema.column_names)
         requested_cols = set(self.cats + self.conts)
         missing_cols = requested_cols - workflow_outputs
-        extra_cols = workflow_outputs - requested_cols
 
         if missing_cols:
             raise ValueError(
                 f"The following columns were not found in the workflow's output: {missing_cols}"
-            )
-        if extra_cols:
-            raise ValueError(
-                f"The following extra columns were found in the workflow's output: {extra_cols}"
             )
 
         # recurse over all column groups, initializing operators for inference pipeline
