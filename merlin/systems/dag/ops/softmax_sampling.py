@@ -101,8 +101,14 @@ class SoftmaxSampling(InferenceOperator):
         """Describe the operator's outputs"""
         return Schema(
             [
-                ColumnSchema("ordered_ids", dtype=np.int32, dims=(None, 1)),
-                ColumnSchema("ordered_scores", dtype=np.float32, dims=(None, 1)),
+                ColumnSchema(
+                    "ordered_ids", dtype=input_schema[self._input_col_name].dtype, dims=(None, 1)
+                ),
+                ColumnSchema(
+                    "ordered_scores",
+                    dtype=input_schema[self._relevance_col_name].dtype,
+                    dims=(None, 1),
+                ),
             ]
         )
 
