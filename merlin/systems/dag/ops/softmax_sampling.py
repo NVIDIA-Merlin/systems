@@ -145,8 +145,8 @@ class SoftmaxSampling(InferenceOperator):
         sorted_indices = np.argsort(exponentials)
         topk_item_ids = candidate_ids[sorted_indices][: self.topk]
         topk_item_scores = predicted_scores[sorted_indices][: self.topk]
-        ordered_item_ids = topk_item_ids.reshape(1, -1).T
-        ordered_item_scores = topk_item_scores.reshape(1, -1).T
+        ordered_item_ids = topk_item_ids.reshape(1, -1)
+        ordered_item_scores = topk_item_scores.reshape(1, -1)
 
         return type(transformable)(
             {"ordered_ids": ordered_item_ids, "ordered_scores": ordered_item_scores}

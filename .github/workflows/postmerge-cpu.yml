@@ -1,13 +1,14 @@
-name: CPU CI
+name: CPU CI  (Post-merge)
 
 on:
   workflow_dispatch:
-  pull_request:
+  push:
     branches: [main]
-    types: [opened, synchronize, reopened]
+    tags:
+      - v*
 
 jobs:
-  cpu-ci-premerge:
+  cpu-ci-postmerge:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -38,7 +39,7 @@ jobs:
             raw=$(git branch -r --contains ${{ github.ref_name }})
             branch=${raw/origin\/}
           fi
-          tox -e test-cpu -- $branch
+          tox -e test-cpu-postmerge -- $branch
       - name: Generate package for pypi
         run: |
           python setup.py sdist
@@ -68,3 +69,28 @@ jobs:
         with:
           name: pr
           path: pr/
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    if: "startsWith(github.ref, 'refs/tags/')"
+    needs: [cpu-ci-postmerge]
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+      - name: Create GitHub Release
+        uses: fnkr/github-action-ghr@v1.3
+        env:
+          GHR_PATH: .
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Push to PyPi
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          pip install --upgrade wheel pip setuptools twine
+          twine upload *

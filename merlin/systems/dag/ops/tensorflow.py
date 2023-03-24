@@ -26,7 +26,7 @@ from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
-from merlin.table import TensorflowColumn, TensorTable  # noqa
+from merlin.table import Device, NumpyColumn, TensorflowColumn, TensorTable  # noqa
 from merlin.table.conversions import convert_col  # noqa
 
 
@@ -90,16 +90,21 @@ class PredictTensorflow(InferenceOperator):
         if not isinstance(transformable, TensorTable):
             transformable = TensorTable.from_df(transformable)
 
-        tf_columns = {
-            col_name: convert_col(column, TensorflowColumn)
-            for col_name, column in transformable.items()
-        }
+        col_type = TensorflowColumn if Device.GPU == transformable.device else NumpyColumn
 
-        outputs = self.model(TensorTable(tf_columns).to_dict())
+        tf_columns = {
+            col_name: convert_col(column, col_type) for col_name, column in transformable.items()
+        }
+        model_inputs = TensorTable(tf_columns)
+
+        outputs = self.model(model_inputs.to_dict())
 
         dict_outputs = {}
         for col in self.output_schema.column_names:
-            dict_outputs[col] = outputs.numpy()
+            dict_outputs[col] = (
+                outputs[col].numpy() if isinstance(outputs, dict) else outputs.numpy()
+            )
+
         # TODO: map output schema names to outputs produced by prediction
         return type(transformable)(dict_outputs)
 
@@ -179,6 +184,15 @@ def _ensure_input_spec_includes_names(model):
 def _build_schema_from_signature(signature):
     schema = Schema()
     for col_name, col in signature.items():
-        col_schema = ColumnSchema(col_name, dtype=col.dtype.as_numpy_dtype, dims=col.shape)
+        if "__offsets" in col_name or "__values" in col_name:
+            col_name = col_name.replace("__offsets", "").replace("__values", "")
+            col_values_sig = signature[f"{col_name}__values"]
+            col_offsets_sig = signature[f"{col_name}__offsets"]
+            col_dtype = col_values_sig.dtype.as_numpy_dtype
+            col_dims = (col_offsets_sig.shape[0], None)
+        else:
+            col_dtype = col.dtype.as_numpy_dtype
+            col_dims = col.shape
+        col_schema = ColumnSchema(col_name, dtype=col_dtype, dims=col_dims)
         schema.column_schemas[col_name] = col_schema
     return schema

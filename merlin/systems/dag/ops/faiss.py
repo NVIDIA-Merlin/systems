@@ -182,7 +182,7 @@ class QueryFaiss(InferenceOperator):
 
         _, indices = self._index.search(user_vector.values, self.topk)
 
-        candidate_ids = np.array(indices).T.astype(np.int32)
+        candidate_ids = np.array(indices).astype(np.int32).flatten()
 
         return type(transformable)({"candidate_ids": candidate_ids})
 

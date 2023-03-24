@@ -41,7 +41,7 @@ from merlin.systems.dag.ops.compat import pb_utils
 from merlin.table import TensorTable
 
 
-def triton_request_to_dict_array(request, column_names):
+def triton_request_to_tensor_table(request, column_names):
     """
     Turns a Triton request into a TensorTable by extracting individual tensors
     from the request using pb_utils.
@@ -62,7 +62,7 @@ def triton_request_to_dict_array(request, column_names):
     for name in column_names:
         try:
             values = _array_from_triton_tensor(request, f"{name}__values")
-            lengths = _array_from_triton_tensor(request, f"{name}__lengths")
+            lengths = _array_from_triton_tensor(request, f"{name}__offsets")
             dict_inputs[name] = (values, lengths)
         except (AttributeError, ValueError):
             dict_inputs[name] = _array_from_triton_tensor(request, name)
@@ -70,14 +70,14 @@ def triton_request_to_dict_array(request, column_names):
     return TensorTable(dict_inputs)
 
 
-def dict_array_to_triton_response(dictarray):
+def tensor_table_to_triton_response(tensor_table):
     """
     Turns a TensorTable into a Triton response that can be returned
     to resolve an incoming request.
 
     Parameters
     ----------
-    dictarray : TensorTable
+    tensor_table : TensorTable
         Dictionary-like representation of the output columns
 
     Returns
@@ -86,11 +86,11 @@ def dict_array_to_triton_response(dictarray):
         The output response for predictions
     """
     output_tensors = []
-    for name, column in dictarray.items():
+    for name, column in tensor_table.items():
         if column.is_ragged:
             values = _triton_tensor_from_array(f"{name}__values", column.values)
-            lengths = _triton_tensor_from_array(f"{name}__lengths", column.row_lengths)
-            output_tensors.extend([values, lengths])
+            offsets = _triton_tensor_from_array(f"{name}__offsets", column.offsets)
+            output_tensors.extend([values, offsets])
         else:
             col_tensor = _triton_tensor_from_array(name, column.values)
             output_tensors.append(col_tensor)
@@ -98,7 +98,7 @@ def dict_array_to_triton_response(dictarray):
     return pb_utils.InferenceResponse(output_tensors)
 
 
-def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_col_names):
+def tensor_table_to_triton_request(model_name, tensor_table, input_col_names, output_col_names):
     """
     Turns a TensorTable into a Triton request that can, for example, be used to make a
     Business Logic Scripting call to a Triton model on the same Triton instance.
@@ -107,7 +107,7 @@ def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_
     ----------
     model_name : String
         Name of model registered in triton
-    dictarray : TensorTable
+    tensor_table : TensorTable
         Dictionary-like representation of the output columns
     input_col_names : List[str]
         List of the input columns to create triton request
@@ -121,10 +121,15 @@ def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_
     """
     input_tensors = []
 
-    for name, column in dictarray.items():
+    for name, column in tensor_table.items():
         if name in input_col_names:
-            col_tensor = _triton_tensor_from_array(name, column.values)
-            input_tensors.append(col_tensor)
+            if column.is_ragged:
+                values = _triton_tensor_from_array(f"{name}__values", column.values)
+                offsets = _triton_tensor_from_array(f"{name}__offsets", column.offsets)
+                input_tensors.extend([values, offsets])
+            else:
+                col_tensor = _triton_tensor_from_array(name, column.values)
+                input_tensors.append(col_tensor)
 
     return pb_utils.InferenceRequest(
         model_name=model_name,
@@ -133,7 +138,7 @@ def dict_array_to_triton_request(model_name, dictarray, input_col_names, output_
     )
 
 
-def triton_response_to_dict_array(response, transformable_type, output_column_names):
+def triton_response_to_tensor_table(response, transformable_type, output_column_names):
     """
     Turns a Triton response into a TensorTable by extracting individual tensors
     from the request using pb_utils.
@@ -155,6 +160,13 @@ def triton_response_to_dict_array(response, transformable_type, output_column_na
     outputs_dict = {}
 
     for out_col_name in output_column_names:
+        try:
+            values = _array_from_triton_tensor(response, f"{out_col_name}__values")
+            lengths = _array_from_triton_tensor(response, f"{out_col_name}__offsets")
+            outputs_dict[out_col_name] = (values, lengths)
+        except (AttributeError, ValueError):
+            outputs_dict[out_col_name] = _array_from_triton_tensor(response, out_col_name)
+
         output_val = _array_from_triton_tensor(response, out_col_name)
         outputs_dict[out_col_name] = output_val
 
