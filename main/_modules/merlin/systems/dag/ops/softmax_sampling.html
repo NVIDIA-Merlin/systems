@@ -175,8 +175,14 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Describe the operator&#39;s outputs&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Schema</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="n">ColumnSchema</span><span class="p">(</span><span class="s2">&quot;ordered_ids&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
-                <span class="n">ColumnSchema</span><span class="p">(</span><span class="s2">&quot;ordered_scores&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+                <span class="n">ColumnSchema</span><span class="p">(</span>
+                    <span class="s2">&quot;ordered_ids&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">input_schema</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_col_name</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="p">),</span>
+                <span class="n">ColumnSchema</span><span class="p">(</span>
+                    <span class="s2">&quot;ordered_scores&quot;</span><span class="p">,</span>
+                    <span class="n">dtype</span><span class="o">=</span><span class="n">input_schema</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_relevance_col_name</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+                    <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="p">),</span>
             <span class="p">]</span>
         <span class="p">)</span></div>
 
