@@ -94,10 +94,8 @@ class InferenceOperator(BaseOperator):
 
         Returns
         -------
-        Ensemble_config: dict
-            The config for the entire ensemble.
-        Node_configs: list
-            A list of individual configs for each step (operator) in graph.
+        model_config: dict
+            The config for the exported operator (Triton model).
         """
         raise NotImplementedError(
             "Exporting an operator to run in a particular context (i.e. Triton) "
