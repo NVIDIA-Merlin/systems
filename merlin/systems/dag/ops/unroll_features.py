@@ -35,25 +35,6 @@ class UnrollFeatures(InferenceOperator):
         self.unrolled_prefix = unrolled_prefix
         super().__init__()
 
-    def export(
-        self,
-        path: str,
-        input_schema: Schema,
-        output_schema: Schema,
-        params: dict = None,
-        node_id: int = None,
-        version: int = 1,
-    ):
-        """Write out a Triton model config directory"""
-        params = params or {}
-        self_params = {
-            "item_id_col": self.item_id_col,
-            "unroll_cols": self._unroll_col_names,
-            "unrolled_prefix": self.unrolled_prefix,
-        }
-        self_params.update(params)
-        return super().export(path, input_schema, output_schema, self_params, node_id, version)
-
     @property
     def dependencies(self):
         return self.unroll_cols

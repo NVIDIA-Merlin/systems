@@ -116,16 +116,3 @@ class TransformWorkflow(InferenceOperator):
             output = TensorTable.from_df(output)
 
         return output
-
-    def export(
-        self,
-        path: str,
-        input_schema: Schema,
-        output_schema: Schema,
-        params: dict = None,
-        node_id: int = None,
-        version: int = 1,
-        backend: str = "ensemble",
-    ):
-        """Create a directory inside supplied path based on our export name"""
-        raise NotImplementedError

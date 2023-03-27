@@ -39,27 +39,6 @@ class SoftmaxSampling(InferenceOperator):
     def dependencies(self):
         return self.relevance_col
 
-    def export(
-        self,
-        path: str,
-        input_schema: Schema,
-        output_schema: Schema,
-        params: dict = None,
-        node_id: int = None,
-        version: int = 1,
-        backend: str = "ensemble",
-    ):
-        """Write out a Triton model config directory"""
-        params = params or {}
-        self_params = {
-            "input_col": self._input_col_name,
-            "relevance_col": self._relevance_col_name,
-            "temperature": self.temperature,
-            "topk": self.topk,
-        }
-        self_params.update(params)
-        return super().export(path, input_schema, output_schema, self_params, node_id, version)
-
     def compute_input_schema(
         self,
         root_schema: Schema,
