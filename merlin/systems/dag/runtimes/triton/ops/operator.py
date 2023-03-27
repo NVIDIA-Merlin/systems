@@ -57,26 +57,6 @@ class TritonOperator(InferenceOperator):
         """
         return self.__class__.__name__.lower()
 
-    @classmethod
-    @abstractmethod
-    def from_config(cls, config: dict, **kwargs):
-        """
-        Instantiate a class object given a config.
-
-        Parameters
-        ----------
-        config : dict
-        **kwargs
-          contains the following:
-            * model_repository: Model repository path
-            * model_version: Model version
-            * model_name: Model name
-
-        Returns
-        -------
-            Class object instantiated with config values
-        """
-
     @abstractmethod
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable

@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-import json
 import os
 import pathlib
 from pathlib import Path
@@ -73,30 +71,6 @@ class QueryFaiss(InferenceOperator):
             res = faiss.StandardGpuResources()
             index = faiss.index_cpu_to_gpu(res, 0, index)
         self._index = index
-
-    @classmethod
-    def from_config(cls, config: dict, **kwargs) -> "QueryFaiss":
-        """
-        Instantiate a class object given a config.
-
-        Parameters
-        ----------
-        config : dict
-
-
-        Returns
-        -------
-        QueryFaiss
-            class object instantiated with config values
-        """
-        parameters = json.loads(config.get("params", ""))
-        index_path = parameters["index_path"]
-        topk = parameters["topk"]
-
-        operator = QueryFaiss(index_path, topk=topk)
-        operator.load_artifacts(index_path)
-
-        return operator
 
     def export(
         self,

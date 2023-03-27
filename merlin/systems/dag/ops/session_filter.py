@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-import json
-
 import numpy as np
 
 from merlin.core.protocols import Transformable
@@ -49,25 +47,6 @@ class FilterCandidates(InferenceOperator):
         self._input_col = input_col
         self._filter_out_col = filter_out
         super().__init__()
-
-    @classmethod
-    def from_config(cls, config, **kwargs) -> "FilterCandidates":
-        """
-        Instantiate a class object given a config.
-
-        Parameters
-        ----------
-        config : dict
-
-
-        Returns
-        -------
-            Class object instantiated with config values
-        """
-        parameters = json.loads(config.get("params", ""))
-        filter_out_col = parameters["filter_out_col"]
-        input_col = parameters["input_col"]
-        return FilterCandidates(filter_out_col, input_col)
 
     @property
     def dependencies(self):

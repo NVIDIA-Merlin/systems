@@ -1,5 +1,3 @@
-import json
-
 import numpy as np
 
 from merlin.core.protocols import Transformable
@@ -36,19 +34,6 @@ class SoftmaxSampling(InferenceOperator):
         self._input_col_name = _input_col
         self._relevance_col_name = relevance_col
         super().__init__()
-
-    @classmethod
-    def from_config(cls, config, **kwargs) -> "SoftmaxSampling":
-        """Load operator and properties from Triton config"""
-        parameters = json.loads(config.get("params", ""))
-        relevance_col = parameters["relevance_col"]
-        input_col = parameters["input_col"]
-        temperature = parameters["temperature"]
-        topk = parameters["topk"]
-
-        return SoftmaxSampling(
-            relevance_col, temperature=temperature, topk=topk, _input_col=input_col
-        )
 
     @property
     def dependencies(self):
