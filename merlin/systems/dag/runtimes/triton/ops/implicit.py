@@ -87,10 +87,6 @@ class PredictImplicitTriton(TritonOperator):
         """Return the output schema representing the columns this operator returns."""
         return Schema([ColumnSchema("ids", dtype="int64"), ColumnSchema("scores", dtype="float64")])
 
-    @property
-    def exportable_backends(self):
-        return ["ensemble", "executor"]
-
     def export(
         self,
         path: str,

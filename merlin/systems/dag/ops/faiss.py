@@ -98,10 +98,6 @@ class QueryFaiss(InferenceOperator):
 
         return operator
 
-    @property
-    def exportable_backends(self):
-        return ["ensemble", "executor"]
-
     def export(
         self,
         path: str,

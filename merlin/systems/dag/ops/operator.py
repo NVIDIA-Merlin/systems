@@ -64,10 +64,6 @@ class InferenceOperator(BaseOperator):
             Path where artifacts for the operator are stored.
         """
 
-    @property
-    def exportable_backends(self):
-        return ["ensemble"]
-
     @abstractmethod
     def export(
         self,

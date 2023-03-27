@@ -88,10 +88,6 @@ class PredictForest(InferenceOperator):
         """Return the input schema representing the input columns this operator expects to use."""
         return self.input_schema
 
-    @property
-    def exportable_backends(self):
-        return ["ensemble", "executor"]
-
     def export(
         self,
         path: str,

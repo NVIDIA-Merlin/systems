@@ -19,7 +19,6 @@ import os
 import pathlib
 from abc import abstractmethod
 from shutil import copyfile
-from typing import List
 
 import tritonclient.grpc.model_config_pb2 as model_config
 from google.protobuf import text_format
@@ -57,17 +56,6 @@ class TritonOperator(InferenceOperator):
             Name of the current class as spelled in module.
         """
         return self.__class__.__name__.lower()
-
-    @property
-    def exportable_backends(self) -> List[str]:
-        """Returns list of supported backends.
-
-        Returns
-        -------
-        List[str]
-            List of supported backends
-        """
-        return ["ensemble", "executor"]
 
     @classmethod
     @abstractmethod

@@ -33,7 +33,7 @@ from merlin.systems.dag.ops.compat import (
 )
 from merlin.systems.dag.ops.workflow import TransformWorkflow
 from merlin.systems.dag.runtimes import Runtime
-from merlin.systems.dag.runtimes.triton.ops.operator import add_model_param
+from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator, add_model_param
 from merlin.systems.dag.runtimes.triton.ops.workflow import TransformWorkflowTriton
 
 tensorflow = None
@@ -131,13 +131,12 @@ class TritonExecutorRuntime(Runtime):
             if type(node.op) in self.op_table:
                 node.op = self.op_table[type(node.op)](node.op)
 
-        node_id_table, _ = _create_node_table(nodes, "executor")
+        node_id_table, _ = _create_node_table(nodes)
 
         node_configs = []
         for node in nodes:
-            if node.exportable("executor"):
-                node_id = node_id_table.get(node, None)
-
+            node_id = node_id_table.get(node, None)
+            if node_id is not None:
                 node_config = node.export(
                     path, node_id=node_id, version=version, backend="executor"
                 )
@@ -220,11 +219,11 @@ class TritonExecutorRuntime(Runtime):
         return config
 
 
-def _create_node_table(nodes, backend):
+def _create_node_table(nodes):
     exportable_node_idx = 0
     node_id_lookup = {}
     for node in nodes:
-        if node.exportable(backend):
+        if isinstance(node.op, TritonOperator):
             node_id_lookup[node] = exportable_node_idx
             exportable_node_idx += 1
 

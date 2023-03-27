@@ -23,25 +23,6 @@ from merlin.schema import Schema
 class InferenceNode(Node):
     """Specialized node class used in Triton Ensemble DAGs"""
 
-    def exportable(self, backend: str = None):
-        """
-        Determine whether the current node's operator is exportable for a given back-end
-
-        Parameters
-        ----------
-        backend : str, optional
-            The Merlin Systems (not Triton) back-end to use,
-            either "ensemble" or "executor", by default None
-
-        Returns
-        -------
-        bool
-            True if the node's operator is exportable for the supplied back-end
-        """
-        backends = getattr(self.op, "exportable_backends", [])
-
-        return hasattr(self.op, "export") and backend in backends
-
     def export(
         self,
         output_path: Union[str, os.PathLike],
