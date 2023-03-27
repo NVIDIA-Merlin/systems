@@ -158,7 +158,6 @@ class TransformWorkflowTriton(TritonOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-        backend: str = "ensemble",
     ):
         """Create a directory inside supplied path based on our export name"""
         modified_workflow = self.op.workflow.remove_inputs(self.op.label_columns)

@@ -33,7 +33,7 @@ from merlin.table.conversions import convert_col  # noqa
 class PredictTensorflow(InferenceOperator):
     """TensorFlow Model Prediction Operator."""
 
-    def __init__(self, model_or_path, custom_objects: dict = None, backend="tensorflow"):
+    def __init__(self, model_or_path, custom_objects: dict = None):
         """
         Instantiate a PredictTensorflow inference operator.
 
