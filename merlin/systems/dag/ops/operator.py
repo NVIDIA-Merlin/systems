@@ -73,7 +73,6 @@ class InferenceOperator(BaseOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-        backend: str = "ensemble",
     ):
         """
         Export the class object as a config and all related files to the user defined path.

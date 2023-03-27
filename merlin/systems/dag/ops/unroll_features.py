@@ -53,7 +53,6 @@ class UnrollFeatures(InferenceOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-        backend: str = "ensemble",
     ):
         """Write out a Triton model config directory"""
         params = params or {}

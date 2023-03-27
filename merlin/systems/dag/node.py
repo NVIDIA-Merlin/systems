@@ -28,7 +28,6 @@ class InferenceNode(Node):
         output_path: Union[str, os.PathLike],
         node_id: int = None,
         version: int = 1,
-        backend="ensemble",
     ):
         """
         Export a Triton config directory for this node.
@@ -53,7 +52,6 @@ class InferenceNode(Node):
             self.output_schema,
             node_id=node_id,
             version=version,
-            backend=backend,
         )
 
     @property

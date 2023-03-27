@@ -115,7 +115,6 @@ class PredictPyTorchTriton(TritonOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-        backend: str = "ensemble",
     ):
         """Create a directory inside supplied path based on our export name"""
         export_name = self.__class__.__name__.lower()

@@ -137,9 +137,7 @@ class TritonExecutorRuntime(Runtime):
         for node in nodes:
             node_id = node_id_table.get(node, None)
             if node_id is not None:
-                node_config = node.export(
-                    path, node_id=node_id, version=version, backend="executor"
-                )
+                node_config = node.export(path, node_id=node_id, version=version)
                 if node_config is not None:
                     node_configs.append(node_config)
 

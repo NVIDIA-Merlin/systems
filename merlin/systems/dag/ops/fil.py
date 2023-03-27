@@ -96,7 +96,6 @@ class PredictForest(InferenceOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-        backend: str = "ensemble",
     ):
         """Export the class and related files to the path specified."""
         fil_model_config = self.fil_op.export(

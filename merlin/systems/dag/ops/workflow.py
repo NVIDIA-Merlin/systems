@@ -37,7 +37,6 @@ class TransformWorkflow(InferenceOperator):
         model_framework: str = None,
         cats: List[str] = None,
         conts: List[str] = None,
-        backend: str = "workflow",
     ):
         """
         Creates a Transform Workflow operator for a target workflow.
