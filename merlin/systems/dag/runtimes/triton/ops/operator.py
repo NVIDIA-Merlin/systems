@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from abc import abstractmethod
+from abc import ABCMeta, abstractmethod
 
 import tritonclient.grpc.model_config_pb2 as model_config
 
@@ -24,7 +24,7 @@ from merlin.systems.dag.ops.operator import InferenceOperator
 from merlin.systems.triton.export import _convert_dtype
 
 
-class TritonOperator(InferenceOperator):
+class TritonOperator(InferenceOperator, metaclass=ABCMeta):
     """Base class for Triton operators."""
 
     def __init__(self, base_op: InferenceOperator):
@@ -50,7 +50,6 @@ class TritonOperator(InferenceOperator):
         """
         return self.__class__.__name__.lower()
 
-    @abstractmethod
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
     ) -> Transformable:
@@ -68,6 +67,7 @@ class TritonOperator(InferenceOperator):
         """
         return transformable
 
+    @abstractmethod
     def export(
         self,
         path: str,
