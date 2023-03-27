@@ -100,9 +100,9 @@ class InferenceOperator(BaseOperator):
             A list of individual configs for each step (operator) in graph.
         """
         raise NotImplementedError(
-            "Exporting an operator to run in a particular context (i.e. Triton)"
-            " only makres sense when a runtime is specified. To select an "
-            f"operator for the appropriate runtime, replace {self.__class__.__name__}"
+            "Exporting an operator to run in a particular context (i.e. Triton) "
+            "only makes sense when a runtime is specified. To select an "
+            f"operator for the appropriate runtime, replace {self.__class__.__name__} "
             f"with a runtime-specific operator class, possibly {self.__class__.__name__}Triton"
         )
 
