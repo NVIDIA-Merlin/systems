@@ -66,6 +66,10 @@ class PredictImplicit(InferenceOperator):
 
         self.model = model_cls.load(str(model_file))
 
+    def save_artifacts(self, artifact_path: str):
+        model_path = pathlib.Path(artifact_path) / "model.npz"
+        self.model.save(str(model_path))
+
     def compute_input_schema(
         self,
         root_schema: Schema,
