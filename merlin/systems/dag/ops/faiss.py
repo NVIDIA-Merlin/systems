@@ -14,10 +14,8 @@
 # limitations under the License.
 #
 import os
-import pathlib
 from pathlib import Path
 from shutil import copy2
-from typing import Dict, List, Tuple
 
 import faiss
 import numpy as np
@@ -59,7 +57,7 @@ class QueryFaiss(InferenceOperator):
         self.topk = topk
         self._index = None
 
-    def load_artifacts(self, artifact_path):
+    def load_artifacts(self, artifact_path: str) -> None:
         filename = Path(self.index_path).name
         path_artifact = Path(artifact_path)
         if path_artifact.is_file():
@@ -72,65 +70,20 @@ class QueryFaiss(InferenceOperator):
             index = faiss.index_cpu_to_gpu(res, 0, index)
         self._index = index
 
-    def export(
-        self,
-        path: str,
-        input_schema: Schema,
-        output_schema: Schema,
-        params: dict = None,
-        node_id: int = None,
-        version: int = 1,
-        backend: str = "ensemble",
-    ) -> Tuple[Dict, List]:
-        """
-        Export the class object as a config and all related files to the user defined path.
+    def save_artifacts(self, artifact_path: str) -> None:
+        index_filename = os.path.basename(os.path.realpath(self.index_path))
+        new_index_path = Path(artifact_path) / index_filename
+        copy2(self.index_path, new_index_path)
 
-        Parameters
-        ----------
-        path : str
-            Artifact export path
-        input_schema : Schema
-            A schema with information about the inputs to this operator
-        output_schema : Schema
-            A schema with information about the outputs of this operator
-        params : dict, optional
-            Parameters dictionary of key, value pairs stored in exported config, by default None
-        node_id : int, optional
-            The placement of the node in the graph (starts at 1), by default None
-        version : int, optional
-            The version of the model, by default 1
+    def __getstate__(self) -> dict:
+        """Return state of instance when pickled.
 
         Returns
         -------
-        Ensemble_config: dict
-        Node_configs: list
+        dict
+            Returns object state excluding index attribute.
         """
-        params = params or {}
-
-        self_params = {
-            # TODO: Write the (relative) path from inside the export directory
-            "index_path": self.index_path,
-            "topk": self.topk,
-        }
-        self_params.update(params)
-        index_filename = os.path.basename(os.path.realpath(self.index_path))
-
-        if backend == "ensemble":
-            full_path = (
-                pathlib.Path(path) / f"{node_id}_{QueryFaiss.__name__.lower()}" / str(version)
-            )
-        else:
-            full_path = pathlib.Path(path) / "executor_model" / str(version) / "ensemble"
-
-        new_index_path = full_path / index_filename
-        full_path.mkdir(parents=True, exist_ok=True)
-        copy2(self.index_path, new_index_path)
-        self.index_path = str(new_index_path)
-
-        if backend == "ensemble":
-            return super().export(path, input_schema, output_schema, self_params, node_id, version)
-        else:
-            return ({}, [])
+        return {k: v for k, v in self.__dict__.items() if k != "_index"}
 
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable

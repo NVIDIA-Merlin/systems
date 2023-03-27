@@ -123,7 +123,7 @@ class TritonExecutorRuntime(Runtime):
         Tuple[model_config.ModelConfig, List[model_config.ModelConfig]]
             Tuple of ensemble config and list of non-python backend model configs
         """
-        name = name or "executor_model"
+        triton_model_name = name or "executor_model"
 
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
 
@@ -133,6 +133,11 @@ class TritonExecutorRuntime(Runtime):
 
         node_id_table, _ = _create_node_table(nodes)
 
+        # Path were extra files can be optionally saved by operators
+        # that don't save all state in operator when pickled
+        artifact_path = pathlib.Path(path) / triton_model_name / str(version) / "ensemble"
+        artifact_path.mkdir(parents=True, exist_ok=True)
+
         node_configs = []
         for node in nodes:
             node_id = node_id_table.get(node, None)
@@ -141,7 +146,10 @@ class TritonExecutorRuntime(Runtime):
                 if node_config is not None:
                     node_configs.append(node_config)
 
-        executor_config = self._executor_model_export(path, name, ensemble)
+            if hasattr(node.op, "save_artifacts"):
+                node.op.save_artifacts(str(artifact_path))
+
+        executor_config = self._executor_model_export(path, triton_model_name, ensemble)
 
         return (executor_config, node_configs)
 
