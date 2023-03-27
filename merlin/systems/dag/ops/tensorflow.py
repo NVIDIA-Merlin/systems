@@ -108,18 +108,6 @@ class PredictTensorflow(InferenceOperator):
         # TODO: map output schema names to outputs produced by prediction
         return type(transformable)(dict_outputs)
 
-    @property
-    def export_name(self):
-        """
-        Provides a clear common english identifier for this operator.
-
-        Returns
-        -------
-        String
-            Name of the current class as spelled in module.
-        """
-        return self.__class__.__name__.lower()
-
     @classmethod
     def from_path(cls, path, **kwargs):
         return cls.__init__(path, **kwargs)
