@@ -54,14 +54,22 @@ class InferenceOperator(BaseOperator):
             "from the base operator."
         )
 
-    def load_artifacts(self, artifact_path):
-        """
-        Hook method that provides a way to load saved artifacts for the operator
+    def load_artifacts(self, artifact_path: str) -> None:
+        """Load artifacts from disk required for operator function.
 
         Parameters
         ----------
         artifact_path : str
-            Path where artifacts for the operator are stored.
+            The path where artifacts are loaded from
+        """
+
+    def save_artifacts(self, artifact_path: str) -> None:
+        """Save artifacts required to be reload operator state from disk
+
+        Parameters
+        ----------
+        artifact_path : str
+            The path where artifacts are to be saved
         """
 
     @abstractmethod
