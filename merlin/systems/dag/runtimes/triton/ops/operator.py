@@ -13,20 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import importlib.resources
-import json
-import os
-import pathlib
 from abc import abstractmethod
-from shutil import copyfile
 
 import tritonclient.grpc.model_config_pb2 as model_config
-from google.protobuf import text_format
 
 from merlin.core.protocols import Transformable
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import Schema
-from merlin.systems.dag.ops import compute_dims
 from merlin.systems.dag.ops.operator import InferenceOperator
 from merlin.systems.triton.export import _convert_dtype
 
@@ -83,10 +76,9 @@ class TritonOperator(InferenceOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-        backend: str = "python",
     ):
         """
-        Export the class object as a config and all related files to the user-defined path.
+        Export the Operator to as a Triton Model at the path corresponding to the model repository.
 
         Parameters
         ----------
@@ -105,68 +97,9 @@ class TritonOperator(InferenceOperator):
 
         Returns
         -------
-        Ensemble_config: dict
-            The config for the entire ensemble.
-        Node_configs: list
-            A list of individual configs for each step (operator) in graph.
+        model_config: ModelConfig
+            The config for the operator (model) if defined.
         """
-
-        params = params or {}
-
-        node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
-
-        node_export_path = pathlib.Path(path) / node_name
-        node_export_path.mkdir(parents=True, exist_ok=True)
-
-        config = model_config.ModelConfig(name=node_name, backend=backend, platform="op_runner")
-
-        config.parameters["operator_names"].string_value = json.dumps([node_name])
-
-        config.parameters[node_name].string_value = json.dumps(
-            {
-                "module_name": self.__class__.__module__,
-                "class_name": self.__class__.__name__,
-                "input_dict": json.dumps(_schema_to_dict(input_schema)),
-                "output_dict": json.dumps(_schema_to_dict(output_schema)),
-                "params": json.dumps(params),
-            }
-        )
-
-        for col_schema in input_schema.column_schemas.values():
-            col_dims = compute_dims(col_schema)
-            add_model_param(config.input, model_config.ModelInput, col_schema, col_dims)
-
-        for col_schema in output_schema.column_schemas.values():
-            col_dims = compute_dims(col_schema)
-            add_model_param(config.output, model_config.ModelOutput, col_schema, col_dims)
-
-        with open(os.path.join(node_export_path, "config.pbtxt"), "w", encoding="utf-8") as o:
-            text_format.PrintMessage(config, o)
-
-        os.makedirs(node_export_path, exist_ok=True)
-        os.makedirs(os.path.join(node_export_path, str(version)), exist_ok=True)
-        with importlib.resources.path(
-            "merlin.systems.triton.models", "oprunner_model.py"
-        ) as oprunner_model:
-            copyfile(
-                oprunner_model,
-                os.path.join(node_export_path, str(version), "model.py"),
-            )
-
-        return config
-
-
-def _schema_to_dict(schema: Schema) -> dict:
-    # TODO: Write the conversion
-    schema_dict = {}
-    for col_name, col_schema in schema.column_schemas.items():
-        schema_dict[col_name] = {
-            "dtype": col_schema.dtype.name,
-            "is_list": col_schema.is_list,
-            "is_ragged": col_schema.is_ragged,
-        }
-
-    return schema_dict
 
 
 def add_model_param(params, paramclass, col_schema, dims=None):
