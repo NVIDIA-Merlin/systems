@@ -52,12 +52,6 @@ try:
 except ImportError:
     ...
 
-implicit = None
-try:
-    import implicit
-except ImportError:
-    ...
-
 
 TRITON_OP_TABLE = {}
 TRITON_OP_TABLE[TransformWorkflow] = TransformWorkflowTriton
@@ -79,12 +73,6 @@ if torch:
     from merlin.systems.dag.runtimes.triton.ops.pytorch import PredictPyTorchTriton
 
     TRITON_OP_TABLE[PredictPyTorch] = PredictPyTorchTriton
-
-if implicit:
-    from merlin.systems.dag.ops.implicit import PredictImplicit
-    from merlin.systems.dag.runtimes.triton.ops.implicit import PredictImplicitTriton
-
-    TRITON_OP_TABLE[PredictImplicit] = PredictImplicitTriton
 
 
 class TritonExecutorRuntime(Runtime):
