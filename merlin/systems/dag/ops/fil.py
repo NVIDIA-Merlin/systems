@@ -88,13 +88,6 @@ class PredictForest(InferenceOperator):
         """Return the input schema representing the input columns this operator expects to use."""
         return self.input_schema
 
-    @property
-    def fil_model_name(self):
-        return self._fil_model_name
-
-    def set_fil_model_name(self, fil_model_name):
-        self._fil_model_name = fil_model_name
-
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
     ) -> Transformable:
