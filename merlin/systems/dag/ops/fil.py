@@ -260,6 +260,12 @@ class FILModel(ABC):
         Save model to version_path
         """
 
+    @abstractmethod
+    def load(self, version_path):
+        """
+        Load model from path
+        """
+
     @property
     @abstractmethod
     def num_classes(self):
