@@ -121,10 +121,6 @@ class PredictForest(InferenceOperator):
 
         return type(transformable)(outputs)
 
-    def load_artifacts(self, artifact_path):
-        # need variable that tells me what type of model this is.
-        self.fil_op.load_model(artifact_path)
-
 
 class FIL(InferenceOperator):
     """Operator for Forest Inference Library (FIL) models.
