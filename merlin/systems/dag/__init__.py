@@ -18,4 +18,3 @@
 # flake8: noqa
 from .ensemble import Ensemble
 from .node import Node
-from .op_runner import OperatorRunner

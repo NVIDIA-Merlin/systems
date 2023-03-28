@@ -66,6 +66,10 @@ class PredictImplicit(InferenceOperator):
 
         self.model = model_cls.load(str(model_file))
 
+    def save_artifacts(self, artifact_path: str):
+        model_path = pathlib.Path(artifact_path) / "model.npz"
+        self.model.save(str(model_path))
+
     def compute_input_schema(
         self,
         root_schema: Schema,
@@ -84,10 +88,6 @@ class PredictImplicit(InferenceOperator):
     ) -> Schema:
         """Return the output schema representing the columns this operator returns."""
         return Schema([ColumnSchema("ids", dtype="int64"), ColumnSchema("scores", dtype="float64")])
-
-    @property
-    def exportable_backends(self):
-        return ["ensemble", "executor"]
 
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable

@@ -54,19 +54,23 @@ class InferenceOperator(BaseOperator):
             "from the base operator."
         )
 
-    def load_artifacts(self, artifact_path):
-        """
-        Hook method that provides a way to load saved artifacts for the operator
+    def load_artifacts(self, artifact_path: str) -> None:
+        """Load artifacts from disk required for operator function.
 
         Parameters
         ----------
         artifact_path : str
-            Path where artifacts for the operator are stored.
+            The path where artifacts are loaded from
         """
 
-    @property
-    def exportable_backends(self):
-        return ["ensemble"]
+    def save_artifacts(self, artifact_path: str) -> None:
+        """Save artifacts required to be reload operator state from disk
+
+        Parameters
+        ----------
+        artifact_path : str
+            The path where artifacts are to be saved
+        """
 
     @abstractmethod
     def export(
@@ -77,7 +81,6 @@ class InferenceOperator(BaseOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-        backend: str = "ensemble",
     ):
         """
         Export the class object as a config and all related files to the user defined path.
@@ -99,15 +102,13 @@ class InferenceOperator(BaseOperator):
 
         Returns
         -------
-        Ensemble_config: dict
-            The config for the entire ensemble.
-        Node_configs: list
-            A list of individual configs for each step (operator) in graph.
+        model_config: dict
+            The config for the exported operator (Triton model).
         """
         raise NotImplementedError(
-            "Exporting an operator to run in a particular context (i.e. Triton)"
-            " only makres sense when a runtime is specified. To select an "
-            f"operator for the appropriate runtime, replace {self.__class__.__name__}"
+            "Exporting an operator to run in a particular context (i.e. Triton) "
+            "only makes sense when a runtime is specified. To select an "
+            f"operator for the appropriate runtime, replace {self.__class__.__name__} "
             f"with a runtime-specific operator class, possibly {self.__class__.__name__}Triton"
         )
 

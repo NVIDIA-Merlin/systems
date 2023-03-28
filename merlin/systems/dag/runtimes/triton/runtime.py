@@ -33,7 +33,7 @@ from merlin.systems.dag.ops.compat import (
 )
 from merlin.systems.dag.ops.workflow import TransformWorkflow
 from merlin.systems.dag.runtimes import Runtime
-from merlin.systems.dag.runtimes.triton.ops.operator import add_model_param
+from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator, add_model_param
 from merlin.systems.dag.runtimes.triton.ops.workflow import TransformWorkflowTriton
 
 tensorflow = None
@@ -49,12 +49,6 @@ except ImportError:
 torch = None
 try:
     import torch
-except ImportError:
-    ...
-
-implicit = None
-try:
-    import implicit
 except ImportError:
     ...
 
@@ -79,12 +73,6 @@ if torch:
     from merlin.systems.dag.runtimes.triton.ops.pytorch import PredictPyTorchTriton
 
     TRITON_OP_TABLE[PredictPyTorch] = PredictPyTorchTriton
-
-if implicit:
-    from merlin.systems.dag.ops.implicit import PredictImplicit
-    from merlin.systems.dag.runtimes.triton.ops.implicit import PredictImplicitTriton
-
-    TRITON_OP_TABLE[PredictImplicit] = PredictImplicitTriton
 
 
 class TritonExecutorRuntime(Runtime):
@@ -123,7 +111,7 @@ class TritonExecutorRuntime(Runtime):
         Tuple[model_config.ModelConfig, List[model_config.ModelConfig]]
             Tuple of ensemble config and list of non-python backend model configs
         """
-        name = name or "executor_model"
+        triton_model_name = name or "executor_model"
 
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
 
@@ -131,20 +119,25 @@ class TritonExecutorRuntime(Runtime):
             if type(node.op) in self.op_table:
                 node.op = self.op_table[type(node.op)](node.op)
 
-        node_id_table, _ = _create_node_table(nodes, "executor")
+        node_id_table, _ = _create_node_table(nodes)
+
+        # Path were extra files can be optionally saved by operators
+        # that don't save all state in operator when pickled
+        artifact_path = pathlib.Path(path) / triton_model_name / str(version) / "ensemble"
+        artifact_path.mkdir(parents=True, exist_ok=True)
 
         node_configs = []
         for node in nodes:
-            if node.exportable("executor"):
-                node_id = node_id_table.get(node, None)
-
-                node_config = node.export(
-                    path, node_id=node_id, version=version, backend="executor"
-                )
+            node_id = node_id_table.get(node, None)
+            if node_id is not None:
+                node_config = node.export(path, node_id=node_id, version=version)
                 if node_config is not None:
                     node_configs.append(node_config)
 
-        executor_config = self._executor_model_export(path, name, ensemble)
+            if hasattr(node.op, "save_artifacts"):
+                node.op.save_artifacts(str(artifact_path))
+
+        executor_config = self._executor_model_export(path, triton_model_name, ensemble)
 
         return (executor_config, node_configs)
 
@@ -220,11 +213,11 @@ class TritonExecutorRuntime(Runtime):
         return config
 
 
-def _create_node_table(nodes, backend):
+def _create_node_table(nodes):
     exportable_node_idx = 0
     node_id_lookup = {}
     for node in nodes:
-        if node.exportable(backend):
+        if isinstance(node.op, TritonOperator):
             node_id_lookup[node] = exportable_node_idx
             exportable_node_idx += 1
 

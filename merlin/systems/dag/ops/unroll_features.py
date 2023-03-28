@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
 
 import numpy as np
 
@@ -35,35 +34,6 @@ class UnrollFeatures(InferenceOperator):
         self.unroll_cols = Node.construct_from(unroll_cols)
         self.unrolled_prefix = unrolled_prefix
         super().__init__()
-
-    @classmethod
-    def from_config(cls, config, **kwargs) -> "UnrollFeatures":
-        """Load operator and properties from Triton config"""
-        parameters = json.loads(config.get("params", ""))
-        candidate_col = parameters["item_id_col"]
-        unroll_cols = parameters["unroll_cols"]
-        unrolled_prefix = parameters["unrolled_prefix"]
-        return UnrollFeatures(candidate_col, unroll_cols, unrolled_prefix)
-
-    def export(
-        self,
-        path: str,
-        input_schema: Schema,
-        output_schema: Schema,
-        params: dict = None,
-        node_id: int = None,
-        version: int = 1,
-        backend: str = "ensemble",
-    ):
-        """Write out a Triton model config directory"""
-        params = params or {}
-        self_params = {
-            "item_id_col": self.item_id_col,
-            "unroll_cols": self._unroll_col_names,
-            "unrolled_prefix": self.unrolled_prefix,
-        }
-        self_params.update(params)
-        return super().export(path, input_schema, output_schema, self_params, node_id, version)
 
     @property
     def dependencies(self):

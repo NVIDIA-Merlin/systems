@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
+
 import shutil
 
 import implicit
@@ -26,56 +26,12 @@ from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.implicit import PredictImplicit
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
-from merlin.systems.dag.runtimes.triton.ops.implicit import PredictImplicitTriton
 from merlin.systems.triton.utils import run_triton_server
 
 TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 triton = pytest.importorskip("merlin.systems.triton")
-
-
-@pytest.mark.parametrize(
-    "model_cls",
-    [
-        implicit.bpr.BayesianPersonalizedRanking,
-        implicit.als.AlternatingLeastSquares,
-        implicit.lmf.LogisticMatrixFactorization,
-    ],
-)
-def test_reload_from_config(model_cls, tmpdir):
-    model = model_cls()
-    n = 10
-    user_items = csr_matrix(np.random.choice([0, 1], size=n * n).reshape(n, n))
-    model.fit(user_items)
-
-    base = PredictImplicit(model)
-    op = PredictImplicitTriton(base)
-
-    config = op.export(tmpdir, Schema(), Schema())
-
-    node_config = json.loads(config.parameters[config.name].string_value)
-
-    cls = PredictImplicitTriton.from_config(
-        node_config,
-        model_repository=tmpdir,
-        model_name=config.name,
-        model_version=1,
-    )
-    reloaded_model = cls.model
-
-    num_to_recommend = np.random.randint(1, n)
-    user_items = None
-    ids, scores = model.recommend(
-        1, user_items, N=num_to_recommend, filter_already_liked_items=False
-    )
-
-    reloaded_ids, reloaded_scores = reloaded_model.recommend(
-        1, user_items, N=num_to_recommend, filter_already_liked_items=False
-    )
-
-    np.testing.assert_array_equal(ids, reloaded_ids)
-    np.testing.assert_array_equal(scores, reloaded_scores)
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")

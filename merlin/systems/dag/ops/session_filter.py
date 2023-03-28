@@ -14,8 +14,6 @@
 # limitations under the License.
 #
 
-import json
-
 import numpy as np
 
 from merlin.core.protocols import Transformable
@@ -49,25 +47,6 @@ class FilterCandidates(InferenceOperator):
         self._input_col = input_col
         self._filter_out_col = filter_out
         super().__init__()
-
-    @classmethod
-    def from_config(cls, config, **kwargs) -> "FilterCandidates":
-        """
-        Instantiate a class object given a config.
-
-        Parameters
-        ----------
-        config : dict
-
-
-        Returns
-        -------
-            Class object instantiated with config values
-        """
-        parameters = json.loads(config.get("params", ""))
-        filter_out_col = parameters["filter_out_col"]
-        input_col = parameters["input_col"]
-        return FilterCandidates(filter_out_col, input_col)
 
     @property
     def dependencies(self):
@@ -182,44 +161,3 @@ class FilterCandidates(InferenceOperator):
 
         filtered_results = candidate_ids.values[~np.isin(candidate_ids.values, filter_ids.values)]
         return type(transformable)({"filtered_ids": filtered_results})
-
-    def export(
-        self,
-        path: str,
-        input_schema: Schema,
-        output_schema: Schema,
-        params: dict = None,
-        node_id: int = None,
-        version: int = 1,
-        backend: str = "ensemble",
-    ):
-        """
-        Export the class object as a config and all related files to the user defined path.
-
-        Parameters
-        ----------
-        path : str
-            Artifact export path
-        input_schema : Schema
-            A schema with information about the inputs to this operator
-        output_schema : Schema
-            A schema with information about the outputs of this operator
-        params : dict, optional
-            Parameters dictionary of key, value pairs stored in exported config, by default None
-        node_id : int, optional
-            The placement of the node in the graph (starts at 1), by default None
-        version : int, optional
-            The version of the model, by default 1
-
-        Returns
-        -------
-        Ensemble_config: dict
-        Node_configs: list
-        """
-        params = params or {}
-        self_params = {
-            "input_col": self._input_col,
-            "filter_out_col": self._filter_out_col,
-        }
-        self_params.update(params)
-        return super().export(path, input_schema, output_schema, self_params, node_id, version)

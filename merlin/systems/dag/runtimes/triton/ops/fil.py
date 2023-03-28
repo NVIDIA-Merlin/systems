@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import json
 import pathlib
 
 import numpy as np
@@ -22,7 +21,7 @@ from google.protobuf import text_format  # noqa
 
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector  # noqa
-from merlin.schema import ColumnSchema, Schema  # noqa
+from merlin.schema import Schema  # noqa
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator  # noqa
 from merlin.systems.triton.conversions import (
     tensor_table_to_triton_request,
@@ -95,7 +94,6 @@ class PredictForestTriton(TritonOperator):
         params: dict = None,
         node_id: int = None,
         version: int = 1,
-        backend: str = "ensemble",
     ):
         """Export the class and related files to the path specified."""
         fil_model_config = self.fil_op.export(
@@ -116,30 +114,7 @@ class PredictForestTriton(TritonOperator):
             params=params,
             node_id=node_id,
             version=version,
-            backend=self.backend,
         )
-
-    @classmethod
-    def from_config(cls, config: dict, **kwargs) -> "PredictForestTriton":
-        """Instantiate the class from a dictionary representation.
-
-        Expected structure:
-        {
-            "input_dict": str  # JSON dict with input names and schemas
-            "params": str  # JSON dict with params saved at export
-        }
-
-        """
-        column_schemas = [
-            ColumnSchema(name, **schema_properties)
-            for name, schema_properties in json.loads(config["input_dict"]).items()
-        ]
-        input_schema = Schema(column_schemas)
-        cls_instance = cls(None, input_schema)
-        params = json.loads(config["params"])
-        model_name = params["fil_model_name"]
-        cls_instance.set_fil_model_name(model_name)
-        return cls_instance
 
     @property
     def fil_model_name(self):

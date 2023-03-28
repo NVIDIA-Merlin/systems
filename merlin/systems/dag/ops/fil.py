@@ -88,39 +88,6 @@ class PredictForest(InferenceOperator):
         """Return the input schema representing the input columns this operator expects to use."""
         return self.input_schema
 
-    @property
-    def exportable_backends(self):
-        return ["ensemble", "executor"]
-
-    def export(
-        self,
-        path: str,
-        input_schema: Schema,
-        output_schema: Schema,
-        params: dict = None,
-        node_id: int = None,
-        version: int = 1,
-        backend: str = "ensemble",
-    ):
-        """Export the class and related files to the path specified."""
-        fil_model_config = self.fil_op.export(
-            path,
-            input_schema,
-            output_schema,
-            params=params,
-            node_id=node_id,
-            version=version,
-        )
-
-        return fil_model_config
-
-    @property
-    def fil_model_name(self):
-        return self._fil_model_name
-
-    def set_fil_model_name(self, fil_model_name):
-        self._fil_model_name = fil_model_name
-
     def transform(
         self, col_selector: ColumnSelector, transformable: Transformable
     ) -> Transformable:
@@ -146,10 +113,6 @@ class PredictForest(InferenceOperator):
         outputs = {"output__0": predictions}
 
         return type(transformable)(outputs)
-
-    def load_artifacts(self, artifact_path):
-        # need variable that tells me what type of model this is.
-        self.fil_op.load_model(artifact_path)
 
 
 class FIL(InferenceOperator):
@@ -265,25 +228,6 @@ class FIL(InferenceOperator):
         """Returns output schema for FIL op"""
         return Schema([ColumnSchema("output__0", dtype=np.float32)])
 
-    def export(
-        self,
-        path,
-        input_schema,
-        output_schema,
-        params: dict = None,
-        node_id=None,
-        version=1,
-    ):
-        """Export the model to the supplied path. Returns the config"""
-        node_name = f"{node_id}_{self.export_name}" if node_id is not None else self.export_name
-        node_export_path = pathlib.Path(path) / node_name
-        version_path = node_export_path / str(version)
-        version_path.mkdir(parents=True, exist_ok=True)
-
-        self.fil_model_class.save(version_path)
-
-        return version_path
-
     def load_model(self, version_path):
         version_path = pathlib.Path(version_path)
         self.fil_model_class.load(version_path)
@@ -303,6 +247,12 @@ class FILModel(ABC):
     def save(self, version_path):
         """
         Save model to version_path
+        """
+
+    @abstractmethod
+    def load(self, version_path):
+        """
+        Load model from path
         """
 
     @property
