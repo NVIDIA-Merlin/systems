@@ -72,9 +72,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for merlin.systems.dag.ops.softmax_sampling</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">merlin.core.protocols</span> <span class="kn">import</span> <span class="n">Transformable</span>
 <span class="kn">from</span> <span class="nn">merlin.dag.node</span> <span class="kn">import</span> <span class="n">Node</span>
@@ -111,43 +109,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_relevance_col_name</span> <span class="o">=</span> <span class="n">relevance_col</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="SoftmaxSampling.from_config"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.from_config">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SoftmaxSampling&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load operator and properties from Triton config&quot;&quot;&quot;</span>
-        <span class="n">parameters</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;params&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">))</span>
-        <span class="n">relevance_col</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;relevance_col&quot;</span><span class="p">]</span>
-        <span class="n">input_col</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;input_col&quot;</span><span class="p">]</span>
-        <span class="n">temperature</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">]</span>
-        <span class="n">topk</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;topk&quot;</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="n">SoftmaxSampling</span><span class="p">(</span>
-            <span class="n">relevance_col</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span> <span class="n">topk</span><span class="o">=</span><span class="n">topk</span><span class="p">,</span> <span class="n">_input_col</span><span class="o">=</span><span class="n">input_col</span>
-        <span class="p">)</span></div>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dependencies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">relevance_col</span>
-
-<div class="viewcode-block" id="SoftmaxSampling.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">input_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
-        <span class="n">output_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
-        <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">node_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">,</span>
-    <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write out a Triton model config directory&quot;&quot;&quot;</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="n">params</span> <span class="ow">or</span> <span class="p">{}</span>
-        <span class="n">self_params</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;input_col&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_col_name</span><span class="p">,</span>
-            <span class="s2">&quot;relevance_col&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_relevance_col_name</span><span class="p">,</span>
-            <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span>
-            <span class="s2">&quot;topk&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">topk</span><span class="p">,</span>
-        <span class="p">}</span>
-        <span class="n">self_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">,</span> <span class="n">output_schema</span><span class="p">,</span> <span class="n">self_params</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SoftmaxSampling.compute_input_schema"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.html#merlin.systems.dag.ops.softmax_sampling.SoftmaxSampling.compute_input_schema">[docs]</a>    <span class="k">def</span> <span class="nf">compute_input_schema</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>

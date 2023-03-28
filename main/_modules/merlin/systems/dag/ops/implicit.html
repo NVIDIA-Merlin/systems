@@ -140,6 +140,10 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model_cls</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_file</span><span class="p">))</span></div>
 
+<div class="viewcode-block" id="PredictImplicit.save_artifacts"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.implicit.PredictImplicit.html#merlin.systems.dag.ops.implicit.PredictImplicit.save_artifacts">[docs]</a>    <span class="k">def</span> <span class="nf">save_artifacts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">artifact_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">model_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">artifact_path</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;model.npz&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_path</span><span class="p">))</span></div>
+
 <div class="viewcode-block" id="PredictImplicit.compute_input_schema"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.implicit.PredictImplicit.html#merlin.systems.dag.ops.implicit.PredictImplicit.compute_input_schema">[docs]</a>    <span class="k">def</span> <span class="nf">compute_input_schema</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">root_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
@@ -158,10 +162,6 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the output schema representing the columns this operator returns.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Schema</span><span class="p">([</span><span class="n">ColumnSchema</span><span class="p">(</span><span class="s2">&quot;ids&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;int64&quot;</span><span class="p">),</span> <span class="n">ColumnSchema</span><span class="p">(</span><span class="s2">&quot;scores&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float64&quot;</span><span class="p">)])</span></div>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">exportable_backends</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;ensemble&quot;</span><span class="p">,</span> <span class="s2">&quot;executor&quot;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="PredictImplicit.transform"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.implicit.PredictImplicit.html#merlin.systems.dag.ops.implicit.PredictImplicit.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">transformable</span><span class="p">:</span> <span class="n">Transformable</span>
