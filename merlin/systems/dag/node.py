@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 import os
+import warnings
 from typing import Union
 
 from merlin.dag import Node
@@ -96,7 +97,8 @@ class InferenceNode(Node):
                 sink_col_schema = childrens_schema.get(col_name)
 
                 if not sink_col_schema:
-                    raise ValueError(
-                        f"Output column '{col_name}' not detected in any "
-                        f"child inputs for '{self.op.__class__.__name__}'."
+                    warnings.warn(
+                        f"Operator '{self.op.__class__.__name__}' is producing the output column "
+                        f"'{col_name}', which is not being used by any downstream operator "
+                        f"in the ensemble graph."
                     )
