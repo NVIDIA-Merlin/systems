@@ -186,10 +186,9 @@ class QueryFaiss(InferenceOperator):
             )
 
 
-def setup_faiss(item_vector, output_path: str):
+def setup_faiss(item_vector, output_path: str, metric=faiss.METRIC_INNER_PRODUCT):
     """
-    Utiltiy function that will create a Faiss index from an embedding vector. Currently only
-    supports L2 distance.
+    Utiltiy function that will create a Faiss index from a set of embedding vectors
 
     Parameters
     ----------
@@ -201,7 +200,7 @@ def setup_faiss(item_vector, output_path: str):
     ids = item_vector[:, 0].astype(np.int64)
     item_vectors = np.ascontiguousarray(item_vector[:, 1:].astype(np.float32))
 
-    index = faiss.index_factory(item_vectors.shape[1], "IVF32,Flat")
+    index = faiss.index_factory(item_vectors.shape[1], "IVF32,Flat", metric)
     index.nprobe = 8
 
     index.train(item_vectors)
