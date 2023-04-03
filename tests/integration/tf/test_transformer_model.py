@@ -80,9 +80,7 @@ def test_serve_tf_session_based_with_libtensorflow(tmpdir):
     # ===========================================
     # Build a simple Ensemble graph
     # ===========================================
-    tf_op = input_schema.column_names >> PredictTensorflow(
-        model.query_encoder, input_schema, output_schema
-    )
+    tf_op = input_schema.column_names >> PredictTensorflow(model.query_encoder)
 
     ensemble = Ensemble(tf_op, input_schema)
     ens_config, node_configs = ensemble.export(str(tmpdir))
