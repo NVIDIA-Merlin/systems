@@ -25,6 +25,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import json
 
+import numpy as np
+
 from merlin.systems.workflow.base import WorkflowRunner
 
 
@@ -40,8 +42,10 @@ class TensorflowWorkflowRunner(WorkflowRunner):
         params = self.model_config["parameters"]
         if "sparse_max" in params.keys():
             sparse_feat = json.loads(self.model_config["parameters"]["sparse_max"]["string_value"])
+
         # transforms outputs for both pytorch and tensorflow
         output_tensors = []
+
         for name in self.cats + self.conts:
             value = tensors[name]
             if sparse_feat and name in sparse_feat.keys():
@@ -53,10 +57,10 @@ class TensorflowWorkflowRunner(WorkflowRunner):
                 output_tensors.append((name, d))
             elif isinstance(value, tuple):
                 # convert list values to match TF dataloader
-                values = value[0].astype(self.output_dtypes[name + "__values"])
+                values = value[0].astype(self.output_dtypes[name])
                 output_tensors.append((name + "__values", values))
 
-                offsets = value[1].astype(self.output_dtypes[name + "__offsets"])
+                offsets = value[1].astype(np.int32)
                 output_tensors.append((name + "__offsets", offsets))
             else:
                 d = value.astype(self.output_dtypes[name])
