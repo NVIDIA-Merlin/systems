@@ -131,10 +131,15 @@ def test_ensemble(tmpdir):
 
     triton_ens.export(tmpdir)
 
-    config_path = tmpdir / "0_filtriton" / "config.pbtxt"
+    config_path = tmpdir / "1_filtriton" / "config.pbtxt"
     parsed_config = read_config(config_path)
-    assert "0_fil" in parsed_config.name
+    assert "1_fil" in parsed_config.name
     assert parsed_config.backend == "fil"
+
+    config_path = tmpdir / "0_transformworkflowtriton" / "config.pbtxt"
+    parsed_config = read_config(config_path)
+    assert "0_transformworkflow" in parsed_config.name
+    assert parsed_config.backend == "python"
 
     config_path = tmpdir / "executor_model" / "config.pbtxt"
     parsed_config = read_config(config_path)
