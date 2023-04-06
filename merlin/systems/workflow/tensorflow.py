@@ -56,13 +56,27 @@ class TensorflowWorkflowRunner(WorkflowRunner):
                 d = d.reshape(row_dim, col_dim)
                 output_tensors.append((name, d))
             elif isinstance(value, tuple):
-                # convert list values to match TF dataloader
-                values = value[0].astype(self.output_dtypes[name])
-                output_tensors.append((name + "__values", values))
-
+                values = value[0]
                 offsets = value[1].astype(np.int32)
-                output_tensors.append((name + "__offsets", offsets))
+                if self.workflow.output_schema[name].is_ragged:
+                    values = values.astype(self.output_dtypes[name + "__values"])
+                    output_tensors.append((name + "__values", values))
+                    output_tensors.append((name + "__offsets", offsets))
+                else:
+                    row_lengths = offsets[1:] - offsets[:-1]
+                    if not all(row_lengths == row_lengths[0]):
+                        raise ValueError(
+                            f"ColumnSchema for list column '{name}' describes a fixed size list. "
+                            "Found a ragged list output. If this workflow outputs a ragged list, "
+                            "Please check the output schema has correctly set the column shape. "
+                        )
+                    values = values.astype(self.output_dtypes[name])
+                    list_value = values.reshape(
+                        (len(row_lengths), int(row_lengths[0])) + values.shape[1:]
+                    )
+                    output_tensors.append((name, list_value))
             else:
                 d = value.astype(self.output_dtypes[name])
                 output_tensors.append((name, d))
+
         return output_tensors

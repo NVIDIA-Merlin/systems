@@ -298,15 +298,11 @@ def _pandas_to_array(df, cpu=True):
     for name in df.columns:
         col = df[name]
         if pd.api.types.is_list_like(col.values[0]):
+            offsets = pd.Series([0]).append(col.map(len).cumsum()).values
+            if not cpu:
+                offsets = cp.array(offsets)
             values = array_type(list(itertools.chain(*col)))
-            row_lengths = col.map(len)
-            if all(row_lengths == row_lengths[0]):
-                output[name] = values.reshape((-1, row_lengths[0]))
-            else:
-                offsets = pd.Series([0]).append(row_lengths.cumsum()).values
-                if not cpu:
-                    offsets = cp.array(offsets)
-                output[name] = (values, offsets)
+            output[name] = (values, offsets)
         else:
             values = col.values
             if not cpu:
@@ -321,14 +317,9 @@ def _cudf_to_array(df, cpu=True):
     for name in df.columns:
         col = df[name]
         if is_list_dtype(col.dtype):
-            values = col.list.leaves.values_host if cpu else col.list.leaves.values
             offsets = col._column.offsets.values_host if cpu else col._column.offsets.values
-
-            row_lengths = offsets[1:] - offsets[:-1]
-            if all(row_lengths == row_lengths[0]):
-                output[name] = values.reshape((-1, row_lengths[0]))
-            else:
-                output[name] = (values, offsets)
+            values = col.list.leaves.values_host if cpu else col.list.leaves.values
+            output[name] = (values, offsets)
         else:
             output[name] = col.values_host if cpu else col.values
 
