@@ -28,7 +28,7 @@ import json
 import numpy as np
 
 from merlin.systems.workflow.base import WorkflowRunner
-
+from merlin.table import TensorTable
 
 class TensorflowWorkflowRunner(WorkflowRunner):
     def __init__(self, workflow, output_dtypes, model_config, model_device):
@@ -38,31 +38,5 @@ class TensorflowWorkflowRunner(WorkflowRunner):
 
     def _transform_outputs(self, tensors):
         # Load extra info needed for the Transformer4Rec (if exists)
-        sparse_feat = None
-        params = self.model_config["parameters"]
-        if "sparse_max" in params.keys():
-            sparse_feat = json.loads(self.model_config["parameters"]["sparse_max"]["string_value"])
-
-        # transforms outputs for both pytorch and tensorflow
-        output_tensors = []
-
-        for name in self.cats + self.conts:
-            value = tensors[name]
-            if sparse_feat and name in sparse_feat.keys():
-                # convert sparse tensors to dense representations
-                d = value[0].astype(self.output_dtypes[name])
-                col_dim = sparse_feat[name]
-                row_dim = d.shape[0] // col_dim
-                d = d.reshape(row_dim, col_dim)
-                output_tensors.append((name, d))
-            elif isinstance(value, tuple):
-                # convert list values to match TF dataloader
-                values = value[0].astype(self.output_dtypes[name])
-                output_tensors.append((name + "__values", values))
-
-                offsets = value[1].astype(np.int32)
-                output_tensors.append((name + "__offsets", offsets))
-            else:
-                d = value.astype(self.output_dtypes[name])
-                output_tensors.append((name, d))
+        output_tensors = TensorTable(tensors).to_dict()
         return output_tensors
