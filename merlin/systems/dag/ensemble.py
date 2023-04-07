@@ -23,6 +23,7 @@ import fsspec
 
 from merlin.core.protocols import Transformable
 from merlin.dag import Graph
+from merlin.systems.dag.runtimes.base_runtime import Runtime
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
 
 
@@ -74,7 +75,7 @@ class Ensemble:
         Transformable
             transformed data
         """
-        runtime = runtime or TritonExecutorRuntime()
+        runtime = runtime or Runtime()
         return runtime.transform(self.graph, transformable)
 
     def save(self, path):

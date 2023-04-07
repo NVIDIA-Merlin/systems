@@ -112,13 +112,9 @@ class TritonExecutorRuntime(Runtime):
             Tuple of ensemble config and list of non-python backend model configs
         """
         triton_model_name = name or "executor_model"
+        ensemble.graph = self.convert(ensemble.graph)
 
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
-
-        for node in nodes:
-            if type(node.op) in self.op_table:
-                node.op = self.op_table[type(node.op)](node.op)
-
         node_id_table, _ = _create_node_table(nodes)
 
         # Path were extra files can be optionally saved by operators

@@ -27,13 +27,14 @@
 import json
 import pathlib
 
-import triton_python_backend_utils as pb_utils
-
 import nvtabular
-from merlin.core.dispatch import is_list_dtype
-from merlin.systems.triton import _convert_tensor
+from merlin.systems.triton.conversions import (
+    tensor_table_to_triton_response,
+    triton_request_to_tensor_table,
+)
 from merlin.systems.triton.utils import triton_error_handling, triton_multi_request
 from merlin.systems.workflow.base import WorkflowRunner
+from merlin.table import TensorTable
 
 
 class TritonPythonModel:
@@ -72,25 +73,7 @@ class TritonPythonModel:
         # Config loading and parsing
         self.model_config = json.loads(args["model_config"])
 
-        # Dtype parsing
-        input_dtypes = self.workflow.input_dtypes.items()
-        self.input_dtypes, self.input_multihots = _parse_input_dtypes(input_dtypes)
-
-        self.output_dtypes = {}
-        for col_name, col_schema in self.workflow.output_schema.column_schemas.items():
-            if col_schema.is_list and col_schema.is_ragged:
-                self._set_output_dtype(col_name + "__offsets")
-                self._set_output_dtype(col_name + "__values")
-            else:
-                self._set_output_dtype(col_name)
-
-        self.runner = WorkflowRunner(
-            self.workflow, self.output_dtypes, self.model_config, model_device
-        )
-
-    def _set_output_dtype(self, name):
-        conf = pb_utils.get_output_config_by_name(self.model_config, name)
-        self.output_dtypes[name] = pb_utils.triton_string_to_numpy(conf["data_type"])
+        self.runner = WorkflowRunner(self.workflow, self.model_config, model_device)
 
     @triton_multi_request
     @triton_error_handling
@@ -98,28 +81,16 @@ class TritonPythonModel:
         """Transforms the input batches by running through a NVTabular workflow.transform
         function.
         """
-        # transform the triton tensors to a dict of name:numpy tensor
-        input_tensors = {
-            name: _convert_tensor(pb_utils.get_input_tensor_by_name(request, name))
-            for name in self.input_dtypes
-        }
 
-        # multihots are represented as a tuple of (values, offsets)
-        for name, dtype in self.input_multihots.items():
-            values = _convert_tensor(pb_utils.get_input_tensor_by_name(request, name + "__values"))
-            offsets = _convert_tensor(
-                pb_utils.get_input_tensor_by_name(request, name + "__offsets")
-            )
-            input_tensors[name] = (values, offsets)
+        try:
+            input_columns = self.workflow.input_schema.column_names
+            input_tensors = triton_request_to_tensor_table(request, input_columns)
+            output_tensors = self.runner.run_workflow(input_tensors)
+            return tensor_table_to_triton_response(TensorTable(output_tensors))
+        except BaseException as e:
+            import traceback
 
-        transformed = self.runner.run_workflow(input_tensors)
-        result = [pb_utils.Tensor(name, data) for name, data in transformed.items()]
-
-        return pb_utils.InferenceResponse(result)
-
-
-def _parse_input_dtypes(dtypes):
-    input_dtypes = {col: dtype for col, dtype in dtypes if not is_list_dtype(dtype)}
-    input_multihots = {col: dtype for col, dtype in dtypes if is_list_dtype(dtype)}
-
-    return input_dtypes, input_multihots
+            raise RuntimeError(
+                f"Error: {type(e)} - {str(e)}, "
+                f"Traceback: {traceback.format_tb(e.__traceback__)}"
+            ) from e

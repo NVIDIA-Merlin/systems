@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 from merlin.core.protocols import Transformable
-from merlin.dag import Graph
+from merlin.dag import Graph, postorder_iter_nodes
 from merlin.dag.executors import LocalExecutor
 
 
@@ -35,7 +35,30 @@ class Runtime:
         self.executor = executor or LocalExecutor()
         self.op_table = {}
 
-    def transform(self, graph: Graph, transformable: Transformable):
+    def convert(self, graph: Graph):
+        """
+        Replace the operators in the supplied graph with ops from this runtime's op table
+
+        Parameters
+        ----------
+        graph : Graph
+            Graph of nodes container operator chains for data manipulation.
+
+        Returns
+        -------
+        Graph
+            Copy of the graph with operators converted to this runtime's versions
+        """
+        if self.op_table:
+            nodes = list(postorder_iter_nodes(graph.output_node))
+
+            for node in nodes:
+                if type(node.op) in self.op_table:
+                    node.op = self.op_table[type(node.op)](node.op)
+
+        return graph
+
+    def transform(self, graph: Graph, transformable: Transformable, convert=True):
         """Run the graph with the input data.
 
         Parameters
@@ -44,12 +67,17 @@ class Runtime:
             Graph of nodes container operator chains for data manipulation.
         transformable : Transformable
             Input data to transform in graph.
+        convert: bool
+            If True, converts the operators in the graph to this runtime's versions
 
         Returns
         -------
         Transformable
             Input data after it has been transformed via graph.
         """
+        if convert:
+            graph = self.convert(graph)
+
         return self.executor.transform(transformable, [graph.output_node])
 
     def export(self):
