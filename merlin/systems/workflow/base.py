@@ -27,7 +27,6 @@
 import functools
 import json
 import logging
-from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -35,11 +34,12 @@ from merlin.core.dispatch import concat_columns
 from merlin.dag import ColumnSelector, Supports
 from merlin.schema import Tags
 from merlin.systems.triton.conversions import convert_format
+from merlin.table import TensorTable
 
 LOG = logging.getLogger("merlin-systems")
 
 
-class WorkflowRunner(ABC):
+class WorkflowRunner:
     def __init__(self, workflow, output_dtypes, model_config, model_device):
         self.workflow = workflow
         self.output_dtypes = output_dtypes
@@ -56,6 +56,7 @@ class WorkflowRunner(ABC):
 
         self.cats = mc_cats or schema_cats
         self.conts = mc_conts or schema_conts
+        self.offsets = None
 
         workflow_outputs = set(workflow.output_schema.column_names)
         requested_cols = set(self.cats + self.conts)
@@ -109,16 +110,8 @@ class WorkflowRunner(ABC):
         # convert to the format expected by the DL models
         return self._transform_outputs(transformed)
 
-    @abstractmethod
     def _transform_outputs(self, tensors):
-        pass
-
-    def _convert_to_np(self, columns, tensors, dtype, rows):
-        """converts outputs to a numpy input compatible with pytorch"""
-        d = np.empty((rows, len(columns)), dtype=dtype)
-        for i, name in enumerate(columns):
-            d[:, i] = tensors[name].astype(dtype)
-        return d
+        return TensorTable(tensors).to_dict()
 
     def _transform_tensors(self, input_tensors, workflow_node):
         upstream_inputs = []

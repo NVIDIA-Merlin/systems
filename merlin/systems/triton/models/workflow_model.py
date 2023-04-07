@@ -33,9 +33,8 @@ import nvtabular
 from merlin.core.dispatch import is_list_dtype
 from merlin.systems.triton import _convert_tensor
 from merlin.systems.triton.utils import triton_error_handling, triton_multi_request
+from merlin.systems.workflow.base import WorkflowRunner
 from merlin.systems.workflow.hugectr import HugeCTRWorkflowRunner
-from merlin.systems.workflow.pytorch import PyTorchWorkflowRunner
-from merlin.systems.workflow.tensorflow import TensorflowWorkflowRunner
 
 
 class TritonPythonModel:
@@ -89,10 +88,8 @@ class TritonPythonModel:
 
         if model_framework == "hugectr":
             runner_class = HugeCTRWorkflowRunner
-        elif model_framework == "pytorch":
-            runner_class = PyTorchWorkflowRunner
         else:
-            runner_class = TensorflowWorkflowRunner
+            runner_class = WorkflowRunner
 
         self.runner = runner_class(
             self.workflow, self.output_dtypes, self.model_config, model_device

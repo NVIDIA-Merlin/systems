@@ -73,6 +73,13 @@ class HugeCTRWorkflowRunner(WorkflowRunner):
         rows = max(len(tensors[name]) for name in columns)
         d = self._convert_to_np(columns, tensors, dtype, rows)
         return d.reshape(1, len(columns) * rows)
+    
+    def _convert_to_np(self, columns, tensors, dtype, rows):
+        """converts outputs to a numpy input"""
+        d = np.empty((rows, len(columns)), dtype=dtype)
+        for i, name in enumerate(columns):
+            d[:, i] = tensors[name].astype(dtype)
+        return d
 
     def get_offsets(self, workflow, categorical_cols):
         embeddings = get_embedding_sizes(workflow)
