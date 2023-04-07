@@ -124,6 +124,8 @@ class TritonPythonModel:
 
         # raise pb_utils.TritonModelException("Custom Error To check raised!")
         raw_tensor_tuples = self.runner.run_workflow(input_tensors)
+        if isinstance(raw_tensor_tuples, dict):
+            raw_tensor_tuples = list(raw_tensor_tuples.items())
 
         result = [pb_utils.Tensor(name, data) for name, data in raw_tensor_tuples]
 
