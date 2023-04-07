@@ -23,10 +23,12 @@
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import itertools
 import json
 
 import numpy as np
 
+from merlin.core.compat import cupy
 from merlin.systems.workflow.base import WorkflowRunner
 
 
@@ -56,27 +58,49 @@ class TensorflowWorkflowRunner(WorkflowRunner):
                 d = d.reshape(row_dim, col_dim)
                 output_tensors.append((name, d))
             elif isinstance(value, tuple):
-                values = value[0]
-                offsets = value[1].astype(np.int32)
+                values, offsets = value
                 if self.workflow.output_schema[name].is_ragged:
                     values = values.astype(self.output_dtypes[name + "__values"])
+                    offsets = offsets.astype(self.output_dtypes[name + "__offsets"])
                     output_tensors.append((name + "__values", values))
                     output_tensors.append((name + "__offsets", offsets))
                 else:
-                    row_lengths = offsets[1:] - offsets[:-1]
-                    if not all(row_lengths == row_lengths[0]):
-                        raise ValueError(
-                            f"ColumnSchema for list column '{name}' describes a fixed size list. "
-                            "Found a ragged list output. If this workflow outputs a ragged list, "
-                            "Please check the output schema has correctly set the column shape. "
-                        )
-                    values = values.astype(self.output_dtypes[name])
-                    list_value = values.reshape(
-                        (len(row_lengths), int(row_lengths[0])) + values.shape[1:]
+                    raise ValueError(
+                        f"ColumnSchema for list column '{name}' describes a fixed size list. "
+                        "Found a ragged list output. If this workflow outputs a ragged list, "
+                        "Please check the output schema has correctly set the column shape. "
                     )
-                    output_tensors.append((name, list_value))
             else:
-                d = value.astype(self.output_dtypes[name])
-                output_tensors.append((name, d))
+                if self.workflow.output_schema[name].is_ragged:
+                    values, offsets = _to_ragged(value)
+                    values = values.astype(self.output_dtypes[name + "__values"])
+                    offsets = offsets.astype(self.output_dtypes[name + "__offsets"])
+                    output_tensors.append((name + "__values", values))
+                    output_tensors.append((name + "__offsets", offsets))
+                else:
+                    value = value.astype(self.output_dtypes[name])
+                    output_tensors.append((name, value))
 
         return output_tensors
+
+
+def _to_ragged(array):
+    """Convert Array to Ragged representation
+
+    Parameters
+    ----------
+    array : numpy.ndarray or cupy.ndarray
+        Array to convert
+
+    Returns
+    -------
+    values, offsets
+        Tuple of values and offsets
+    """
+    num_rows = array.shape[0]
+    row_lengths = [array.shape[1]] * num_rows
+    offsets = [0] + list(itertools.accumulate(row_lengths))
+    array_lib = cupy if cupy and isinstance(array, cupy.ndarray) else np
+    offsets = array_lib.array(offsets, dtype="int32")
+    values = array.reshape(-1, *array.shape[2:])
+    return values, offsets
