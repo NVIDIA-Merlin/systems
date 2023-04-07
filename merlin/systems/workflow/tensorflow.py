@@ -34,6 +34,5 @@ class TensorflowWorkflowRunner(WorkflowRunner):
         self.offsets = None
 
     def _transform_outputs(self, tensors):
-        # Load extra info needed for the Transformer4Rec (if exists)
         output_tensors = TensorTable(tensors).to_dict()
         return output_tensors
