@@ -87,7 +87,7 @@ def tensor_table_to_triton_response(tensor_table):
     """
     output_tensors = []
     for name, column in tensor_table.items():
-        if column.is_ragged:
+        if column.offsets is not None:
             values = _triton_tensor_from_array(f"{name}__values", column.values)
             offsets = _triton_tensor_from_array(f"{name}__offsets", column.offsets)
             output_tensors.extend([values, offsets])
@@ -123,7 +123,7 @@ def tensor_table_to_triton_request(model_name, tensor_table, input_col_names, ou
 
     for name, column in tensor_table.items():
         if name in input_col_names:
-            if column.is_ragged:
+            if column.offsets is not None:
                 values = _triton_tensor_from_array(f"{name}__values", column.values)
                 offsets = _triton_tensor_from_array(f"{name}__offsets", column.offsets)
                 input_tensors.extend([values, offsets])
