@@ -24,11 +24,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from merlin.core.compat import cudf
 from merlin.io import Dataset
 
-try:
-    import cudf
-
+if cudf:
     try:
         import cudf.testing._utils
 
@@ -37,8 +36,7 @@ try:
         import cudf.tests.utils
 
         assert_eq = cudf.tests.utils.assert_eq
-except ImportError:
-    cudf = None
+else:
 
     def assert_eq(a, b, *args, **kwargs):
         if isinstance(a, pd.DataFrame):

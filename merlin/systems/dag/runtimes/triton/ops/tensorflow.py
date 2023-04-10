@@ -126,7 +126,12 @@ class PredictTensorflowTriton(TritonOperator):
             The path to write the exported model to
         """
         config = model_config.ModelConfig(
-            name=name, backend="tensorflow", platform="tensorflow_savedmodel"
+            name=name,
+            backend="tensorflow",
+            platform="tensorflow_savedmodel",
+            instance_group=[
+                model_config.ModelInstanceGroup(kind=model_config.ModelInstanceGroup.Kind.KIND_AUTO)
+            ],
         )
 
         config.parameters["TF_GRAPH_TAG"].string_value = "serve"

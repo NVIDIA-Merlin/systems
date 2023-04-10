@@ -162,7 +162,12 @@ class PredictPyTorchTriton(TritonOperator):
         output_path:
             The path to write the exported model to
         """
-        config = model_config.ModelConfig(name=name)
+        config = model_config.ModelConfig(
+            name=name,
+            instance_group=[
+                model_config.ModelInstanceGroup(kind=model_config.ModelInstanceGroup.Kind.KIND_AUTO)
+            ],
+        )
 
         config.backend = "pytorch"
         config.platform = "pytorch_libtorch"
