@@ -16,6 +16,7 @@
 from merlin.core.protocols import Transformable
 from merlin.dag import Graph, postorder_iter_nodes
 from merlin.dag.executors import LocalExecutor
+from merlin.systems.dag.runtimes.op_table import OpTable
 
 
 class Runtime:
@@ -33,7 +34,7 @@ class Runtime:
             The Graph Executor to use to use for the transform, by default None
         """
         self.executor = executor or LocalExecutor()
-        self.op_table = {}
+        self.op_table = OpTable()
 
     def convert(self, graph: Graph):
         """
@@ -53,8 +54,8 @@ class Runtime:
             nodes = list(postorder_iter_nodes(graph.output_node))
 
             for node in nodes:
-                if type(node.op) in self.op_table:
-                    node.op = self.op_table[type(node.op)](node.op)
+                if self.op_table.has_impl(node.op):
+                    node.op = self.op_table.replace(node.op)
 
         return graph
 
