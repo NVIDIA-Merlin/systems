@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from merlin.core.compat import HAS_GPU
 from merlin.dag import ColumnSelector
 from merlin.dtypes.shape import Shape
 from merlin.schema import ColumnSchema, Schema
@@ -16,6 +17,7 @@ export = pytest.importorskip("merlin.systems.dag.ensemble")
 
 
 @pytest.mark.parametrize("runtime", [Runtime()])
+@pytest.mark.skipif(not HAS_GPU, reason="no gpu detected")
 def test_xgboost_regressor_forest_inference(runtime, tmpdir):
     rows = 200
     num_features = 16
@@ -50,6 +52,7 @@ def test_xgboost_regressor_forest_inference(runtime, tmpdir):
     assert response["output__0"].shape == Shape((5,))
 
 
+@pytest.mark.skipif(not HAS_GPU, reason="no gpu detected")
 @pytest.mark.parametrize("runtime", [Runtime()])
 def test_xgboost_classify_forest_inference(runtime, tmpdir):
     rows = 200

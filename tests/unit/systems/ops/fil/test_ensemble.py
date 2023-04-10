@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import os
 import shutil
 
 import numpy as np
@@ -22,14 +21,13 @@ import pytest
 import sklearn.datasets
 import xgboost
 
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
-
-from merlin.dag import ColumnSelector  # noqa
-from merlin.io import Dataset  # noqa
-from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag.ops.fil import PredictForest  # noqa
-from nvtabular import Workflow  # noqa
-from nvtabular import ops as wf_ops  # noqa
+from merlin.core.compat import HAS_GPU
+from merlin.dag import ColumnSelector
+from merlin.io import Dataset
+from merlin.schema import ColumnSchema, Schema
+from merlin.systems.dag.ops.fil import PredictForest
+from nvtabular import Workflow
+from nvtabular import ops as wf_ops
 
 triton = pytest.importorskip("merlin.systems.triton")
 export = pytest.importorskip("merlin.systems.dag.ensemble")
@@ -42,6 +40,7 @@ TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+@pytest.mark.skipif(not HAS_GPU, reason="no gpu detected")
 def test_workflow_with_forest_inference(tmpdir):
     rows = 200
     num_features = 16

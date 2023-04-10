@@ -26,15 +26,11 @@
 
 import itertools
 
-try:
-    import cudf
-    import cupy as cp
-except ImportError:
-    cudf = cp = None
-
 import numpy as np
 import pandas as pd
 
+from merlin.core.compat import cudf
+from merlin.core.compat import cupy as cp
 from merlin.core.dispatch import build_cudf_list_column, is_list_dtype
 from merlin.dag import Supports
 from merlin.systems.dag.ops.compat import pb_utils

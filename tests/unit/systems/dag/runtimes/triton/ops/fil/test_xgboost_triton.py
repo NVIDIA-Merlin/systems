@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from merlin.core.compat import HAS_GPU
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
@@ -26,6 +27,7 @@ TRITON_SERVER_PATH = shutil.which("tritonserver")
         (TritonExecutorRuntime(), None, "executor_model"),
     ],
 )
+@pytest.mark.skipif(not HAS_GPU, reason="no gpu detected")
 def test_xgboost_regressor_forest_inference(runtime, model_name, expected_model_name, tmpdir):
     rows = 200
     num_features = 16
@@ -64,6 +66,7 @@ def test_xgboost_regressor_forest_inference(runtime, model_name, expected_model_
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+@pytest.mark.skipif(not HAS_GPU, reason="no gpu detected")
 @pytest.mark.parametrize(
     ["runtime", "model_name", "expected_model_name"],
     [

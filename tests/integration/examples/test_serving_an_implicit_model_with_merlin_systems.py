@@ -4,17 +4,17 @@ import pytest
 from testbook import testbook
 
 from merlin.systems.triton.utils import run_triton_server
+from merlin.core.compat import cudf
 from tests.conftest import REPO_ROOT
 
 pytest.importorskip("implicit")
 pytest.importorskip("merlin.models")
 
-try:
-    # pylint: disable=unused-import
-    import cudf  # noqa
+
+if cudf:
 
     _TRAIN_ON_GPU = [True, False]
-except ImportError:
+else:
     _TRAIN_ON_GPU = [False]
 
 TRITON_SERVER_PATH = shutil.which("tritonserver")
