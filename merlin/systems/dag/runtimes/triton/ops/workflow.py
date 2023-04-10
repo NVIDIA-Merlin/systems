@@ -31,7 +31,7 @@ from merlin.systems.triton.conversions import (
     tensor_table_to_triton_request,
     triton_response_to_tensor_table,
 )
-from merlin.systems.triton.export import _add_model_param, _convert_dtype
+from merlin.systems.triton.export import _add_model_param
 
 
 class TransformWorkflowTriton(TritonOperator):
@@ -45,7 +45,7 @@ class TransformWorkflowTriton(TritonOperator):
         Creates a Transform Workflow operator for a target workflow.
 
         Parameters
-        ----------
+        ----------from merlin.systems.triton.export import _add_model_param, _convert_dtype
         workflow : Nvtabular.Workflow
             The workflow to transform data in ensemble.
         sparse_max : dict, optional
@@ -54,9 +54,6 @@ class TransformWorkflowTriton(TritonOperator):
             Maximum batch size, by default None
         label_columns : List[str], optional
             List of strings identifying the label columns, by default None
-        model_framework : str, optional
-            String representing the target framework
-            (supported: hugectr, tensorflow, pytorch, python), by default None
         cats : List[str], optional
             List of strings identifying categorical columns, by default None
         conts : List[str], optional
@@ -196,7 +193,6 @@ def _generate_nvtabular_model(
     name,
     output_path,
     version=1,
-    output_model=None,
     max_batch_size=None,
     sparse_max=None,
     backend="python",
@@ -218,7 +214,6 @@ def _generate_nvtabular_model(
         workflow,
         name,
         output_path,
-        output_model,
         max_batch_size,
         sparse_max=sparse_max,
         backend=backend,
@@ -243,7 +238,6 @@ def _generate_nvtabular_config(
     workflow,
     name,
     output_path,
-    output_model=None,
     max_batch_size=None,
     sparse_max=None,
     backend="python",
@@ -255,7 +249,6 @@ def _generate_nvtabular_config(
     config = model_config.ModelConfig(name=name, backend=backend, max_batch_size=max_batch_size)
 
     config.parameters["python_module"].string_value = "merlin.systems.triton.models.workflow_model"
-    config.parameters["output_model"].string_value = output_model if output_model else ""
 
     config.parameters["cats"].string_value = json.dumps(cats) if cats else ""
     config.parameters["conts"].string_value = json.dumps(conts) if conts else ""
@@ -264,48 +257,16 @@ def _generate_nvtabular_config(
         # this assumes seq_length is same for each list column
         config.parameters["sparse_max"].string_value = json.dumps(sparse_max)
 
-    if output_model == "hugectr":
-        config.instance_group.append(model_config.ModelInstanceGroup(kind=2))
+    for col_name, col_schema in workflow.input_schema.column_schemas.items():
+        _add_model_param(col_schema, model_config.ModelInput, config.input)
 
-        for column in workflow.output_node.input_columns.names:
-            dtype = workflow.input_dtypes[column]
-            config.input.append(
-                model_config.ModelInput(name=column, data_type=_convert_dtype(dtype), dims=[-1])
-            )
-
-        config.output.append(
-            model_config.ModelOutput(name="DES", data_type=model_config.TYPE_FP32, dims=[-1])
-        )
-
-        config.output.append(
-            model_config.ModelOutput(name="CATCOLUMN", data_type=model_config.TYPE_INT64, dims=[-1])
-        )
-
-        config.output.append(
-            model_config.ModelOutput(name="ROWINDEX", data_type=model_config.TYPE_INT32, dims=[-1])
-        )
-    elif output_model == "pytorch":
-        for col_name, col_schema in workflow.input_schema.column_schemas.items():
-            _add_model_param(col_schema, model_config.ModelInput, config.input)
-
-        for col_name, col_schema in workflow.output_schema.column_schemas.items():
-            _add_model_param(
-                col_schema,
-                model_config.ModelOutput,
-                config.output,
-                [-1, 1],
-            )
-    else:
-        for col_name, col_schema in workflow.input_schema.column_schemas.items():
-            _add_model_param(col_schema, model_config.ModelInput, config.input)
-
-        for col_name, col_schema in workflow.output_schema.column_schemas.items():
-            if sparse_max and col_name in sparse_max.keys():
-                # this assumes max_sequence_length is equal for all output columns
-                dim = sparse_max[col_name]
-                _add_model_param(col_schema, model_config.ModelOutput, config.output, [-1, dim])
-            else:
-                _add_model_param(col_schema, model_config.ModelOutput, config.output)
+    for col_name, col_schema in workflow.output_schema.column_schemas.items():
+        if sparse_max and col_name in sparse_max.keys():
+            # this assumes max_sequence_length is equal for all output columns
+            dim = sparse_max[col_name]
+            _add_model_param(col_schema, model_config.ModelOutput, config.output, [-1, dim])
+        else:
+            _add_model_param(col_schema, model_config.ModelOutput, config.output)
 
     with open(os.path.join(output_path, "config.pbtxt"), "w", encoding="utf-8") as o:
         text_format.PrintMessage(config, o)

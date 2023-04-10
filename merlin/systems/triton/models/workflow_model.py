@@ -34,7 +34,6 @@ from merlin.core.dispatch import is_list_dtype
 from merlin.systems.triton import _convert_tensor
 from merlin.systems.triton.utils import triton_error_handling, triton_multi_request
 from merlin.systems.workflow.base import WorkflowRunner
-from merlin.systems.workflow.hugectr import HugeCTRWorkflowRunner
 
 
 class TritonPythonModel:
@@ -72,7 +71,6 @@ class TritonPythonModel:
 
         # Config loading and parsing
         self.model_config = json.loads(args["model_config"])
-        model_framework = self.model_config["parameters"]["output_model"]["string_value"]
 
         # Dtype parsing
         input_dtypes = self.workflow.input_dtypes.items()
@@ -86,12 +84,7 @@ class TritonPythonModel:
             else:
                 self._set_output_dtype(col_name)
 
-        if model_framework == "hugectr":
-            runner_class = HugeCTRWorkflowRunner
-        else:
-            runner_class = WorkflowRunner
-
-        self.runner = runner_class(
+        self.runner = WorkflowRunner(
             self.workflow, self.output_dtypes, self.model_config, model_device
         )
 

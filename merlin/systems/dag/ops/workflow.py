@@ -34,7 +34,6 @@ class TransformWorkflow(InferenceOperator):
         sparse_max: dict = None,
         max_batch_size: int = None,
         label_columns: List[str] = None,
-        model_framework: str = None,
         cats: List[str] = None,
         conts: List[str] = None,
     ):
@@ -51,9 +50,6 @@ class TransformWorkflow(InferenceOperator):
             Maximum batch size, by default None
         label_columns : List[str], optional
             List of strings identifying the label columns, by default None
-        model_framework : str, optional
-            String representing the target framework
-            (supported: hugectr, tensorflow, pytorch, python), by default None
         cats : List[str], optional
             List of strings identifying categorical columns, by default None
         conts : List[str], optional
@@ -68,7 +64,6 @@ class TransformWorkflow(InferenceOperator):
         self.sparse_max = sparse_max or {}
         self.max_batch_size = max_batch_size
         self.label_columns = label_columns or []
-        self.model_framework = model_framework or ""
         self.cats = cats or []
         self.conts = conts or []
 
