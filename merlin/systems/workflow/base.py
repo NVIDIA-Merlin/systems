@@ -28,8 +28,6 @@ import functools
 import json
 import logging
 
-import numpy as np
-
 from merlin.core.dispatch import concat_columns
 from merlin.dag import ColumnSelector, Supports
 from merlin.schema import Tags
@@ -107,11 +105,7 @@ class WorkflowRunner:
         if kind != Supports.CPU_DICT_ARRAY:
             transformed, kind = convert_format(transformed, kind, Supports.CPU_DICT_ARRAY)
 
-        # convert to the format expected by the DL models
-        return self._transform_outputs(transformed)
-
-    def _transform_outputs(self, tensors):
-        return TensorTable(tensors).to_dict()
+        return TensorTable(transformed).to_dict()
 
     def _transform_tensors(self, input_tensors, workflow_node):
         upstream_inputs = []
