@@ -45,7 +45,7 @@ class TransformWorkflowTriton(TritonOperator):
         Creates a Transform Workflow operator for a target workflow.
 
         Parameters
-        ----------from merlin.systems.triton.export import _add_model_param, _convert_dtype
+        ----------
         workflow : Nvtabular.Workflow
             The workflow to transform data in ensemble.
         sparse_max : dict, optional
