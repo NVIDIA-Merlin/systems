@@ -246,7 +246,14 @@ def _generate_nvtabular_config(
 ):
     """given a workflow generates the trton modelconfig proto object describing the inputs
     and outputs to that workflow"""
-    config = model_config.ModelConfig(name=name, backend=backend, max_batch_size=max_batch_size)
+    config = model_config.ModelConfig(
+        name=name,
+        backend=backend,
+        max_batch_size=max_batch_size,
+        instance_group=[
+            model_config.ModelInstanceGroup(kind=model_config.ModelInstanceGroup.Kind.KIND_AUTO)
+        ],
+    )
 
     config.parameters["python_module"].string_value = "merlin.systems.triton.models.workflow_model"
 

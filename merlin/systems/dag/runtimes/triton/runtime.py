@@ -181,7 +181,12 @@ class TritonExecutorRuntime(Runtime):
         node_export_path.mkdir(parents=True, exist_ok=True)
 
         config = model_config.ModelConfig(
-            name=node_name, backend="python", platform="merlin_executor"
+            name=node_name,
+            backend="python",
+            platform="merlin_executor",
+            instance_group=[
+                model_config.ModelInstanceGroup(kind=model_config.ModelInstanceGroup.Kind.KIND_AUTO)
+            ],
         )
 
         input_schema = ensemble.input_schema
