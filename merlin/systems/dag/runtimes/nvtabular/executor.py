@@ -14,12 +14,17 @@
 # limitations under the License.
 #
 import functools
+import itertools
 import logging
 
-from merlin.core.dispatch import concat_columns
+from merlin.core.compat import cudf
+from merlin.core.compat import cupy as cp
+from merlin.core.compat import numpy as np
+from merlin.core.compat import pandas
+from merlin.core.dispatch import build_cudf_list_column, concat_columns, is_list_dtype
 from merlin.dag import Graph, Node, Supports
 from merlin.dag.executors import LocalExecutor
-from merlin.systems.triton.conversions import convert_format
+from merlin.table import CupyColumn, NumpyColumn, TensorTable
 
 LOG = logging.getLogger("merlin-systems")
 
@@ -40,6 +45,7 @@ class NVTabularServingExecutor(LocalExecutor):
         additional_columns=None,
         capture_dtypes=False,
         strict=False,
+        output_format=Supports.CPU_DICT_ARRAY,
     ):
         """
         Transforms a single dataframe (possibly a partition of a Dask Dataframe)
@@ -63,31 +69,48 @@ class NVTabularServingExecutor(LocalExecutor):
         output_data = None
 
         for node in nodes:
-            transformed_data, kind = self._transform_tensors(transformable, node)
+            transformed_data = self._execute_node(node, transformable)
             output_data = self._combine_node_outputs(node, transformed_data, output_data)
 
-        # if we don't have tensors in numpy format, convert back so that the we can return
-        # to triton
-        if kind != Supports.CPU_DICT_ARRAY:
-            output_data, kind = convert_format(output_data, kind, Supports.CPU_DICT_ARRAY)
+        if additional_columns:
+            output_data = concat_columns(
+                [output_data, transformable[_get_unique(additional_columns)]]
+            )
+
+        format_ = _data_format(output_data)
+        if format_ != output_format:
+            output_data = _convert_format(output_data, output_format)
 
         return output_data
 
-    def _transform_tensors(self, input_tensors, workflow_node):
-        upstream_inputs = []
+    def _execute_node(self, workflow_node, input_tensors, capture_dtypes=False, strict=False):
+        upstream_outputs = self._run_upstream_transforms(workflow_node, input_tensors)
+        node_input_data = self._merge_addl_root_columns(
+            workflow_node, input_tensors, upstream_outputs
+        )
+        if isinstance(node_input_data, str):
+            raise TypeError(f"Node_input_data is a string: {node_input_data}")
+        tensors = self._standardize_formats(workflow_node, node_input_data)
+        tensors = self._run_node_transform(workflow_node, tensors)
 
-        # Gather inputs from the parents and dependency nodes
+        return tensors
+
+    def _run_upstream_transforms(self, workflow_node, input_tensors):
+        upstream_outputs = []
+
         if workflow_node.parents_with_dependencies:
             for parent in workflow_node.parents_with_dependencies:
-                upstream_tensors, upstream_kind = self._transform_tensors(input_tensors, parent)
-                if upstream_tensors is not None and upstream_kind:
-                    upstream_inputs.append((upstream_tensors, upstream_kind))
+                upstream_tensors = self._execute_node(parent, input_tensors)
+                if upstream_tensors is not None:
+                    upstream_outputs.append(upstream_tensors)
 
-        # Gather additional input columns from the original input tensors
+        return upstream_outputs
+
+    def _merge_addl_root_columns(self, workflow_node, input_tensors, upstream_outputs):
         if workflow_node.selector:
             selector_columns = workflow_node.selector.names
             to_remove = []
-            for upstream_tensors, upstream_kind in upstream_inputs:
+            for upstream_tensors in upstream_outputs or []:
                 for col in selector_columns:
                     if col in upstream_tensors:
                         to_remove.append(col)
@@ -96,68 +119,207 @@ class NVTabularServingExecutor(LocalExecutor):
 
             if selector_columns:
                 selected_tensors = {c: input_tensors[c] for c in selector_columns}
-                selected_kinds = Supports.CPU_DICT_ARRAY
-                upstream_inputs.append((selected_tensors, selected_kinds))
+                upstream_outputs.append(selected_tensors)
 
-        # Standardize the formats
-        tensors, kind = None, None
-        for upstream_tensors, upstream_kind in upstream_inputs:
+        return upstream_outputs
+
+    def _standardize_formats(self, workflow_node, node_input_data):
+        tensors, format_ = None, None
+
+        # Merge together the outputs from upstream nodes into a common format
+        for upstream_tensors in node_input_data:
+            upstream_format = _data_format(upstream_tensors)
             if tensors is None:
-                tensors, kind = upstream_tensors, upstream_kind
+                tensors, format_ = upstream_tensors, upstream_format
             else:
-                if kind != upstream_kind:
+                if format_ != upstream_format:
                     # we have multiple different kinds of data here (dataframe/array on cpu/gpu)
                     # we need to convert to a common format here first before concatenating.
                     op = workflow_node.op
                     if op and hasattr(op, "inference_initialize"):
-                        target_kind = self._maybe_mask_cpu_only(op.supports)
+                        target_format = _maybe_mask_cpu_only(op.supports, self.device)
                     else:
-                        target_kind = Supports.CPU_DICT_ARRAY
-                    # note : the 2nd convert_format call needs to be stricter in what the kind is
+                        target_format = Supports.CPU_DICT_ARRAY
+                    # note : the 2nd convert_format call needs to be stricter in what the format is
                     # (exact match rather than a bitmask of values)
-                    tensors, kind = convert_format(tensors, kind, target_kind)
-                    upstream_tensors, _ = convert_format(upstream_tensors, upstream_kind, kind)
+                    tensors = _convert_format(tensors, target_format)
+                    format_ = _data_format(tensors)
+                    upstream_tensors = _convert_format(upstream_tensors, format_)
 
-                tensors = self.concat_tensors([tensors, upstream_tensors], kind)
+                tensors = _concat_tensors([tensors, upstream_tensors], format_)
 
-        # Run the transform
-        if tensors is not None and kind and workflow_node.op:
-            try:
-                inference_supports = self._maybe_mask_cpu_only(workflow_node.op.supports)
+        # if the op doesn't support the resulting format, we need to convert one more time
+        format_ = _data_format(tensors)
+        inference_supports = _maybe_mask_cpu_only(workflow_node.op.supports, self.device)
 
-                # if the op doesn't support the current kind - we need to convert
-                if (
-                    hasattr(workflow_node.op, "inference_initialize")
-                    and not inference_supports & kind
-                ):
-                    tensors, kind = convert_format(tensors, kind, inference_supports)
+        if hasattr(workflow_node.op, "inference_initialize") and not inference_supports & format_:
+            tensors = _convert_format(tensors, inference_supports)
 
-                tensors = workflow_node.op.transform(
-                    workflow_node.input_columns,
-                    tensors,
-                )
+        return tensors
 
-            except Exception:
-                LOG.exception("Failed to transform operator %s", workflow_node.op)
-                raise
 
-        return tensors, kind
+def _concat_tensors(tensors, format_):
+    if format_ & (Supports.GPU_DATAFRAME | Supports.CPU_DATAFRAME):
+        return concat_columns(tensors)
+    else:
+        output = tensors[0]
+        for tensor in tensors[1:]:
+            output.update(tensor)
+        return output
 
-    def concat_tensors(self, tensors, kind):
-        if kind & (Supports.GPU_DATAFRAME | Supports.CPU_DATAFRAME):
-            return concat_columns(tensors)
+
+def _maybe_mask_cpu_only(supported, device):
+    # if we're running on the CPU only, mask off support for GPU data formats
+    if device == "CPU":
+        supported = functools.reduce(
+            lambda a, b: a | b,
+            (v for v in list(Supports) if v & supported and "CPU" in str(v)),
+        )
+
+    return supported
+
+
+def _get_unique(cols):
+    # Need to preserve order in unique-column list
+    return list({x: x for x in cols}.keys())
+
+
+def _data_format(transformable):
+    data = TensorTable(transformable) if isinstance(transformable, dict) else transformable
+
+    if cudf and isinstance(data, cudf.DataFrame):
+        return Supports.GPU_DATAFRAME
+    elif pandas and isinstance(data, pandas.DataFrame):
+        return Supports.CPU_DATAFRAME
+    elif data.column_type is CupyColumn:
+        return Supports.GPU_DICT_ARRAY
+    elif data.column_type is NumpyColumn:
+        return Supports.CPU_DICT_ARRAY
+    else:
+        if isinstance(data, TensorTable):
+            raise TypeError(f"Unknown type: {data.column_type}")
         else:
-            output = tensors[0]
-            for tensor in tensors[1:]:
-                output.update(tensor)
-            return output
+            raise TypeError(f"Unknown type: {type(data)}")
 
-    def _maybe_mask_cpu_only(self, supported):
-        # if we're running on the CPU only, mask off support for GPU data formats
-        if self.device == "CPU":
-            supported = functools.reduce(
-                lambda a, b: a | b,
-                (v for v in list(Supports) if v & supported and "CPU" in str(v)),
-            )
 
-        return supported
+def _convert_format(tensors, target_format):
+    """
+    Converts data to one of the formats specified in 'target_format'
+
+    This allows us to convert data to/from dataframe representations for operators that
+    only support certain reprentations
+    """
+    format_ = _data_format(tensors)
+
+    # this is all much more difficult because of multihot columns, which don't have
+    # great representations in dicts of cpu/gpu arrays. we're representing multihots
+    # as tuples of (values, offsets) tensors in this case - but have to do work at
+    # each step in terms of converting.
+    if format_ & target_format:
+        return tensors, format_
+
+    elif target_format & Supports.GPU_DICT_ARRAY:
+        if format_ == Supports.CPU_DICT_ARRAY:
+            return _convert_array(tensors, cp.array)
+        elif format_ == Supports.CPU_DATAFRAME:
+            return _pandas_to_array(tensors, False)
+        elif format_ == Supports.GPU_DATAFRAME:
+            return _cudf_to_array(tensors, False)
+
+    elif target_format & Supports.CPU_DICT_ARRAY:
+        if format_ == Supports.GPU_DICT_ARRAY:
+            return _convert_array(tensors, cp.asnumpy)
+        elif format_ == Supports.CPU_DATAFRAME:
+            return _pandas_to_array(tensors, True)
+        elif format_ == Supports.GPU_DATAFRAME:
+            return _cudf_to_array(tensors, True)
+
+    elif target_format & Supports.GPU_DATAFRAME:
+        if format_ == Supports.CPU_DATAFRAME:
+            return cudf.DataFrame(tensors)
+        return _array_to_cudf(tensors)
+
+    elif target_format & Supports.CPU_DATAFRAME:
+        if format_ == Supports.GPU_DATAFRAME:
+            return tensors.to_pandas()
+        elif format_ == Supports.CPU_DICT_ARRAY:
+            return _array_to_pandas(tensors)
+        elif format_ == Supports.GPU_DICT_ARRAY:
+            return _array_to_pandas(_convert_array(tensors, cp.asnumpy))
+
+    raise ValueError("unsupported target for converting tensors", target_format)
+
+
+def _convert_array(tensors, converter):
+    output = {}
+    for name, tensor in tensors.items():
+        if isinstance(tensor, tuple):
+            output[name] = tuple(converter(t) for t in tensor)
+        else:
+            output[name] = converter(tensor)
+    return output
+
+
+def _array_to_pandas(tensors):
+    output = pandas.DataFrame()
+    for name, tensor in tensors.items():
+        if isinstance(tensor, tuple):
+            values, offsets = tensor
+            output[name] = [values[offsets[i] : offsets[i + 1]] for i in range(len(offsets) - 1)]
+        else:
+            output[name] = tensor
+    return output
+
+
+def _array_to_cudf(tensors):
+    output = cudf.DataFrame()
+    for name, tensor in tensors.items():
+        if isinstance(tensor, tuple):
+            output[name] = build_cudf_list_column(tensor[0], tensor[1].astype("int32"))
+        else:
+            output[name] = tensor
+    return output
+
+
+def _pandas_to_array(df, cpu=True):
+    array_type = np.array if cpu else cp.array
+
+    output = {}
+    for name in df.columns:
+        col = df[name]
+        if pandas.api.types.is_list_like(col.values[0]):
+            values = array_type(list(itertools.chain(*col)))
+            row_lengths = col.map(len)
+            if all(row_lengths == row_lengths[0]):
+                output[name] = values.reshape((-1, row_lengths[0]))
+            else:
+                offsets = pandas.Series([0]).append(row_lengths.cumsum()).values
+                if not cpu:
+                    offsets = cp.array(offsets)
+                output[name] = (values, offsets)
+        else:
+            values = col.values
+            if not cpu:
+                values = cp.array(values)
+            output[name] = values
+
+    return output
+
+
+def _cudf_to_array(df, cpu=True):
+    output = {}
+    for name in df.columns:
+        col = df[name]
+        if is_list_dtype(col.dtype):
+            values = col.list.leaves.values_host if cpu else col.list.leaves.values
+            offsets = col._column.offsets.values_host if cpu else col._column.offsets.values
+
+            row_lengths = offsets[1:] - offsets[:-1]
+            if all(row_lengths == row_lengths[0]):
+                output[name] = values.reshape((-1, row_lengths[0]))
+            else:
+                output[name] = (values, offsets)
+        else:
+            output[name] = col.values_host if cpu else col.values
+
+    return output

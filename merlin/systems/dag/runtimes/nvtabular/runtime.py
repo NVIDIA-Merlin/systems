@@ -17,8 +17,9 @@ import logging
 
 import nvtabular_cpp
 
-from merlin.systems.dag.runtimes import OpTable, Runtime
+from merlin.systems.dag.runtimes import Runtime
 from merlin.systems.dag.runtimes.nvtabular.executor import NVTabularServingExecutor
+from merlin.systems.dag.runtimes.op_table import OpTable
 from nvtabular.ops import Categorify, FillMissing
 
 LOG = logging.getLogger("merlin-systems")
