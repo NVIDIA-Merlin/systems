@@ -33,9 +33,7 @@ import nvtabular
 from merlin.core.dispatch import is_list_dtype
 from merlin.systems.triton import _convert_tensor
 from merlin.systems.triton.utils import triton_error_handling, triton_multi_request
-from merlin.systems.workflow.hugectr import HugeCTRWorkflowRunner
-from merlin.systems.workflow.pytorch import PyTorchWorkflowRunner
-from merlin.systems.workflow.tensorflow import TensorflowWorkflowRunner
+from merlin.systems.workflow.base import WorkflowRunner
 
 
 class TritonPythonModel:
@@ -73,7 +71,6 @@ class TritonPythonModel:
 
         # Config loading and parsing
         self.model_config = json.loads(args["model_config"])
-        model_framework = self.model_config["parameters"]["output_model"]["string_value"]
 
         # Dtype parsing
         input_dtypes = self.workflow.input_dtypes.items()
@@ -87,14 +84,7 @@ class TritonPythonModel:
             else:
                 self._set_output_dtype(col_name)
 
-        if model_framework == "hugectr":
-            runner_class = HugeCTRWorkflowRunner
-        elif model_framework == "pytorch":
-            runner_class = PyTorchWorkflowRunner
-        else:
-            runner_class = TensorflowWorkflowRunner
-
-        self.runner = runner_class(
+        self.runner = WorkflowRunner(
             self.workflow, self.output_dtypes, self.model_config, model_device
         )
 
@@ -122,12 +112,8 @@ class TritonPythonModel:
             )
             input_tensors[name] = (values, offsets)
 
-        # raise pb_utils.TritonModelException("Custom Error To check raised!")
-        raw_tensor_tuples = self.runner.run_workflow(input_tensors)
-        if isinstance(raw_tensor_tuples, dict):
-            raw_tensor_tuples = list(raw_tensor_tuples.items())
-
-        result = [pb_utils.Tensor(name, data) for name, data in raw_tensor_tuples]
+        transformed = self.runner.run_workflow(input_tensors)
+        result = [pb_utils.Tensor(name, data) for name, data in transformed.items()]
 
         return pb_utils.InferenceResponse(result)
 
