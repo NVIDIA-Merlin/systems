@@ -29,12 +29,12 @@ import itertools
 import json
 import logging
 
-from merlin.core.dispatch import concat_columns
 from merlin.core.compat import cupy
+from merlin.core.dispatch import concat_columns
 from merlin.dag import ColumnSelector, Supports
 from merlin.schema import Tags
 from merlin.systems.triton.conversions import convert_format
-from merlin.table import TensorTable, TensorColumn
+from merlin.table import TensorColumn, TensorTable
 
 LOG = logging.getLogger("merlin-systems")
 

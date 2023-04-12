@@ -194,13 +194,13 @@ def test_workflow_with_ragged_output(tmpdir):
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
 
+
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 def test_workflow_with_padded_output(tmpdir):
     df = make_df({"x": [100, 200, 300], "session_id": [1, 1, 2]})
     dataset = Dataset(df)
-    workflow_ops = (
-        ["x", "session_id"]
-        >> wf_ops.Groupby(groupby_cols=["session_id"], aggs={"x": ["list"]}, name_sep="-")
+    workflow_ops = ["x", "session_id"] >> wf_ops.Groupby(
+        groupby_cols=["session_id"], aggs={"x": ["list"]}, name_sep="-"
     )
     workflow_ops = workflow_ops["x-list"] >> wf_ops.ListSlice(-3, pad=True)
     workflow = Workflow(workflow_ops)
@@ -245,7 +245,7 @@ def test_workflow_with_padded_output(tmpdir):
                     schema, df, output_names, client=client, triton_model=model_name
                 )
                 for key, value in expected_response.items():
-                    np.testing.assert_array_equal(response[key], value)                    
+                    np.testing.assert_array_equal(response[key], value)
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
