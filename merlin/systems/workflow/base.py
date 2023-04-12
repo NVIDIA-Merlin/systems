@@ -25,14 +25,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import functools
+import itertools
 import json
 import logging
 
 from merlin.core.dispatch import concat_columns
+from merlin.core.compat import cupy
 from merlin.dag import ColumnSelector, Supports
 from merlin.schema import Tags
 from merlin.systems.triton.conversions import convert_format
-from merlin.table import TensorTable
+from merlin.table import TensorTable, TensorColumn
 
 LOG = logging.getLogger("merlin-systems")
 
@@ -105,7 +107,16 @@ class WorkflowRunner:
         if kind != Supports.CPU_DICT_ARRAY:
             transformed, kind = convert_format(transformed, kind, Supports.CPU_DICT_ARRAY)
 
-        return TensorTable(transformed).to_dict()
+        output_table = TensorTable(transformed)
+
+        for col in self.workflow.output_schema:
+            if col.is_ragged and output_table[col.name].offsets is None:
+                values, offsets = _to_ragged(output_table[col.name].values)
+                values = values.astype(self.output_dtypes[col.name + "__values"])
+                offsets = offsets.astype(self.output_dtypes[col.name + "__offsets"])
+                output_table[col.name] = TensorColumn(values, offsets=offsets)
+
+        return output_table.to_dict()
 
     def _transform_tensors(self, input_tensors, workflow_node):
         upstream_inputs = []
@@ -189,3 +200,25 @@ class WorkflowRunner:
         for key in args:
             config_element = config_element.get(key, {})
         return config_element or default
+
+
+def _to_ragged(array):
+    """Convert Array to Ragged representation
+
+    Parameters
+    ----------
+    array : numpy.ndarray or cupy.ndarray
+        Array to convert
+
+    Returns
+    -------
+    values, offsets
+        Tuple of values and offsets
+    """
+    num_rows = array.shape[0]
+    row_lengths = [array.shape[1]] * num_rows
+    offsets = [0] + list(itertools.accumulate(row_lengths))
+    array_lib = cupy if cupy and isinstance(array, cupy.ndarray) else np
+    offsets = array_lib.array(offsets, dtype="int32")
+    values = array.reshape(-1, *array.shape[2:])
+    return values, offsets
