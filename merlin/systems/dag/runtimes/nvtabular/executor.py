@@ -85,26 +85,18 @@ class NVTabularServingExecutor(LocalExecutor):
 
     def _execute_node(self, workflow_node, input_tensors, capture_dtypes=False, strict=False):
         upstream_outputs = self._run_upstream_transforms(workflow_node, input_tensors)
-        node_input_data = self._merge_addl_root_columns(
+        upstream_outputs = self._merge_addl_root_columns(
             workflow_node, input_tensors, upstream_outputs
         )
-        if isinstance(node_input_data, str):
-            raise TypeError(f"Node_input_data is a string: {node_input_data}")
-        tensors = self._standardize_formats(workflow_node, node_input_data)
-        tensors = self._run_node_transform(workflow_node, tensors)
+        tensors = self._standardize_formats(workflow_node, upstream_outputs)
 
-        return tensors
+        transform_input = _concat_tensors(tensors)
+        # TODO: In order to replace the line above with the line below, we first have to replace
+        #       dictionaries with TensorTables
+        # transform_input = self._merge_upstream_columns(tensors, merge_fn=_concat_tensors)
+        transform_output = self._run_node_transform(workflow_node, transform_input)
 
-    def _run_upstream_transforms(self, workflow_node, input_tensors):
-        upstream_outputs = []
-
-        if workflow_node.parents_with_dependencies:
-            for parent in workflow_node.parents_with_dependencies:
-                upstream_tensors = self._execute_node(parent, input_tensors)
-                if upstream_tensors is not None:
-                    upstream_outputs.append(upstream_tensors)
-
-        return upstream_outputs
+        return transform_output
 
     def _merge_addl_root_columns(self, workflow_node, input_tensors, upstream_outputs):
         if workflow_node.selector:
@@ -124,41 +116,29 @@ class NVTabularServingExecutor(LocalExecutor):
         return upstream_outputs
 
     def _standardize_formats(self, workflow_node, node_input_data):
-        tensors, format_ = None, None
+        # Get the supported formats
+        op = workflow_node.op
+        if op and hasattr(op, "inference_initialize"):
+            supported_formats = _maybe_mask_cpu_only(op.supports, self.device)
+        else:
+            supported_formats = Supports.CPU_DICT_ARRAY
 
-        # Merge together the outputs from upstream nodes into a common format
+        # Convert the first thing into a supported format
+        tensors = _convert_format(node_input_data[0], supported_formats)
+        target_format = _data_format(tensors)
+
+        # Convert the whole list into the same format
+        formatted_tensors = []
         for upstream_tensors in node_input_data:
-            upstream_format = _data_format(upstream_tensors)
-            if tensors is None:
-                tensors, format_ = upstream_tensors, upstream_format
-            else:
-                if format_ != upstream_format:
-                    # we have multiple different kinds of data here (dataframe/array on cpu/gpu)
-                    # we need to convert to a common format here first before concatenating.
-                    op = workflow_node.op
-                    if op and hasattr(op, "inference_initialize"):
-                        target_format = _maybe_mask_cpu_only(op.supports, self.device)
-                    else:
-                        target_format = Supports.CPU_DICT_ARRAY
-                    # note : the 2nd convert_format call needs to be stricter in what the format is
-                    # (exact match rather than a bitmask of values)
-                    tensors = _convert_format(tensors, target_format)
-                    format_ = _data_format(tensors)
-                    upstream_tensors = _convert_format(upstream_tensors, format_)
+            upstream_tensors = _convert_format(upstream_tensors, target_format)
+            formatted_tensors.append(upstream_tensors)
 
-                tensors = _concat_tensors([tensors, upstream_tensors], format_)
-
-        # if the op doesn't support the resulting format, we need to convert one more time
-        format_ = _data_format(tensors)
-        inference_supports = _maybe_mask_cpu_only(workflow_node.op.supports, self.device)
-
-        if hasattr(workflow_node.op, "inference_initialize") and not inference_supports & format_:
-            tensors = _convert_format(tensors, inference_supports)
-
-        return tensors
+        return formatted_tensors
 
 
-def _concat_tensors(tensors, format_):
+def _concat_tensors(tensors):
+    format_ = _data_format(tensors[0])
+
     if format_ & (Supports.GPU_DATAFRAME | Supports.CPU_DATAFRAME):
         return concat_columns(tensors)
     else:
@@ -216,7 +196,7 @@ def _convert_format(tensors, target_format):
     # as tuples of (values, offsets) tensors in this case - but have to do work at
     # each step in terms of converting.
     if format_ & target_format:
-        return tensors, format_
+        return tensors
 
     elif target_format & Supports.GPU_DICT_ARRAY:
         if format_ == Supports.CPU_DICT_ARRAY:
