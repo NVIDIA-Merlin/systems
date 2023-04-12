@@ -194,6 +194,59 @@ def test_workflow_with_ragged_output(tmpdir):
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
 
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_workflow_with_padded_output(tmpdir):
+    df = make_df({"x": [100, 200, 300], "session_id": [1, 1, 2]})
+    dataset = Dataset(df)
+    workflow_ops = (
+        ["x", "session_id"]
+        >> wf_ops.Groupby(groupby_cols=["session_id"], aggs={"x": ["list"]}, name_sep="-")
+    )
+    workflow_ops = workflow_ops["x-list"] >> wf_ops.ListSlice(-3, pad=True)
+    workflow = Workflow(workflow_ops)
+    workflow.fit(dataset)
+
+    workflow_node = workflow.input_schema.column_names >> workflow_op.TransformWorkflow(workflow)
+    wkflow_ensemble = ensemble.Ensemble(workflow_node, workflow.input_schema)
+    ensemble_config, node_configs = wkflow_ensemble.export(tmpdir)
+
+    with run_triton_server(tmpdir) as client:
+        for model_name in [ensemble_config.name, node_configs[0].name]:
+            for request_dict, expected_response in [
+                (
+                    {"x": np.array([100], dtype="int64"), "session_id": np.array([1])},
+                    {
+                        "x-list": np.array([[100, 0, 0]], dtype="int64"),
+                    },
+                ),
+                (
+                    {
+                        "x": np.array([100, 200, 300], dtype="int64"),
+                        "session_id": np.array([1, 1, 2]),
+                    },
+                    {
+                        "x-list": np.array([[100, 200, 0], [300, 0, 0]], dtype="int64"),
+                    },
+                ),
+                (
+                    {
+                        "x": np.array([100, 200, 300, 400], dtype="int64"),
+                        "session_id": np.array([1, 1, 2, 2]),
+                    },
+                    {
+                        "x-list": np.array([[100, 200, 0], [300, 400, 0]], dtype="int64"),
+                    },
+                ),
+            ]:
+                schema = workflow.input_schema
+                df = TensorTable(request_dict)
+                output_names = ["x-list"]
+                response = send_triton_request(
+                    schema, df, output_names, client=client, triton_model=model_name
+                )
+                for key, value in expected_response.items():
+                    np.testing.assert_array_equal(response[key], value)                    
+
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 def test_workflow_with_ragged_input_and_output(tmpdir):
