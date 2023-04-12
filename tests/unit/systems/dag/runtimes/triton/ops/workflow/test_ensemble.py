@@ -21,9 +21,15 @@ from tritonclient import grpc as grpcclient
 
 from merlin.core.dispatch import make_df  # noqa
 from merlin.dag import ColumnSelector  # noqa
+from merlin.io import Dataset
 from merlin.schema import Schema, Tags  # noqa
 from merlin.systems.dag.ops.workflow import TransformWorkflow  # noqa
-from merlin.systems.triton.utils import run_ensemble_on_tritonserver, run_triton_server
+from merlin.systems.triton.utils import (
+    run_ensemble_on_tritonserver,
+    run_triton_server,
+    send_triton_request,
+)
+from merlin.table import TensorTable
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
 
@@ -130,3 +136,116 @@ def test_workflow_tf_e2e_error_propagation(tmpdir, dataset, engine):
         )
 
     assert "Number Too High!!" in str(exc.value)
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_workflow_with_ragged_output(tmpdir):
+    df = make_df({"x": [100, 200, 300], "session_id": [1, 1, 2]})
+    dataset = Dataset(df)
+    workflow_ops = (
+        ["x", "session_id"]
+        >> wf_ops.Groupby(groupby_cols=["session_id"], aggs={"x": ["list"]}, name_sep="-")
+        >> wf_ops.ValueCount()
+    )
+    workflow = Workflow(workflow_ops["x-list"])
+    workflow.fit(dataset)
+
+    workflow_node = workflow.input_schema.column_names >> workflow_op.TransformWorkflow(workflow)
+    wkflow_ensemble = ensemble.Ensemble(workflow_node, workflow.input_schema)
+    ensemble_config, node_configs = wkflow_ensemble.export(tmpdir)
+
+    with run_triton_server(tmpdir) as client:
+        for model_name in [ensemble_config.name, node_configs[0].name]:
+            for request_dict, expected_response in [
+                (
+                    {"x": np.array([100], dtype="int64"), "session_id": np.array([1])},
+                    {
+                        "x-list__values": np.array([100], dtype="int64"),
+                        "x-list__offsets": np.array([0, 1], dtype="int32"),
+                    },
+                ),
+                (
+                    {
+                        "x": np.array([100, 200, 300], dtype="int64"),
+                        "session_id": np.array([1, 1, 2]),
+                    },
+                    {
+                        "x-list__values": np.array([100, 200, 300], dtype="int64"),
+                        "x-list__offsets": np.array([0, 2, 3], dtype="int32"),
+                    },
+                ),
+                (
+                    {
+                        "x": np.array([100, 200, 300, 400], dtype="int64"),
+                        "session_id": np.array([1, 1, 2, 2]),
+                    },
+                    {
+                        "x-list__values": np.array([100, 200, 300, 400], dtype="int64"),
+                        "x-list__offsets": np.array([0, 2, 4], dtype="int32"),
+                    },
+                ),
+            ]:
+                schema = workflow.input_schema
+                df = TensorTable(request_dict)
+                output_names = ["x-list__values", "x-list__offsets"]
+                response = send_triton_request(
+                    schema, df, output_names, client=client, triton_model=model_name
+                )
+                for key, value in expected_response.items():
+                    np.testing.assert_array_equal(response[key], value)
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_workflow_with_ragged_input_and_output(tmpdir):
+    df = make_df({"x": [[100], [200], [300], [400]]})
+    dataset = Dataset(df)
+    workflow_ops = ["x"] >> wf_ops.Categorify()
+    workflow = Workflow(workflow_ops)
+    workflow.fit(dataset)
+
+    workflow_node = workflow.input_schema.column_names >> workflow_op.TransformWorkflow(workflow)
+    wkflow_ensemble = ensemble.Ensemble(workflow_node, workflow.input_schema)
+    ensemble_config, node_configs = wkflow_ensemble.export(tmpdir)
+
+    with run_triton_server(tmpdir) as client:
+        for model_name in [ensemble_config.name, node_configs[0].name]:
+            for request_dict, expected_response in [
+                (
+                    {
+                        "x__values": np.array([100], dtype="int64"),
+                        "x__offsets": np.array([0, 1], dtype="int32"),
+                    },
+                    {
+                        "x__values": np.array([1], dtype="int64"),
+                        "x__offsets": np.array([0, 1], dtype="int32"),
+                    },
+                ),
+                (
+                    {
+                        "x__values": np.array([100, 200], dtype="int64"),
+                        "x__offsets": np.array([0, 1, 2], dtype="int32"),
+                    },
+                    {
+                        "x__values": np.array([1, 2], dtype="int64"),
+                        "x__offsets": np.array([0, 1, 2], dtype="int32"),
+                    },
+                ),
+                (
+                    {
+                        "x__values": np.array([100, 200, 300], dtype="int64"),
+                        "x__offsets": np.array([0, 2, 3], dtype="int32"),
+                    },
+                    {
+                        "x__values": np.array([1, 2, 3], dtype="int64"),
+                        "x__offsets": np.array([0, 2, 3], dtype="int32"),
+                    },
+                ),
+            ]:
+                schema = workflow.input_schema
+                input_table = TensorTable(request_dict)
+                output_names = ["x__values", "x__offsets"]
+                response = send_triton_request(
+                    schema, input_table, output_names, client=client, triton_model=model_name
+                )
+                for key, value in expected_response.items():
+                    np.testing.assert_array_equal(response[key], value)
