@@ -29,6 +29,8 @@ import itertools
 import json
 import logging
 
+import numpy as np
+
 from merlin.core.compat import cupy
 from merlin.core.dispatch import concat_columns
 from merlin.dag import ColumnSelector, Supports
