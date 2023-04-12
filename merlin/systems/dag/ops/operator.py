@@ -1,10 +1,10 @@
 from abc import abstractmethod
 
-from merlin.core.protocols import Transformable  # noqa
-from merlin.dag import BaseOperator  # noqa
-from merlin.dag.selector import ColumnSelector  # noqa
-from merlin.schema import Schema  # noqa
-from merlin.systems.dag.node import InferenceNode  # noqa
+from merlin.core.protocols import Transformable
+from merlin.dag import BaseOperator, DataFormats
+from merlin.dag.selector import ColumnSelector
+from merlin.schema import Schema
+from merlin.systems.dag.node import InferenceNode
 from merlin.systems.model_registry import ModelRegistry
 
 
@@ -170,3 +170,7 @@ class InferenceOperator(BaseOperator):
     @property
     def scalar_shape(self):
         return [1]
+
+    @property
+    def supported_formats(self) -> DataFormats:
+        return DataFormats.NUMPY_TENSOR_TABLE | DataFormats.CUPY_TENSOR_TABLE
