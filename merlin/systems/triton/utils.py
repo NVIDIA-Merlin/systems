@@ -208,9 +208,12 @@ def send_triton_request(
     """
     from merlin.table import TensorTable
 
+    close_client = False
+
     if not client:
         try:
             client = grpcclient.InferenceServerClient(url=endpoint)
+            close_client = True
         except Exception as e:
             raise e
 
@@ -223,11 +226,14 @@ def send_triton_request(
         triton_inputs = triton.convert_df_to_triton_input(schema, inputs, grpcclient.InferInput)
 
     outputs = [grpcclient.InferRequestedOutput(col) for col in outputs_list]
-    with client:
-        response = client.infer(triton_model, triton_inputs, request_id=request_id, outputs=outputs)
+
+    response = client.infer(triton_model, triton_inputs, request_id=request_id, outputs=outputs)
 
     results = {}
     for col in outputs_list:
         results[col] = response.as_numpy(col)
+
+    if close_client:
+        client.close()
 
     return results

@@ -30,7 +30,6 @@ import pathlib
 import triton_python_backend_utils as pb_utils
 
 import nvtabular
-from merlin.core.dispatch import is_list_dtype
 from merlin.systems.triton import _convert_tensor
 from merlin.systems.triton.utils import triton_error_handling, triton_multi_request
 from merlin.systems.workflow.base import WorkflowRunner
@@ -74,7 +73,7 @@ class TritonPythonModel:
 
         # Dtype parsing
         input_dtypes = self.workflow.input_dtypes.items()
-        self.input_dtypes, self.input_multihots = _parse_input_dtypes(input_dtypes)
+        self.input_dtypes, self.input_multihots = self._parse_input_dtypes(input_dtypes)
 
         self.output_dtypes = {}
         for col_name, col_schema in self.workflow.output_schema.column_schemas.items():
@@ -117,9 +116,15 @@ class TritonPythonModel:
 
         return pb_utils.InferenceResponse(result)
 
+    def _is_list_dtype(self, column: str) -> bool:
+        """Check if a column of a Workflow contains list elements"""
+        col_schema = self.workflow.input_schema.get(column)
+        if col_schema is None:
+            return False
+        return col_schema.is_list and col_schema.is_ragged
 
-def _parse_input_dtypes(dtypes):
-    input_dtypes = {col: dtype for col, dtype in dtypes if not is_list_dtype(dtype)}
-    input_multihots = {col: dtype for col, dtype in dtypes if is_list_dtype(dtype)}
+    def _parse_input_dtypes(self, dtypes):
+        input_dtypes = {col: dtype for col, dtype in dtypes if not self._is_list_dtype(col)}
+        input_multihots = {col: dtype for col, dtype in dtypes if self._is_list_dtype(col)}
 
-    return input_dtypes, input_multihots
+        return input_dtypes, input_multihots
