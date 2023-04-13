@@ -20,7 +20,10 @@ import tempfile
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
-import tensorflow as tf  # noqa
+try:
+    import tensorflow as tf
+except ImportError:
+    tf = None
 
 from merlin.core.protocols import Transformable  # noqa
 from merlin.dag import ColumnSelector  # noqa
