@@ -6,6 +6,10 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   gpu-ci-premerge:
     runs-on: 1GPU
