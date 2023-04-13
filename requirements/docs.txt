@@ -1,7 +1,6 @@
 -r base.txt
 -r dev.txt
 
-tritonclient[all]
 tensorflow<=2.9.0
 
 Sphinx==3.5.4
