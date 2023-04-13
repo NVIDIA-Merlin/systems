@@ -20,7 +20,8 @@ from merlin.systems.dag.runtimes.op_table import OpTable
 
 
 class Runtime:
-    """A Systems Graph Runtime.
+    """
+    A runtime for Merlin DAGs that supports using custom implementations of existing operators
 
     This class can be used as a base class for custom runtimes.
     """
