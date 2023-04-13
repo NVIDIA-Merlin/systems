@@ -16,8 +16,11 @@
 import os
 
 import numpy as np
-import torch
-import torch.utils.dlpack
+
+try:
+    import torch
+except ImportError:
+    torch = None
 
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
