@@ -24,6 +24,10 @@ class OpTable:
         self.ops = {}
         self.conditions = {}
 
+    @property
+    def empty(self):
+        return len(self.ops) == 0
+
     def register(self, op, op_impl, condition=None):
         """
         Register an alternate implementation for an operator

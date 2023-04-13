@@ -50,7 +50,7 @@ class Runtime:
         Graph
             Copy of the graph with operators converted to this runtime's versions
         """
-        if self.op_table:
+        if not self.op_table.empty:
             nodes = list(postorder_iter_nodes(graph.output_node))
 
             for node in nodes:
