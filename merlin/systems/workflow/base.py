@@ -114,14 +114,14 @@ class WorkflowRunner:
         for col in self.workflow.output_schema:
             if col.is_ragged and output_table[col.name].offsets is None:
                 values, offsets = _to_ragged(output_table[col.name].values)
-                values = values.astype(self.output_dtypes[col.name + "__values"])
-                offsets = offsets.astype(self.output_dtypes[col.name + "__offsets"])
                 output_table[col.name] = TensorColumn(values, offsets=offsets)
-            else:
-                values = output_table[col.name].values.astype(self.output_dtypes[col.name])
-                output_table[col.name] = TensorColumn(values)
 
-        return output_table.to_dict()
+        output_dict = output_table.to_dict()
+
+        for key, value in output_dict.items():
+            output_dict[key] = value.astype(self.output_dtypes[key])
+
+        return output_dict
 
     def _transform_tensors(self, input_tensors, workflow_node):
         upstream_inputs = []
