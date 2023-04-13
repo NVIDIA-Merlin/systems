@@ -13,7 +13,6 @@ asvdb@git+https://github.com/rapidsai/asvdb.git
 testbook==0.4.2
 
 # packages necessary to run tests and push PRs
-tritonclient
 feast==0.19.4
 xgboost==1.6.2
 implicit==0.6.0
