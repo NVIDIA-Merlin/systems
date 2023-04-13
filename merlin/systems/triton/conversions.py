@@ -240,7 +240,7 @@ def convert_format(tensors, kind, target_kind):
         elif kind == Supports.GPU_DATAFRAME:
             return _cudf_to_array(tensors, True), Supports.CPU_DICT_ARRAY
 
-    elif target_kind & Supports.GPU_DATAFRAME:
+    elif cudf and target_kind & Supports.GPU_DATAFRAME:
         if kind == Supports.CPU_DATAFRAME:
             return cudf.DataFrame(tensors), Supports.GPU_DATAFRAME
         return _array_to_cudf(tensors), Supports.GPU_DATAFRAME
