@@ -33,6 +33,7 @@ from merlin.systems.dag.ops.compat import (
 )
 from merlin.systems.dag.ops.workflow import TransformWorkflow
 from merlin.systems.dag.runtimes import Runtime
+from merlin.systems.dag.runtimes.op_table import OpTable
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator, add_model_param
 from merlin.systems.dag.runtimes.triton.ops.workflow import TransformWorkflowTriton
 
@@ -53,26 +54,26 @@ except ImportError:
     ...
 
 
-TRITON_OP_TABLE = {}
-TRITON_OP_TABLE[TransformWorkflow] = TransformWorkflowTriton
+TRITON_OP_TABLE = OpTable()
+TRITON_OP_TABLE.register(TransformWorkflow, TransformWorkflowTriton)
 
 if cuml_ensemble or lightgbm or sklearn_ensemble or treelite_sklearn or xgboost:
     from merlin.systems.dag.ops.fil import PredictForest
     from merlin.systems.dag.runtimes.triton.ops.fil import PredictForestTriton
 
-    TRITON_OP_TABLE[PredictForest] = PredictForestTriton
+    TRITON_OP_TABLE.register(PredictForest, PredictForestTriton)
 
 if tensorflow:
     from merlin.systems.dag.ops.tensorflow import PredictTensorflow
     from merlin.systems.dag.runtimes.triton.ops.tensorflow import PredictTensorflowTriton
 
-    TRITON_OP_TABLE[PredictTensorflow] = PredictTensorflowTriton
+    TRITON_OP_TABLE.register(PredictTensorflow, PredictTensorflowTriton)
 
 if torch:
     from merlin.systems.dag.ops.pytorch import PredictPyTorch
     from merlin.systems.dag.runtimes.triton.ops.pytorch import PredictPyTorchTriton
 
-    TRITON_OP_TABLE[PredictPyTorch] = PredictPyTorchTriton
+    TRITON_OP_TABLE.register(PredictPyTorch, PredictPyTorchTriton)
 
 
 class TritonExecutorRuntime(Runtime):
@@ -112,13 +113,9 @@ class TritonExecutorRuntime(Runtime):
             Tuple of ensemble config and list of non-python backend model configs
         """
         triton_model_name = name or "executor_model"
+        ensemble.graph = self.convert(ensemble.graph)
 
         nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
-
-        for node in nodes:
-            if type(node.op) in self.op_table:
-                node.op = self.op_table[type(node.op)](node.op)
-
         node_id_table, _ = _create_node_table(nodes)
 
         # Path were extra files can be optionally saved by operators
