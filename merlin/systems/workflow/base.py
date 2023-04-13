@@ -117,6 +117,9 @@ class WorkflowRunner:
                 values = values.astype(self.output_dtypes[col.name + "__values"])
                 offsets = offsets.astype(self.output_dtypes[col.name + "__offsets"])
                 output_table[col.name] = TensorColumn(values, offsets=offsets)
+            else:
+                values = output_table[col.name].values.astype(self.output_dtypes[col.name])
+                output_table[col.name] = TensorColumn(values)
 
         return output_table.to_dict()
 
