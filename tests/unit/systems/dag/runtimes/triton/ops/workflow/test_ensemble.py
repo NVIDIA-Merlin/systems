@@ -302,3 +302,67 @@ def test_workflow_with_ragged_input_and_output(tmpdir):
                 )
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_workflow_dtypes(tmpdir):
+    """This test checks that the NVTabular Workflow Triton model outputs dtypes
+    that match the workflow output schema even if the transformation results in outputs
+    of a different dtype. We coerce the output to match the workflow output dtype.
+    """
+    df = make_df(
+        {
+            "a": list(np.array([[100], [200], [300], [400]], dtype="int64")),
+            "b": np.array([2.0, 3.6, 4.3, 5.7], dtype="float64"),
+        }
+    )
+    dataset = Dataset(df)
+    workflow_ops = ["a", "b"] >> wf_ops.AddMetadata(tags=["my_tag"])
+    workflow = Workflow(workflow_ops)
+    workflow.fit(dataset)
+
+    # change output workflow schema dtypes so that the output type is different from the schema
+    # this is to check that the workflow runner coerces the output types to match the schema
+    workflow.output_schema["a"] = workflow.output_schema["a"].with_dtype("int32")
+    workflow.output_schema["b"] = workflow.output_schema["b"].with_dtype("float32")
+
+    workflow_node = workflow.input_schema.column_names >> workflow_op.TransformWorkflow(workflow)
+    wkflow_ensemble = ensemble.Ensemble(workflow_node, workflow.input_schema)
+    ensemble_config, node_configs = wkflow_ensemble.export(tmpdir)
+
+    with run_triton_server(tmpdir) as client:
+        for model_name in [ensemble_config.name, node_configs[0].name]:
+            for request_dict, expected_response in [
+                (
+                    {
+                        "a__values": np.array([100], dtype="int64"),
+                        "a__offsets": np.array([0, 1], dtype="int32"),
+                        "b": np.array([0.2], dtype="float64"),
+                    },
+                    {
+                        "a__values": np.array([100], dtype="int32"),
+                        "a__offsets": np.array([0, 1], dtype="int32"),
+                        "b": np.array([0.2], dtype="float32"),
+                    },
+                ),
+                (
+                    {
+                        "a__values": np.array([100, 200], dtype="int64"),
+                        "a__offsets": np.array([0, 1, 2], dtype="int32"),
+                        "b": np.array([0.2, 0.5], dtype="float64"),
+                    },
+                    {
+                        "a__values": np.array([100, 200], dtype="int32"),
+                        "a__offsets": np.array([0, 1, 2], dtype="int32"),
+                        "b": np.array([0.2, 0.5], dtype="float32"),
+                    },
+                ),
+            ]:
+                schema = workflow.input_schema
+                input_table = TensorTable(request_dict)
+                output_names = ["a__values", "a__offsets", "b"]
+                response = send_triton_request(
+                    schema, input_table, output_names, client=client, triton_model=model_name
+                )
+                for key, value in expected_response.items():
+                    np.testing.assert_array_equal(response[key], value)
