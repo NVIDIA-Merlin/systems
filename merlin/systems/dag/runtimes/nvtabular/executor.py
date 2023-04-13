@@ -214,7 +214,7 @@ def _convert_format(tensors, target_format):
         elif format_ == Supports.GPU_DATAFRAME:
             return _cudf_to_array(tensors, True)
 
-    elif target_format & Supports.GPU_DATAFRAME:
+    elif cudf and target_format & Supports.GPU_DATAFRAME:
         if format_ == Supports.CPU_DATAFRAME:
             return cudf.DataFrame(tensors)
         return _array_to_cudf(tensors)
