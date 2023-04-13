@@ -16,9 +16,8 @@
 import os
 
 import numpy as np
-import torch
-import torch.utils.dlpack
 
+from merlin.core.compat.torch import torch
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import Schema
