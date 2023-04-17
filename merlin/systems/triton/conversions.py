@@ -25,6 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import itertools
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
@@ -33,11 +34,61 @@ from merlin.core.compat import cudf
 from merlin.core.compat import cupy as cp
 from merlin.core.dispatch import build_cudf_list_column, is_list_dtype
 from merlin.dag import Supports
+from merlin.schema import Schema
 from merlin.systems.dag.ops.compat import pb_utils
 from merlin.table import TensorTable
 
 
-def triton_request_to_tensor_table(request, column_names):
+def to_values_offsets(array):
+    """Convert Array to values/offsets representation
+
+    Parameters
+    ----------
+    array : numpy.ndarray or cupy.ndarray
+        Array to convert
+
+    Returns
+    -------
+    values, offsets
+        Tuple of values and offsets
+    """
+    num_rows = array.shape[0]
+    row_lengths = [array.shape[1]] * num_rows
+    offsets = [0] + list(itertools.accumulate(row_lengths))
+    array_lib = cp if cp and isinstance(array, cp.ndarray) else np
+    offsets = array_lib.array(offsets, dtype="int32")
+    values = array.reshape(-1, *array.shape[2:])
+    return values, offsets
+
+
+def tensor_names(schema: Schema) -> List[str]:
+    tensor_names = []
+    for col_name, col_schema in schema.column_schemas.items():
+        if col_schema.is_ragged:
+            tensor_names.append(f"{col_name}__values")
+            tensor_names.append(f"{col_name}__offsets")
+        else:
+            tensor_names.append(col_name)
+    return tensor_names
+
+
+def align_with_schema(schema: Schema, dict_array: Dict[str, Any]) -> Dict[str, Any]:
+    schema_names = tensor_names(schema)
+
+    aligned = {}
+    for tensor_name in dict_array.keys():
+        if tensor_name in schema_names:
+            aligned[tensor_name] = dict_array[tensor_name]
+        else:
+            # Ragged columns with fixed shape values
+            values, offsets = to_values_offsets(dict_array[tensor_name])
+            aligned[f"{tensor_name}__values"] = values
+            aligned[f"{tensor_name}__offsets"] = offsets
+
+    return aligned
+
+
+def triton_request_to_tensor_table(request, schema):
     """
     Turns a Triton request into a TensorTable by extracting individual tensors
     from the request using pb_utils.
@@ -54,19 +105,12 @@ def triton_request_to_tensor_table(request, column_names):
     TensorTable
         Dictionary-like representation of the input columns
     """
-    dict_inputs = {}
-    for name in column_names:
-        try:
-            values = _array_from_triton_tensor(request, f"{name}__values")
-            lengths = _array_from_triton_tensor(request, f"{name}__offsets")
-            dict_inputs[name] = (values, lengths)
-        except (AttributeError, ValueError):
-            dict_inputs[name] = _array_from_triton_tensor(request, name)
-
-    return TensorTable(dict_inputs)
+    return TensorTable(
+        {name: _array_from_triton_tensor(request, name) for name in tensor_names(schema)}
+    )
 
 
-def tensor_table_to_triton_response(tensor_table):
+def tensor_table_to_triton_response(tensor_table, schema):
     """
     Turns a TensorTable into a Triton response that can be returned
     to resolve an incoming request.
@@ -81,20 +125,13 @@ def tensor_table_to_triton_response(tensor_table):
     response : TritonInferenceResponse
         The output response for predictions
     """
-    output_tensors = []
-    for name, column in tensor_table.items():
-        if column.offsets is not None:
-            values = _triton_tensor_from_array(f"{name}__values", column.values)
-            offsets = _triton_tensor_from_array(f"{name}__offsets", column.offsets)
-            output_tensors.extend([values, offsets])
-        else:
-            col_tensor = _triton_tensor_from_array(name, column.values)
-            output_tensors.append(col_tensor)
-
-    return pb_utils.InferenceResponse(output_tensors)
+    aligned = align_with_schema(schema, tensor_table.to_dict())
+    return pb_utils.InferenceResponse(
+        [_triton_tensor_from_array(name, array) for name, array in aligned.items()]
+    )
 
 
-def tensor_table_to_triton_request(model_name, tensor_table, input_col_names, output_col_names):
+def tensor_table_to_triton_request(model_name, tensor_table, input_schema, output_schema):
     """
     Turns a TensorTable into a Triton request that can, for example, be used to make a
     Business Logic Scripting call to a Triton model on the same Triton instance.
@@ -115,26 +152,17 @@ def tensor_table_to_triton_request(model_name, tensor_table, input_col_names, ou
     TritonInferenceRequest
         The TensorTable reformatted as a Triton request
     """
-    input_tensors = []
-
-    for name, column in tensor_table.items():
-        if name in input_col_names:
-            if column.offsets is not None:
-                values = _triton_tensor_from_array(f"{name}__values", column.values)
-                offsets = _triton_tensor_from_array(f"{name}__offsets", column.offsets)
-                input_tensors.extend([values, offsets])
-            else:
-                col_tensor = _triton_tensor_from_array(name, column.values)
-                input_tensors.append(col_tensor)
+    aligned = align_with_schema(input_schema, tensor_table.to_dict())
+    input_tensors = [_triton_tensor_from_array(name, tensor) for name, tensor in aligned.items()]
 
     return pb_utils.InferenceRequest(
         model_name=model_name,
-        requested_output_names=output_col_names,
+        requested_output_names=tensor_names(output_schema),
         inputs=input_tensors,
     )
 
 
-def triton_response_to_tensor_table(response, transformable_type, output_column_names):
+def triton_response_to_tensor_table(response, transformable_type, schema):
     """
     Turns a Triton response into a TensorTable by extracting individual tensors
     from the request using pb_utils.
@@ -153,20 +181,9 @@ def triton_response_to_tensor_table(response, transformable_type, output_column_
     Transformable
         A TensorTable or DataFrame representing the response columns from a Triton request
     """
-    outputs_dict = {}
-
-    for out_col_name in output_column_names:
-        try:
-            values = _array_from_triton_tensor(response, f"{out_col_name}__values")
-            lengths = _array_from_triton_tensor(response, f"{out_col_name}__offsets")
-            outputs_dict[out_col_name] = (values, lengths)
-        except (AttributeError, ValueError):
-            outputs_dict[out_col_name] = _array_from_triton_tensor(response, out_col_name)
-
-        output_val = _array_from_triton_tensor(response, out_col_name)
-        outputs_dict[out_col_name] = output_val
-
-    return transformable_type(outputs_dict)
+    return transformable_type(
+        {name: _array_from_triton_tensor(response, name) for name in tensor_names(schema)}
+    )
 
 
 def _triton_tensor_from_array(name, array):
