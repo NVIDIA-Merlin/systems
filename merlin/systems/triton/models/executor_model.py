@@ -26,6 +26,8 @@
 import pathlib
 from pathlib import Path
 
+import triton_python_backend_utils as pb_utils
+
 from merlin.dag import postorder_iter_nodes
 from merlin.systems.dag import Ensemble
 from merlin.systems.dag.runtimes.triton import TritonExecutorRuntime
@@ -93,7 +95,10 @@ class TritonPythonModel:
           be the same as `requests`
         """
         inputs = triton_request_to_tensor_table(request, self.ensemble.input_schema.column_names)
-        outputs = self.ensemble.transform(inputs, runtime=TritonExecutorRuntime())
+        try:
+            outputs = self.ensemble.transform(inputs, runtime=TritonExecutorRuntime())
+        except Exception as exc:
+            raise pb_utils.TritonModelException(str(exc))
         return tensor_table_to_triton_response(outputs)
 
 
