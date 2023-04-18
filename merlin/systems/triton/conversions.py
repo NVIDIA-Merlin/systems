@@ -39,8 +39,67 @@ from merlin.systems.dag.ops.compat import pb_utils
 from merlin.table import TensorTable
 
 
-def to_values_offsets(array):
-    """Convert Array to values/offsets representation
+def tensor_names(schema: Schema) -> List[str]:
+    """
+    Compute the expected tensor names from a Merlin schema
+
+    This takes the columns from a schema, checks whether the columns are ragged or not,
+    and translates ragged columns to two separate tensor names for the values/offsets
+    representation.
+
+    Parameters
+    ----------
+    schema : Schema
+        Schema to compute tensor names for
+
+    Returns
+    -------
+    List[str]
+        A list of the tensors implied by the schema
+    """
+    tensor_names = []
+    for col_name, col_schema in schema.column_schemas.items():
+        if col_schema.is_ragged:
+            tensor_names.append(f"{col_name}__values")
+            tensor_names.append(f"{col_name}__offsets")
+        else:
+            tensor_names.append(col_name)
+    return tensor_names
+
+
+def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Convert values-only tensors to values/offsets when indicated by the schema
+
+    Parameters
+    ----------
+    schema : Schema
+        Downstream input schema to match
+    dict_array : Dict[str, Any]
+        A dictionary of NumPy or CuPy ndarrays
+
+    Returns
+    -------
+    Dict[str, Any]
+        A dictionary of NumPy or CuPy ndarrays with representations adjusted
+    """
+    schema_names = tensor_names(schema)
+
+    aligned = {}
+    for tensor_name in dict_array.keys():
+        if tensor_name in schema_names:
+            aligned[tensor_name] = dict_array[tensor_name]
+        else:
+            # Ragged columns with fixed shape values
+            values, offsets = _to_values_offsets(dict_array[tensor_name])
+            aligned[f"{tensor_name}__values"] = values
+            aligned[f"{tensor_name}__offsets"] = offsets
+
+    return aligned
+
+
+def _to_values_offsets(array):
+    """Convert array to values/offsets representation
 
     Parameters
     ----------
@@ -59,33 +118,6 @@ def to_values_offsets(array):
     offsets = array_lib.array(offsets, dtype="int32")
     values = array.reshape(-1, *array.shape[2:])
     return values, offsets
-
-
-def tensor_names(schema: Schema) -> List[str]:
-    tensor_names = []
-    for col_name, col_schema in schema.column_schemas.items():
-        if col_schema.is_ragged:
-            tensor_names.append(f"{col_name}__values")
-            tensor_names.append(f"{col_name}__offsets")
-        else:
-            tensor_names.append(col_name)
-    return tensor_names
-
-
-def align_with_schema(schema: Schema, dict_array: Dict[str, Any]) -> Dict[str, Any]:
-    schema_names = tensor_names(schema)
-
-    aligned = {}
-    for tensor_name in dict_array.keys():
-        if tensor_name in schema_names:
-            aligned[tensor_name] = dict_array[tensor_name]
-        else:
-            # Ragged columns with fixed shape values
-            values, offsets = to_values_offsets(dict_array[tensor_name])
-            aligned[f"{tensor_name}__values"] = values
-            aligned[f"{tensor_name}__offsets"] = offsets
-
-    return aligned
 
 
 def triton_request_to_tensor_table(request, schema):
@@ -125,7 +157,7 @@ def tensor_table_to_triton_response(tensor_table, schema):
     response : TritonInferenceResponse
         The output response for predictions
     """
-    aligned = align_with_schema(schema, tensor_table.to_dict())
+    aligned = match_representations(schema, tensor_table.to_dict())
     return pb_utils.InferenceResponse(
         [_triton_tensor_from_array(name, array) for name, array in aligned.items()]
     )
@@ -152,7 +184,7 @@ def tensor_table_to_triton_request(model_name, tensor_table, input_schema, outpu
     TritonInferenceRequest
         The TensorTable reformatted as a Triton request
     """
-    aligned = align_with_schema(input_schema, tensor_table.to_dict())
+    aligned = match_representations(input_schema, tensor_table.to_dict())
     input_tensors = [_triton_tensor_from_array(name, tensor) for name, tensor in aligned.items()]
 
     return pb_utils.InferenceRequest(

@@ -31,7 +31,7 @@ import logging
 from merlin.core.dispatch import concat_columns
 from merlin.dag import ColumnSelector, Supports
 from merlin.schema import Tags
-from merlin.systems.triton.conversions import align_with_schema, convert_format
+from merlin.systems.triton.conversions import convert_format, match_representations
 from merlin.table import TensorTable
 
 LOG = logging.getLogger("merlin-systems")
@@ -106,7 +106,7 @@ class WorkflowRunner:
             transformed, kind = convert_format(transformed, kind, Supports.CPU_DICT_ARRAY)
 
         transformed = TensorTable(transformed).to_dict()
-        output_dict = align_with_schema(self.workflow.output_schema, transformed)
+        output_dict = match_representations(self.workflow.output_schema, transformed)
 
         for key, value in output_dict.items():
             output_dict[key] = value.astype(self.output_dtypes[key])
