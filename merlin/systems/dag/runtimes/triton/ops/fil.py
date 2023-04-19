@@ -145,12 +145,14 @@ class PredictForestTriton(TritonOperator):
         )
 
         inputs = TensorTable({"input__0": input0})
+        input_schema = Schema(["input__0"])
+        output_schema = Schema(["output__0"])
 
         inference_request = tensor_table_to_triton_request(
-            self.fil_model_name, inputs, ["input__0"], ["output__0"]
+            self.fil_model_name, inputs, input_schema, output_schema
         )
         inference_response = inference_request.exec()
-        return triton_response_to_tensor_table(inference_response, type(inputs), ["output__0"])
+        return triton_response_to_tensor_table(inference_response, type(inputs), output_schema)
 
 
 class FILTriton(TritonOperator):

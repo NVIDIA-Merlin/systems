@@ -71,14 +71,14 @@ class PredictTensorflowTriton(TritonOperator):
         inference_request = tensor_table_to_triton_request(
             self.tf_model_name,
             transformable,
-            self.input_schema.column_names,
-            self.output_schema.column_names,
+            self.input_schema,
+            self.output_schema,
         )
         inference_response = inference_request.exec()
 
         # TODO: Validate that the outputs match the schema
         return triton_response_to_tensor_table(
-            inference_response, type(transformable), self.output_schema.column_names
+            inference_response, type(transformable), self.output_schema
         )
 
     def export(

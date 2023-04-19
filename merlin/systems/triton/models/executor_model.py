@@ -92,9 +92,9 @@ class TritonPythonModel:
           A list of pb_utils.InferenceResponse. The length of this list must
           be the same as `requests`
         """
-        inputs = triton_request_to_tensor_table(request, self.ensemble.input_schema.column_names)
+        inputs = triton_request_to_tensor_table(request, self.ensemble.input_schema)
         outputs = self.ensemble.transform(inputs, runtime=TritonExecutorRuntime())
-        return tensor_table_to_triton_response(outputs)
+        return tensor_table_to_triton_response(outputs, self.ensemble.output_schema)
 
 
 def _parse_model_repository(model_repository: str) -> str:
