@@ -76,6 +76,9 @@ class PredictTensorflowTriton(TritonOperator):
         )
         inference_response = inference_request.exec()
 
+        if inference_response.has_error():
+            raise RuntimeError(inference_response.error().message())
+
         # TODO: Validate that the outputs match the schema
         return triton_response_to_tensor_table(
             inference_response, type(transformable), self.output_schema.column_names

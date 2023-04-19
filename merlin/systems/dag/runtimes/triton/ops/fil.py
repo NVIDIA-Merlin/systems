@@ -150,6 +150,10 @@ class PredictForestTriton(TritonOperator):
             self.fil_model_name, inputs, ["input__0"], ["output__0"]
         )
         inference_response = inference_request.exec()
+
+        if inference_response.has_error():
+            raise RuntimeError(str(inference_response.error().message()))
+
         return triton_response_to_tensor_table(inference_response, type(inputs), ["output__0"])
 
 
