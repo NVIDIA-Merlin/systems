@@ -77,8 +77,8 @@ class PredictPyTorchTriton(TritonOperator):
         inference_request = tensor_table_to_triton_request(
             self.torch_model_name,
             transformable,
-            self.input_schema.column_names,
-            self.output_schema.column_names,
+            self.input_schema,
+            self.output_schema,
         )
 
         inference_response = inference_request.exec()
@@ -87,7 +87,7 @@ class PredictPyTorchTriton(TritonOperator):
             raise RuntimeError(str(inference_response.error().message()))
 
         return triton_response_to_tensor_table(
-            inference_response, type(transformable), self.output_schema.column_names
+            inference_response, type(transformable), self.output_schema
         )
 
     def compute_input_schema(

@@ -79,19 +79,11 @@ class TransformWorkflowTriton(TritonOperator):
         TensorTable
             Returns a transformed dataframe for this operator"""
 
-        output_names = []
-        for col in self.output_schema:
-            if col.is_ragged:
-                output_names.append(f"{col.name}__values")
-                output_names.append(f"{col.name}__offsets")
-            else:
-                output_names.append(col.name)
-
         inference_request = tensor_table_to_triton_request(
             self._nvt_model_name,
             transformable,
-            self.input_schema.column_names,
-            output_names,
+            self.input_schema,
+            self.output_schema,
         )
 
         inference_response = inference_request.exec()
@@ -100,7 +92,7 @@ class TransformWorkflowTriton(TritonOperator):
             raise RuntimeError(inference_response.error().message())
 
         response_table = triton_response_to_tensor_table(
-            inference_response, type(transformable), output_names
+            inference_response, type(transformable), self.output_schema
         )
 
         return response_table
