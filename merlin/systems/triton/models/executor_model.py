@@ -101,6 +101,7 @@ class TritonPythonModel:
             raise pb_utils.TritonModelException(str(exc)) from exc
         return tensor_table_to_triton_response(outputs, self.ensemble.output_schema)
 
+
 def _parse_model_repository(model_repository: str) -> str:
     """
     Extract the model repository path from the model_repository value

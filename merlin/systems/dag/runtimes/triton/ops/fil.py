@@ -159,7 +159,6 @@ class PredictForestTriton(TritonOperator):
         return triton_response_to_tensor_table(inference_response, type(inputs), output_schema)
 
 
-
 class FILTriton(TritonOperator):
     """Operator for Forest Inference Library (FIL) models.
 
