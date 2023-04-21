@@ -83,6 +83,9 @@ class PredictPyTorchTriton(TritonOperator):
 
         inference_response = inference_request.exec()
 
+        if inference_response.has_error():
+            raise RuntimeError(str(inference_response.error().message()))
+
         return triton_response_to_tensor_table(
             inference_response, type(transformable), self.output_schema
         )

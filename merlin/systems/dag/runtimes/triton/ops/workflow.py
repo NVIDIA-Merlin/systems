@@ -20,7 +20,6 @@ import pathlib
 from shutil import copyfile
 
 import tritonclient.grpc.model_config_pb2 as model_config
-import tritonclient.utils
 from google.protobuf import text_format
 
 from merlin.core.protocols import Transformable
@@ -89,12 +88,8 @@ class TransformWorkflowTriton(TritonOperator):
 
         inference_response = inference_request.exec()
 
-        # check inference response for errors:
         if inference_response.has_error():
-            # Cannot raise inference response error because it is not derived from BaseException
-            raise tritonclient.utils.InferenceServerException(
-                str(inference_response.error().message())
-            )
+            raise RuntimeError(inference_response.error().message())
 
         response_table = triton_response_to_tensor_table(
             inference_response, type(transformable), self.output_schema
