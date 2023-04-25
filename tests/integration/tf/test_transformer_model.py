@@ -32,8 +32,8 @@ from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 
+@pytest.mark.premerge
 def test_serve_tf_session_based_with_libtensorflow(tmpdir):
-
     # ===========================================
     # Generate training data
     # ===========================================
