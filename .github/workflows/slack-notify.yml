@@ -1,0 +1,25 @@
+name: Send Slack Notification
+
+on:
+  workflow_run:
+    workflows: [CPU CI, lint]
+    types: [completed]
+
+jobs:
+  slack-notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify in Slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          # This data can be any valid JSON from a previous step in the GitHub Action
+          payload: |
+            {
+              "key": "value",
+              "foo": "bar",
+              "event": "{{ github.event.workflow_run.event }}",
+              "conclusion": "github.event.workflow_run.conclusion"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
