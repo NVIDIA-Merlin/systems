@@ -2,7 +2,7 @@ name: Send Slack Notification
 
 on:
   workflow_run:
-    workflows: [CPU CI, lint]
+    workflows: ["CPU CI", "lint"]
     types: [completed]
 
 jobs:
