@@ -23,9 +23,10 @@ jobs:
           payload: |
             {
               "key": "value",
-              "id": "${ github.event.workflow_run.id }",
+              "id": "$PR_NUMBER",
               "event": "${{ github.event.workflow_run.event }}",
               "conclusion": "${{github.event.workflow_run.conclusion}}"
             }
         env:
+          PR_NUMBER: ${{ github.event.number }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
