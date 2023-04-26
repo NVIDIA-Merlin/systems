@@ -23,7 +23,7 @@ jobs:
           payload: |
             {
               "key": "value",
-              "foo": "bar",
+              "id": "${ github.event.workflow_run.id }",
               "event": "${{ github.event.workflow_run.event }}",
               "conclusion": "${{github.event.workflow_run.conclusion}}"
             }
