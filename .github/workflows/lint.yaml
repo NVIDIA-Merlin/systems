@@ -30,6 +30,7 @@ jobs:
       - name: Notify in Slack
         id: slack
         uses: slackapi/slack-github-action@v1.23.0
+        if: job.status == "failure"
         with:
           # This data can be any valid JSON from a previous step in the GitHub Action
           payload: |
