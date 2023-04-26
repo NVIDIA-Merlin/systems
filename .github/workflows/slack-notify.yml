@@ -23,7 +23,7 @@ jobs:
           payload: |
             {
               "key": "value",
-              "id": "$PR_NUMBER",
+              "id": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
               "event": "${{ github.event.workflow_run.event }}",
               "conclusion": "${{github.event.workflow_run.conclusion}}"
             }
