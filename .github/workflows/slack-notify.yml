@@ -6,7 +6,7 @@ on:
   #   branches: [main]
   #   types: [opened, synchronize, reopened]
   workflow_run:
-    workflows: ["CPU CI", "lint"]
+    workflows: ["CPU CI", "lint (3.8)"]
     types: [completed]
 
 jobs:
