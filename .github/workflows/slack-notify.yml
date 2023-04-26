@@ -6,6 +6,7 @@ name: Send Slack Notification
 #     types: [completed]
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
