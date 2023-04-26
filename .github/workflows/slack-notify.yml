@@ -24,8 +24,8 @@ jobs:
             {
               "key": "value",
               "foo": "bar",
-              "event": "{{ github.event.workflow_run.event }}",
-              "conclusion": "github.event.workflow_run.conclusion"
+              "event": "${{ github.event.workflow_run.event }}",
+              "conclusion": "${{github.event.workflow_run.conclusion}}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
