@@ -89,13 +89,15 @@
 <span class="c1">#</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
+<span class="kn">from</span> <span class="nn">merlin.core.protocols</span> <span class="kn">import</span> <span class="n">Transformable</span>
 <span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">ColumnSelector</span>
 <span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">Schema</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">PipelineableInferenceOperator</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">InferenceOperator</span>
+<span class="kn">from</span> <span class="nn">merlin.table</span> <span class="kn">import</span> <span class="n">TensorTable</span>
 
 
-<div class="viewcode-block" id="TransformWorkflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow">[docs]</a><span class="k">class</span> <span class="nc">TransformWorkflow</span><span class="p">(</span><span class="n">PipelineableInferenceOperator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TransformWorkflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow">[docs]</a><span class="k">class</span> <span class="nc">TransformWorkflow</span><span class="p">(</span><span class="n">InferenceOperator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This operator takes a workflow and turns it into a ensemble operator so that we can</span>
 <span class="sd">    execute feature engineering during ensemble on tritonserver.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -106,12 +108,10 @@
         <span class="n">sparse_max</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">label_columns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">model_framework</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">cats</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">conts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;workflow&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates a Transform Workflow operator for a target workflow.</span>
 
 <span class="sd">        Parameters</span>
@@ -124,9 +124,6 @@
 <span class="sd">            Maximum batch size, by default None</span>
 <span class="sd">        label_columns : List[str], optional</span>
 <span class="sd">            List of strings identifying the label columns, by default None</span>
-<span class="sd">        model_framework : str, optional</span>
-<span class="sd">            String representing the target framework</span>
-<span class="sd">            (supported: hugectr, tensorflow, pytorch, python), by default None</span>
 <span class="sd">        cats : List[str], optional</span>
 <span class="sd">            List of strings identifying categorical columns, by default None</span>
 <span class="sd">        conts : List[str], optional</span>
@@ -141,7 +138,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sparse_max</span> <span class="o">=</span> <span class="n">sparse_max</span> <span class="ow">or</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_batch_size</span> <span class="o">=</span> <span class="n">max_batch_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">label_columns</span> <span class="o">=</span> <span class="n">label_columns</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">model_framework</span> <span class="o">=</span> <span class="n">model_framework</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cats</span> <span class="o">=</span> <span class="n">cats</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">conts</span> <span class="o">=</span> <span class="n">conts</span> <span class="ow">or</span> <span class="p">[]</span>
 
@@ -159,21 +155,36 @@
 <div class="viewcode-block" id="TransformWorkflow.compute_output_schema"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow.compute_output_schema">[docs]</a>    <span class="k">def</span> <span class="nf">compute_output_schema</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">prev_output_schema</span><span class="p">:</span> <span class="n">Schema</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Schema</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Returns output schema of operator&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns output schema of operator&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">output_schema</span></div>
 
-<div class="viewcode-block" id="TransformWorkflow.export"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow.export">[docs]</a>    <span class="k">def</span> <span class="nf">export</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">input_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
-        <span class="n">output_schema</span><span class="p">:</span> <span class="n">Schema</span><span class="p">,</span>
-        <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">node_id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">version</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ensemble&quot;</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a directory inside supplied path based on our export name&quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
+<div class="viewcode-block" id="TransformWorkflow.transform"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">col_selector</span><span class="p">:</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">transformable</span><span class="p">:</span> <span class="n">Transformable</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Transformable</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run nvtabular workflow transformations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        col_selector : ColumnSelector</span>
+<span class="sd">            Unused ColumunSelector input</span>
+<span class="sd">        transformable : Transformable</span>
+<span class="sd">            Input features to model</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Transformable</span>
+<span class="sd">            workflow transform</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">output_type</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">transformable</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">transformable</span><span class="p">,</span> <span class="n">TensorTable</span><span class="p">):</span>
+            <span class="n">transformable</span> <span class="o">=</span> <span class="n">transformable</span><span class="o">.</span><span class="n">to_df</span><span class="p">()</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">workflow</span><span class="o">.</span><span class="n">_transform_df</span><span class="p">(</span><span class="n">transformable</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">output_type</span><span class="p">):</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">TensorTable</span><span class="o">.</span><span class="n">from_df</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">output</span></div></div>
 </pre></div>
 
            </div>
@@ -206,12 +217,12 @@
   <div class="rst-other-versions">
     <dl>
       <dt>Tags</dt>
-      <dd><a href="../../../../../../v0.3.0/index.html">v0.3.0</a></dd>
-      <dd><a href="../../../../../../v0.4.0/index.html">v0.4.0</a></dd>
-      <dd><a href="../../../../../../v0.5.0/index.html">v0.5.0</a></dd>
       <dd><a href="../../../../../../v0.6.0/index.html">v0.6.0</a></dd>
       <dd><a href="../../../../../../v0.7.0/index.html">v0.7.0</a></dd>
       <dd><a href="../../../../../../v0.8.0/index.html">v0.8.0</a></dd>
+      <dd><a href="../../../../../../v0.9.0/index.html">v0.9.0</a></dd>
+      <dd><a href="../../../../../../v23.02.00/index.html">v23.02.00</a></dd>
+      <dd><a href="../../../../../../v23.04.00/index.html">v23.04.00</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>
