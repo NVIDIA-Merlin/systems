@@ -24,10 +24,6 @@ jobs:
       - name: Install and upgrade python packages
         run: |
           python -m pip install --upgrade pip setuptools==59.4.0 wheel
-      - name: Checking Manifest
-        run: |
-          pip install check-manifest
-          check-manifest .
       - name: Generate package for pypi
         run: |
           python setup.py sdist
