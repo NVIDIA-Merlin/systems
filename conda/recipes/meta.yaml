@@ -26,7 +26,7 @@ requirements:
   run:
     - python
     {% for req in setup_py_data.get('install_requires', []) %}
-      # the treelite_runtime pip package is included in the treelite conda pacakge
+      # the treelite_runtime pip package is included in the treelite conda package
       # and not available to install separately
       {% if not req.startswith("treelite_runtime") %}
     - {{ req }}
