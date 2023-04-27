@@ -22,10 +22,14 @@ build:
 
 requirements:
   run:
-  {% for req in setup_py_data.get('install_requires', []) %}
-    - {{ req }}
-  {% endfor %}
     - python
+    {% for req in setup_py_data.get('install_requires', []) %}
+      # the treelite_runtime pip package is included in the treelite conda pacakge
+      # and not available to install separately
+      {% if not req.startswith("treelite_runtime") %}
+    - {{ req }}
+      {% endif %}
+    {% endfor %}
 
 about:
   home: https://github.com/NVIDIA-Merlin/systems
