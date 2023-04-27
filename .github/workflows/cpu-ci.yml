@@ -43,14 +43,6 @@ jobs:
             branch=${raw/origin\/}
           fi
           tox -e test-cpu -- $branch
-      - name: Generate package for pypi
-        run: |
-          python setup.py sdist
-      - name: Upload artifacts to github
-        uses: actions/upload-artifact@v3
-        with:
-          name: dist
-          path: dist
       - name: Building docs
         run: |
           tox -e docs
