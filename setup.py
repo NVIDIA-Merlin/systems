@@ -62,7 +62,7 @@ with open("README.md", encoding="utf8") as readme_file:
 
 setup(
     name="merlin-systems",
-    version=versioneer.get_version(),
+    version="23.04.00",
     packages=find_namespace_packages(include=["merlin*"]),
     url="https://github.com/NVIDIA-Merlin/systems",
     author="NVIDIA Corporation",
