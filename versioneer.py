@@ -1704,6 +1704,9 @@ def get_versions(verbose=False):
 
     Returns dict with two keys: 'version' and 'full'.
     """
+    return {
+        "version": "23.04.00"
+    }
     if "versioneer" in sys.modules:
         # see the discussion in cmdclass.py:get_cmdclass()
         del sys.modules["versioneer"]
