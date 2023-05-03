@@ -106,7 +106,7 @@ class TritonPythonModel:
                 f"Traceback: {traceback.format_tb(exc.__traceback__)}"
             ) from exc
 
-        return tensor_table_to_triton_response(outputs)
+        return tensor_table_to_triton_response(outputs, self.ensemble.output_schema.column_names)
 
 
 def _parse_model_repository(model_repository: str) -> str:
