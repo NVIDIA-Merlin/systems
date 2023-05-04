@@ -95,10 +95,17 @@ class TritonPythonModel:
           be the same as `requests`
         """
         inputs = triton_request_to_tensor_table(request, self.ensemble.input_schema)
+
         try:
             outputs = self.ensemble.transform(inputs, runtime=TritonExecutorRuntime())
         except Exception as exc:
-            raise pb_utils.TritonModelException(str(exc)) from exc
+            import traceback
+
+            raise pb_utils.TritonModelException(
+                f"Error: {type(exc)} - {str(exc)}, "
+                f"Traceback: {traceback.format_tb(exc.__traceback__)}"
+            ) from exc
+
         return tensor_table_to_triton_response(outputs, self.ensemble.output_schema)
 
 
