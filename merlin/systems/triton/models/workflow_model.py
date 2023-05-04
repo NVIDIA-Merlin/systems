@@ -97,24 +97,35 @@ class TritonPythonModel:
         """Transforms the input batches by running through a NVTabular workflow.transform
         function.
         """
-        # transform the triton tensors to a dict of name:numpy tensor
-        input_tensors = {
-            name: _convert_tensor(pb_utils.get_input_tensor_by_name(request, name))
-            for name in self.input_dtypes
-        }
+        try:
+            # transform the triton tensors to a dict of name:numpy tensor
+            input_tensors = {
+                name: _convert_tensor(pb_utils.get_input_tensor_by_name(request, name))
+                for name in self.input_dtypes
+            }
 
-        # multihots are represented as a tuple of (values, offsets)
-        for name, dtype in self.input_multihots.items():
-            values = _convert_tensor(pb_utils.get_input_tensor_by_name(request, name + "__values"))
-            offsets = _convert_tensor(
-                pb_utils.get_input_tensor_by_name(request, name + "__offsets")
-            )
-            input_tensors[name] = (values, offsets)
+            # multihots are represented as a tuple of (values, offsets)
+            for name, dtype in self.input_multihots.items():
+                values = _convert_tensor(
+                    pb_utils.get_input_tensor_by_name(request, name + "__values")
+                )
+                offsets = _convert_tensor(
+                    pb_utils.get_input_tensor_by_name(request, name + "__offsets")
+                )
+                input_tensors[name] = (values, offsets)
 
-        transformed = self.runner.run_workflow(input_tensors)
-        result = [pb_utils.Tensor(name, data) for name, data in transformed.items()]
+            transformed = self.runner.run_workflow(input_tensors)
+            result = [pb_utils.Tensor(name, data) for name, data in transformed.items()]
 
-        return pb_utils.InferenceResponse(result)
+            return pb_utils.InferenceResponse(result)
+
+        except Exception as exc:
+            import traceback
+
+            raise pb_utils.TritonModelException(
+                f"Error: {type(exc)} - {str(exc)}, "
+                f"Traceback: {traceback.format_tb(exc.__traceback__)}"
+            ) from exc
 
     def _is_list_dtype(self, column: str) -> bool:
         """Check if a column of a Workflow contains list elements"""
