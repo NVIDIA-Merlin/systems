@@ -94,7 +94,7 @@ class TritonPythonModel:
           A list of pb_utils.InferenceResponse. The length of this list must
           be the same as `requests`
         """
-        inputs = triton_request_to_tensor_table(request, self.ensemble.input_schema.column_names)
+        inputs = triton_request_to_tensor_table(request, self.ensemble.input_schema)
 
         try:
             outputs = self.ensemble.transform(inputs, runtime=TritonExecutorRuntime())
@@ -106,7 +106,7 @@ class TritonPythonModel:
                 f"Traceback: {traceback.format_tb(exc.__traceback__)}"
             ) from exc
 
-        return tensor_table_to_triton_response(outputs, self.ensemble.output_schema.column_names)
+        return tensor_table_to_triton_response(outputs, self.ensemble.output_schema)
 
 
 def _parse_model_repository(model_repository: str) -> str:
