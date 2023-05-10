@@ -368,15 +368,10 @@ def test_workflow_dtypes(tmpdir):
                     np.testing.assert_array_equal(response[key], value)
 
 
-
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 def test_workflow_with_string_input(tmpdir):
     """This test checks that we can pass strings with unicode characters to a workflow in Triton."""
-    df = make_df(
-        {
-            "a": ["椅子", "καρέκλα", "כִּסֵא", "chair"]
-        }
-    )
+    df = make_df({"a": ["椅子", "καρέκλα", "כִּסֵא", "chair"]})
     dataset = Dataset(df)
     workflow_ops = ["a"] >> wf_ops.Categorify()
     workflow = Workflow(workflow_ops)
@@ -401,4 +396,3 @@ def test_workflow_with_string_input(tmpdir):
                 schema, input_table, output_names, client=client, triton_model=model_name
             )
             assert set(expected_response["a"].tolist()) == set(response["a"].tolist())
-
