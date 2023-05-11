@@ -8,3 +8,4 @@ treelite_runtime==2.4.0
 torch~=1.12
 lightgbm==3.3.2
 ipykernel
+feast==0.31
