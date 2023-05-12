@@ -15,6 +15,7 @@
 import json
 import os
 
+import numpy as np
 import pandas as pd
 
 # this needs to be before any modules that import protobuf
@@ -150,6 +151,10 @@ def _convert_tensor(t):
     out = t.as_numpy()
     if len(out.shape) == 2:
         out = out[:, 0]
+
+    # coerce byte string arrays to unicode strings
+    if is_string_dtype(out.dtype):
+        out = np.char.decode(out.astype(bytes))
     return out
 
 
