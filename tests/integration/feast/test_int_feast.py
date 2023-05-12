@@ -69,9 +69,8 @@ def test_feast_integration(tmpdir):
     with open(feat_file_path, "w", encoding="utf-8") as file:
         file.write(
             f"""
-from google.protobuf.duration_pb2 import Duration
 from datetime import timedelta
-from feast import Entity, Field, Feature, FeatureView, ValueType, FeatureService
+from feast import Entity, Field, FeatureView, ValueType
 from feast.types import Int64, Array
 from feast.infra.offline_stores.file_source import FileSource
 
