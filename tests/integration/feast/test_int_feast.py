@@ -96,12 +96,6 @@ item_features_view = FeatureView(
     source=item_features,
     tags=dict(),
 )
-item_features_v1 = FeatureService(
-    name="item_features_v1",
-    features=[
-        item_features_view,  # Sub-selects a feature from a feature view
-    ],
-)
 """
         )
 
