@@ -25,3 +25,21 @@ jobs:
             branch=${raw/origin\/}
           fi
           cd ${{ github.workspace }}; tox -e test-gpu-postmerge -- $branch
+
+      # If failures occur, notify in slack.
+      - name: Notify Failure in Slack
+        id: slack
+        uses: slackapi/slack-github-action@v1.23.0
+        if: failure()
+        with:
+          # This data can be any valid JSON from a previous step in the GitHub Action
+          payload: |
+            {
+              "message": "GitHub Action job failure on github.ref `${{ github.ref }}`",
+              "pull_request": "${{ github.event.pull_request.html_url || github.event.head_commit.url }}",
+              "workflow": "${{ github.workflow }}",
+              "logs_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
