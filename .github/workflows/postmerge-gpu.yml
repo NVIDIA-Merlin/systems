@@ -30,7 +30,7 @@ jobs:
       - name: Notify Failure in Slack
         id: slack
         uses: slackapi/slack-github-action@v1.23.0
-        if: failure()
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
         with:
           # This data can be any valid JSON from a previous step in the GitHub Action
           payload: |
