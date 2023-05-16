@@ -7,12 +7,6 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
 
-  ### TEMPORARY TO GET IT TO RUN IN A PRE-MERGE PR
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
-  ### TEMPORARY TO GET IT TO RUN IN A PRE-MERGE PR
-
 jobs:
   gpu-ci-postmerge:
     runs-on: 1GPU
