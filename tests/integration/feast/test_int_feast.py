@@ -23,7 +23,7 @@ from merlin.core.dispatch import make_df
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag import Ensemble
 from merlin.systems.dag.ops.feast import QueryFeast  # noqa
-from merlin.table import TensorTable  # noqa
+from merlin.table import Device, TensorTable  # noqa
 
 feast = pytest.importorskip("feast")  # noqa
 
@@ -115,7 +115,7 @@ item_features_view = FeatureView(
     ]
     feat_df = feature_store.get_historical_features(
         features=feature_refs,
-        entity_df=make_df({"item_id": [1], "event_timestamp": [datetime.now()]}),
+        entity_df=make_df({"item_id": [1], "event_timestamp": [datetime.now()]}, device="cpu"),
     ).to_df()
     assert all(feat_df["item_id_raw"] == 1)
     # feature_store.write_to_online_store("item_features", item_features)
@@ -131,4 +131,18 @@ item_features_view = FeatureView(
     ensemble = Ensemble(graph, request_schema)
     result = ensemble.transform(TensorTable.from_df(make_df({"item_id": [1, 2]})))
     columns = ["item_id_raw", "item_brand", "item_category"]
-    assert result.to_df()[columns].equals(item_features.iloc[0:2][columns])
+    if result.device == Device.GPU:
+        for column in columns:
+            if column == "item_category":
+                assert (
+                    result.to_df()[column]._column.leaves()
+                    == item_features.iloc[0:2][column]._column.leaves()
+                ).all()
+                assert (
+                    result.to_df()[column]._column.offsets
+                    == item_features.iloc[0:2][column]._column.offsets
+                ).all()
+            else:
+                assert (result.to_df()[column] == item_features.iloc[0:2][column]).all()
+    else:
+        assert result.to_df()[columns].equals(item_features.iloc[0:2][columns])
