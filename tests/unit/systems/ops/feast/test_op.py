@@ -43,33 +43,42 @@ def test_feast_from_feature_view(tmpdir):
         MagicMock(side_effect=QueryFeast),
     ) as qf_init:
         input_source = feast.FileSource(
-            path=tmpdir,
+            path=str(tmpdir),
             event_timestamp_column="datetime",
             created_timestamp_column="created",
         )
+        item_id = feast.Entity(
+            name="item_id",
+            value_type=feast.ValueType.INT32,
+            join_keys=["item_id"],
+        )
         feature_view = feast.FeatureView(
             name="item_features",
-            entities=["item_id"],
+            entities=[item_id],
             ttl=timedelta(seconds=100),
-            features=[
-                feast.Feature(name="int_feature", dtype=feast.ValueType.INT32),
-                feast.Feature(name="float_feature", dtype=feast.ValueType.FLOAT),
-                feast.Feature(name="int_list_feature", dtype=feast.ValueType.INT32_LIST),
-                feast.Feature(name="float_list_feature", dtype=feast.ValueType.FLOAT_LIST),
+            schema=[
+                feast.Field(name="int_feature", dtype=feast.types.Int32),
+                feast.Field(name="float_feature", dtype=feast.types.Float32),
+                feast.Field(name="int_list_feature", dtype=feast.types.Array(feast.types.Int32)),
+                feast.Field(
+                    name="float_list_feature", dtype=feast.types.Array(feast.types.Float32)
+                ),
             ],
             online=True,
-            input=input_source,
+            source=input_source,
             tags={},
         )
         fs = feast.FeatureStore("repo_path")
         fs.repo_path = "repo_path"
-        fs._registry = feast.feature_store.Registry(None, None)
-        fs.list_entities = MagicMock(
-            return_value=[feast.Entity(name="item_id", value_type=feast.ValueType.INT32)]
-        )
-        fs.get_feature_view = MagicMock(return_value=feature_view)
-        fs._registry.get_feature_view = MagicMock(return_value=feature_view)
+        fs._registry = feast.feature_store.Registry(None, None, "repo_path")
+        fs.list_entities = MagicMock(return_value=[item_id])
 
+        feast.FeatureStore._registry = MagicMock(return_value=fs._registry)
+        feast.FeatureStore.get_feature_view = MagicMock(return_value=feature_view)
+        feast.FeatureStore._registry.get_feature_view = MagicMock(return_value=feature_view)
+        feast.FeatureStore.materialize_incremental = MagicMock(return_value=None)
+        fs._registry._list_feature_views = MagicMock(return_value=feature_view)
+        fs._get_feature_view = MagicMock(return_value=feature_view)
         expected_input_schema = Schema(
             column_schemas=[ColumnSchema(name="item_id", dtype=np.int32)]
         )
@@ -122,7 +131,7 @@ def test_feast_from_feature_view(tmpdir):
 
 @pytest.mark.parametrize("is_ragged", [True, False])
 @pytest.mark.parametrize("prefix", ["prefix", ""])
-def test_feast_transform(prefix, is_ragged):
+def test_feast_transform(tmpdir, prefix, is_ragged):
     mocked_resp = OnlineResponse(
         online_response_proto=ServingService_pb2.GetOnlineFeaturesResponse(
             metadata=ServingService_pb2.GetOnlineFeaturesResponseMetadata(
@@ -134,10 +143,18 @@ def test_feast_transform(prefix, is_ragged):
                 ServingService_pb2.GetOnlineFeaturesResponse.FeatureVector(
                     values=[
                         Value_pb2.Value(int32_val=1),
+                    ]
+                ),
+                ServingService_pb2.GetOnlineFeaturesResponse.FeatureVector(
+                    values=[
                         Value_pb2.Value(float_val=1.0),
+                    ]
+                ),
+                ServingService_pb2.GetOnlineFeaturesResponse.FeatureVector(
+                    values=[
                         Value_pb2.Value(float_list_val=Value_pb2.FloatList(val=[1.0, 2.0, 3.0])),
                     ]
-                )
+                ),
             ],
         )
     )

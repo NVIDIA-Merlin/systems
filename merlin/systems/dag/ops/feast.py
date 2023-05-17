@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 import numpy as np
@@ -82,7 +83,7 @@ class QueryFeast(InferenceOperator):
 
         output_schema = Schema([])
         for feature in feature_view.features:
-            feature_dtype, is_list, is_ragged = feast_2_numpy[feature.dtype]
+            feature_dtype, is_list, is_ragged = feast_2_numpy[feature.dtype.to_value_type()]
 
             if is_list:
                 mh_features.append(feature.name)
@@ -165,6 +166,9 @@ class QueryFeast(InferenceOperator):
         self.output_prefix = output_prefix
 
         self.store = FeatureStore(repo_path=repo_path)
+        # add feature view to the online store
+        self.store.materialize_incremental(datetime.now(), feature_views=[self.entity_view])
+
         super().__init__()
 
     def __getstate__(self):
