@@ -34,7 +34,6 @@ from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 
 def test_serve_t4r_with_torchscript(tmpdir):
-
     # ===========================================
     # Generate training data
     # ===========================================
@@ -48,6 +47,19 @@ def test_serve_t4r_with_torchscript(tmpdir):
         device="cuda",
     )
     t4r_yoochoose_schema = t4r.data.tabular_sequence_testing_data.schema
+
+    # The schema is missing the "continuous" tag on these columns. If we don't add it, the
+    # TabularFeatures class in t4r will ignore the columns and they won't end up in the model.
+    for col in t4r_yoochoose_schema:
+        if col.name in [
+            "timestamp/age_days/list",
+            "ts/list",
+            "ts/last",
+            "ts/first",
+            "session_size",
+            "day_idx",
+        ]:
+            col.annotation.tag.append("continuous")
 
     # ===========================================
     # Build, train, test, and JIT the model
@@ -70,7 +82,20 @@ def test_serve_t4r_with_torchscript(tmpdir):
 
     model.eval()
 
-    traced_model = torch.jit.trace(model, torch_yoochoose_like, strict=True)
+    request_data = tr.data.tabular_sequence_testing_data.torch_synthetic_data(
+        num_rows=40,
+        min_session_length=4,
+        max_session_length=10,
+        device="cuda",
+    )
+
+    # We only use the columns that are in the model.input_schema - there are some other things
+    # in the synthetic data that aren't needed
+    trace_data = {k: v for k, v in request_data.items() if k in model.input_schema.column_names}
+    assert sorted(trace_data.keys()) == sorted(model.input_schema.column_names)
+
+    traced_model = torch.jit.trace(model, trace_data, strict=True)
+
     assert isinstance(traced_model, torch.jit.TopLevelTracedModule)
     assert torch.allclose(
         model(torch_yoochoose_like),
@@ -95,19 +120,12 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # Create Request Data
     # ===========================================
 
-    request_data = tr.data.tabular_sequence_testing_data.torch_synthetic_data(
-        num_rows=40,
-        min_session_length=4,
-        max_session_length=10,
-        device="cuda",
-    )
-
     df_cols = {}
     for name, tensor in request_data.items():
         if name in input_schema.column_names:
             dtype = input_schema[name].dtype
 
-            df_cols[name] = tensor.cpu().numpy().astype(dtype)
+            df_cols[name] = tensor.cpu().numpy().astype(dtype.name)
             if len(tensor.shape) > 1:
                 df_cols[name] = list(df_cols[name])
 
@@ -116,6 +134,8 @@ def test_serve_t4r_with_torchscript(tmpdir):
     # ===========================================
     # Send request to Triton and check response
     # ===========================================
+
+    assert sorted(trace_data.keys()) == sorted(df.columns)
     triton_response = run_ensemble_on_tritonserver(
         tmpdir, input_schema, df, output_schema.column_names, "executor_model"
     )
