@@ -34,7 +34,6 @@ from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 
 def test_serve_t4r_with_torchscript(tmpdir):
-
     # ===========================================
     # Generate training data
     # ===========================================
@@ -107,7 +106,7 @@ def test_serve_t4r_with_torchscript(tmpdir):
         if name in input_schema.column_names:
             dtype = input_schema[name].dtype
 
-            df_cols[name] = tensor.cpu().numpy().astype(dtype)
+            df_cols[name] = tensor.cpu().numpy().astype(dtype.name)
             if len(tensor.shape) > 1:
                 df_cols[name] = list(df_cols[name])
 
