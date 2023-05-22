@@ -1,7 +1,6 @@
 import os
 
 import pytest
-
 from testbook import testbook
 
 from tests.conftest import REPO_ROOT
@@ -97,9 +96,8 @@ def test_example_04_exporting_ranking_models(tb):
     # read in data for request
     batch = df_lib.read_parquet(
         os.path.join("/tmp/data/", "valid", "part.0.parquet"),
-        num_rows=3,
         columns=workflow.input_schema.column_names,
-    )
+    ).head(3)
     batch = batch.drop(columns="click")
     outputs = tb.ref("output_cols")
     from merlin.dataloader.tf_utils import configure_tensorflow
