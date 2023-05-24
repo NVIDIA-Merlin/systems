@@ -28,10 +28,10 @@ import functools
 import json
 import logging
 
-from merlin.core.dispatch import concat_columns
-from merlin.dag import ColumnSelector, Supports
+from merlin.dag import ColumnSelector, DataFormats, Supports
+from merlin.dag.executors import LocalExecutor, _convert_format, _data_format
 from merlin.schema import Tags
-from merlin.systems.triton.conversions import convert_format, match_representations
+from merlin.systems.triton.conversions import match_representations
 from merlin.table import TensorTable
 
 LOG = logging.getLogger("merlin-systems")
@@ -97,98 +97,13 @@ class WorkflowRunner:
                 self._initialize_ops(parent, visited)
 
     def run_workflow(self, input_tensors):
-        # use our NVTabular workflow to transform the dataset
-        transformed, kind = self._transform_tensors(input_tensors, self.workflow.output_node)
+        transformable = TensorTable(input_tensors).to_df()
+        transformed = LocalExecutor().transform(transformable, self.workflow.graph)
 
-        # if we don't have tensors in numpy format, convert back so that the we can return
-        # to triton
-        if kind != Supports.CPU_DICT_ARRAY:
-            transformed, kind = convert_format(transformed, kind, Supports.CPU_DICT_ARRAY)
+        if _data_format(transformed) != DataFormats.NUMPY_DICT_ARRAY:
+            transformed = _convert_format(transformed, DataFormats.NUMPY_DICT_ARRAY)
 
-        transformed = TensorTable(transformed).to_dict()
-        output_dict = match_representations(self.workflow.output_schema, transformed)
-
-        for key, value in output_dict.items():
-            output_dict[key] = value.astype(self.output_dtypes[key])
-
-        return output_dict
-
-    def _transform_tensors(self, input_tensors, workflow_node):
-        upstream_inputs = []
-
-        # Gather inputs from the parents and dependency nodes
-        if workflow_node.parents_with_dependencies:
-            for parent in workflow_node.parents_with_dependencies:
-                upstream_tensors, upstream_kind = self._transform_tensors(input_tensors, parent)
-                if upstream_tensors is not None and upstream_kind:
-                    upstream_inputs.append((upstream_tensors, upstream_kind))
-
-        # Gather additional input columns from the original input tensors
-        if workflow_node.selector:
-            selector_columns = workflow_node.selector.names
-            to_remove = []
-            for upstream_tensors, upstream_kind in upstream_inputs:
-                for col in selector_columns:
-                    if col in upstream_tensors:
-                        to_remove.append(col)
-            for col in set(to_remove):
-                selector_columns.remove(col)
-
-            if selector_columns:
-                selected_tensors = {c: input_tensors[c] for c in selector_columns}
-                selected_kinds = Supports.CPU_DICT_ARRAY
-                upstream_inputs.append((selected_tensors, selected_kinds))
-
-        # Standardize the formats
-        tensors, kind = None, None
-        for upstream_tensors, upstream_kind in upstream_inputs:
-            if tensors is None:
-                tensors, kind = upstream_tensors, upstream_kind
-            else:
-                if kind != upstream_kind:
-                    # we have multiple different kinds of data here (dataframe/array on cpu/gpu)
-                    # we need to convert to a common format here first before concatenating.
-                    op = workflow_node.op
-                    if op and hasattr(op, "inference_supports"):
-                        target_kind = op.inference_supports
-                    else:
-                        target_kind = Supports.CPU_DICT_ARRAY
-                    # note : the 2nd convert_format call needs to be stricter in what the kind is
-                    # (exact match rather than a bitmask of values)
-                    tensors, kind = convert_format(tensors, kind, target_kind)
-                    upstream_tensors, _ = convert_format(upstream_tensors, upstream_kind, kind)
-
-                tensors = self.concat_tensors([tensors, upstream_tensors], kind)
-
-        # Run the transform
-        if tensors is not None and kind and workflow_node.op:
-            try:
-                # if the op doesn't support the current kind - we need to convert
-                if (
-                    hasattr(workflow_node, "inference_supports")
-                    and not workflow_node.inference_supports & kind
-                ):
-                    tensors, kind = convert_format(tensors, kind, workflow_node.inference_supports)
-
-                tensors = workflow_node.op.transform(
-                    workflow_node.input_columns,
-                    tensors,
-                )
-
-            except Exception:
-                LOG.exception("Failed to transform operator %s", workflow_node.op)
-                raise
-
-        return tensors, kind
-
-    def concat_tensors(self, tensors, kind):
-        if kind & (Supports.GPU_DATAFRAME | Supports.CPU_DATAFRAME):
-            return concat_columns(tensors)
-        else:
-            output = tensors[0]
-            for tensor in tensors[1:]:
-                output.update(tensor)
-            return output
+        return match_representations(self.workflow.output_schema, transformed)
 
     def _get_param(self, config, *args, default=None):
         config_element = config["parameters"]

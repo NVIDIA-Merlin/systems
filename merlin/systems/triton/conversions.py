@@ -30,6 +30,7 @@ from typing import Any, Dict, List
 import numpy as np
 import pandas as pd
 
+import merlin.dtypes as md
 from merlin.core.compat import cudf
 from merlin.core.compat import cupy as cp
 from merlin.core.dispatch import build_cudf_list_column, is_list_dtype
@@ -85,10 +86,12 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
     """
     aligned = {}
     for col_name, col_schema in schema.column_schemas.items():
-        if col_schema.is_ragged:
-            vals_name = f"{col_name}__values"
-            offs_name = f"{col_name}__offsets"
+        dtype = col_schema.dtype
 
+        vals_name = f"{col_name}__values"
+        offs_name = f"{col_name}__offsets"
+
+        if col_schema.is_ragged:
             try:
                 # Look for values and offsets that already exist
                 aligned[vals_name] = dict_array[vals_name]
@@ -98,8 +101,25 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
                 values, offsets = _to_values_offsets(dict_array[col_name])
                 aligned[vals_name] = values
                 aligned[offs_name] = offsets
+
+            if dtype != md.unknown:
+                aligned[vals_name] = aligned[vals_name].astype(dtype.to_numpy)
         else:
-            aligned[col_name] = dict_array[col_name]
+            try:
+                # Look for values and offsets that already exist,
+                # then reshape accordingly
+                aligned[col_name] = dict_array[vals_name]
+
+                new_shape = [-1]
+                new_shape.extend(col_schema.shape.as_tuple[1:])
+
+                aligned[col_name] = aligned[col_name].reshape(new_shape)
+            except KeyError:
+                # If you don't find them, just use the values
+                aligned[col_name] = dict_array[col_name]
+
+            if dtype != md.unknown:
+                aligned[col_name] = aligned[col_name].astype(dtype.to_numpy)
 
     return aligned
 
@@ -306,7 +326,10 @@ def convert_format(tensors, kind, target_kind):
         elif kind == Supports.CPU_DICT_ARRAY:
             return _array_to_pandas(tensors), Supports.CPU_DATAFRAME
         elif kind == Supports.GPU_DICT_ARRAY:
-            return _array_to_pandas(_convert_array(tensors, cp.asnumpy)), Supports.CPU_DATAFRAME
+            return (
+                _array_to_pandas(_convert_array(tensors, cp.asnumpy)),
+                Supports.CPU_DATAFRAME,
+            )
 
     raise ValueError("unsupported target for converting tensors", target_kind)
 
