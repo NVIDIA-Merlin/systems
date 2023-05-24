@@ -102,7 +102,7 @@ if os.path.exists(gitdir):
 else:
     smv_tag_whitelist = r"^v.*$"
 
-smv_branch_whitelist = r"^main$"
+smv_branch_whitelist = r"^(main|stable)$"
 
 smv_refs_override_suffix = r"-docs"
 
@@ -111,7 +111,7 @@ intersphinx_mapping = {
     "cudf": ("https://docs.rapids.ai/api/cudf/stable/", None),
     "distributed": ("https://distributed.dask.org/en/latest/", None),
     "torch": ("https://pytorch.org/docs/stable/", None),
-    "merlin-core": ("https://nvidia-merlin.github.io/core/main/", None),
+    "merlin-core": ("https://nvidia-merlin.github.io/core/stable/", None),
 }
 
 html_sidebars = {"**": ["versions.html"]}
