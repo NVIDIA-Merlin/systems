@@ -116,7 +116,7 @@ intersphinx_mapping = {
 }
 
 html_sidebars = {"**": ["versions.html"]}
-html_baseurl = "https://nvidia-merlin.github.io/systems/main"
+html_baseurl = "https://nvidia-merlin.github.io/systems/stable/"
 
 autodoc_inherit_docstrings = False
 autodoc_default_options = {
