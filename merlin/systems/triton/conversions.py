@@ -108,12 +108,9 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
             try:
                 # Look for values and offsets that already exist,
                 # then reshape accordingly
-                aligned[col_name] = dict_array[vals_name]
-
-                new_shape = [-1]
-                new_shape.extend(col_schema.shape.as_tuple[1:])
-
-                aligned[col_name] = aligned[col_name].reshape(new_shape)
+                aligned[col_name] = _from_values_offsets(
+                    dict_array[vals_name], dict_array[offs_name], col_schema.shape
+                )
             except KeyError:
                 # If you don't find them, just use the values
                 aligned[col_name] = dict_array[col_name]
@@ -122,6 +119,20 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
                 aligned[col_name] = aligned[col_name].astype(dtype.to_numpy)
 
     return aligned
+
+
+def _from_values_offsets(values, offsets, shape):
+    new_shape = [-1]
+    new_shape.extend(shape.as_tuple[1:])
+
+    row_lengths = offsets[1:] - offsets[:-1]
+    if not all(row_lengths == row_lengths[0]):
+        raise ValueError(
+            "Attempted to convert values/offsets representation of list column "
+            "to values-only representation when row lengths were not equal."
+        )
+
+    return values.reshape(new_shape)
 
 
 def _to_values_offsets(array):
