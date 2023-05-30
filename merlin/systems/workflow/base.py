@@ -65,8 +65,10 @@ class WorkflowRunner:
                 f"The following columns were not found in the workflow's output: {missing_cols}"
             )
 
-        # recurse over all column groups, initializing operators for inference pipeline
-        self._initialize_ops(self.workflow.output_node)
+        # recurse over all column groups, initializing operators for inference pipeline.
+        # (disabled for now while we sort out whether and how we want to use C++ implementations
+        # of NVTabular operators for performance optimization)
+        # self._initialize_ops(self.workflow.output_node)
 
     def _initialize_ops(self, workflow_node, visited=None):
         if visited is None:
