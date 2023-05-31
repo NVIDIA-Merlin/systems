@@ -35,18 +35,21 @@ triton = pytest.importorskip("merlin.systems.triton")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize("runtime", [None, TritonExecutorRuntime()])
-@pytest.mark.parametrize(
-    "model_cls",
-    [
-        implicit.lmf.LogisticMatrixFactorization,
-        implicit.lmf.LogisticMatrixFactorization,
-        implicit.lmf.LogisticMatrixFactorization,
-        implicit.lmf.LogisticMatrixFactorization,
-        implicit.lmf.LogisticMatrixFactorization,
-    ],
-)
-def test_ensemble(model_cls, runtime, tmpdir):
+def test_als(tmpdir):
+    run_ensemble_test(implicit.lmf.LogisticMatrixFactorization, None, tmpdir)
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_bpr(tmpdir):
+    run_ensemble_test(implicit.bpr.BayesianPersonalizedRanking, None, tmpdir)
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_als(tmpdir):
+    run_ensemble_test(implicit.als.AlternatingLeastSquares, None, tmpdir)
+
+
+def run_ensemble_test(model_cls, runtime, model_repository):
     model = model_cls()
     n = 100
     user_items = csr_matrix(np.random.choice([0, 1], size=n * n, p=[0.9, 0.1]).reshape(n, n))
@@ -66,7 +69,7 @@ def test_ensemble(model_cls, runtime, tmpdir):
     triton_chain = input_schema.column_names >> implicit_op
 
     triton_ens = Ensemble(triton_chain, input_schema)
-    ensemble_config, _ = triton_ens.export(tmpdir, runtime=runtime)
+    ensemble_config, _ = triton_ens.export(model_repository, runtime=runtime)
 
     input_user_id = np.array([[0], [1]], dtype=np.int64)
     inputs = [
@@ -79,7 +82,7 @@ def test_ensemble(model_cls, runtime, tmpdir):
 
     response = None
 
-    with run_triton_server(tmpdir) as client:
+    with run_triton_server(model_repository) as client:
         response = client.infer(ensemble_config.name, inputs, outputs=outputs)
 
     response_ids = response.as_numpy("ids")
