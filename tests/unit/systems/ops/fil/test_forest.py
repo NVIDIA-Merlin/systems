@@ -87,7 +87,7 @@ def test_export_merlin_models(tmpdir):
 
     # train a XGB model using merlin-models
     model = merlin_xgb.XGBoost(ds.schema)
-    with Distributed(cluster_type="cpu"):
+    with Distributed():
         model.fit(ds)
 
     # make sure we can export the merlin-model xgb wrapper using merlin-systems
