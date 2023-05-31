@@ -36,7 +36,7 @@ triton = pytest.importorskip("merlin.systems.triton")
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 @pytest.mark.parametrize("runtime", [None, TritonExecutorRuntime()])
-def test_als(tmpdir, runtime):
+def test_lmf(tmpdir, runtime):
     run_ensemble_test(implicit.lmf.LogisticMatrixFactorization, runtime, tmpdir)
 
 
