@@ -22,7 +22,6 @@ import xgboost
 from google.protobuf import text_format
 from tritonclient.grpc import model_config_pb2 as model_config
 
-from merlin.core.compat import HAS_GPU
 from merlin.core.utils import Distributed
 from merlin.dag import ColumnSelector
 from merlin.io import Dataset
@@ -42,7 +41,6 @@ def read_config(config_path):
         return text_format.Parse(raw_config, config)
 
 
-@pytest.mark.skipif(not HAS_GPU, reason="no gpu detected")
 def test_export(tmpdir):
     rows = 200
     num_features = 16
@@ -67,7 +65,6 @@ def test_export(tmpdir):
     assert parsed_config.backend == "fil"
 
 
-@pytest.mark.skipif(not HAS_GPU, reason="no gpu detected")
 def test_export_merlin_models(tmpdir):
     merlin_xgb = pytest.importorskip("merlin.models.xgb")
 
@@ -104,7 +101,6 @@ def test_export_merlin_models(tmpdir):
     assert parsed_config.backend == "fil"
 
 
-@pytest.mark.skipif(not HAS_GPU, reason="no gpu detected")
 def test_ensemble(tmpdir):
     rows = 200
     num_features = 16
