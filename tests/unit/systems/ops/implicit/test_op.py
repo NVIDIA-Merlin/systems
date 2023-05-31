@@ -35,21 +35,28 @@ triton = pytest.importorskip("merlin.systems.triton")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize("runtime", [None, TritonExecutorRuntime()])
-def test_als(tmpdir, runtime):
-    run_ensemble_test(implicit.als.AlternatingLeastSquares, runtime, tmpdir)
-
+def test_als(tmpdir):
+    run_ensemble_test(implicit.als.AlternatingLeastSquares, None, tmpdir)
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize("runtime", [None, TritonExecutorRuntime()])
-def test_lmf(tmpdir, runtime):
-    run_ensemble_test(implicit.lmf.LogisticMatrixFactorization, runtime, tmpdir)
-
+def test_als_executor(tmpdir):
+    run_ensemble_test(implicit.als.AlternatingLeastSquares, TritonExecutorRuntime(), tmpdir)
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize("runtime", [None, TritonExecutorRuntime()])
-def test_bpr(tmpdir, runtime):
-    run_ensemble_test(implicit.bpr.BayesianPersonalizedRanking, runtime, tmpdir)
+def test_lmf(tmpdir):
+    run_ensemble_test(implicit.lmf.LogisticMatrixFactorization, None, tmpdir)
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_lmf_executor(tmpdir):
+    run_ensemble_test(implicit.lmf.LogisticMatrixFactorization, TritonExecutorRuntime(), tmpdir)
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_bpr(tmpdir):
+    run_ensemble_test(implicit.bpr.BayesianPersonalizedRanking, None, tmpdir)
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_bpr_executor(tmpdir):
+    run_ensemble_test(implicit.bpr.BayesianPersonalizedRanking, TritonExecutorRuntime(), tmpdir)
 
 
 def run_ensemble_test(model_cls, runtime, model_repository):
