@@ -35,7 +35,6 @@ triton = pytest.importorskip("merlin.systems.triton")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.parametrize("runtime", [None, TritonExecutorRuntime()])
 @pytest.mark.parametrize(
     "model_cls",
     [
@@ -44,7 +43,7 @@ triton = pytest.importorskip("merlin.systems.triton")
         implicit.lmf.LogisticMatrixFactorization,
     ],
 )
-def test_ensemble(model_cls, runtime, tmpdir):
+def test_ensemble(model_cls, tmpdir):
     model = model_cls()
     n = 100
     user_items = csr_matrix(np.random.choice([0, 1], size=n * n, p=[0.9, 0.1]).reshape(n, n))
@@ -64,7 +63,7 @@ def test_ensemble(model_cls, runtime, tmpdir):
     triton_chain = input_schema.column_names >> implicit_op
 
     triton_ens = Ensemble(triton_chain, input_schema)
-    ensemble_config, _ = triton_ens.export(tmpdir, runtime=runtime)
+    ensemble_config, _ = triton_ens.export(tmpdir)
 
     input_user_id = np.array([[0], [1]], dtype=np.int64)
     inputs = [
