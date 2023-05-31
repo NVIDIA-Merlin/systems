@@ -39,10 +39,10 @@ triton = pytest.importorskip("merlin.systems.triton")
 @pytest.mark.parametrize(
     "model_cls",
     [
-        implicit.als.AlternatingLeastSquares,
-        implicit.als.AlternatingLeastSquares,
-        implicit.als.AlternatingLeastSquares,
-        implicit.als.AlternatingLeastSquares,
+        implicit.bpr.BayesianPersonalizedRanking,
+        implicit.bpr.BayesianPersonalizedRanking,
+        implicit.bpr.BayesianPersonalizedRanking,
+        implicit.bpr.BayesianPersonalizedRanking,
     ],
 )
 def test_ensemble(model_cls, runtime, tmpdir):
