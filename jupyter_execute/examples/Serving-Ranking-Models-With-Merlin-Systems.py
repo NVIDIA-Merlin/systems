@@ -279,8 +279,8 @@ original_data_path = os.environ.get("INPUT_FOLDER", "/workspace/data/")
 
 # read in data for request
 batch = df_lib.read_parquet(
-    os.path.join(original_data_path,"valid", "part.0.parquet"), num_rows=3, columns=workflow.input_schema.column_names
-)
+    os.path.join(original_data_path,"valid", "part.0.parquet"), columns=workflow.input_schema.column_names
+).head(3)
 batch
 
 
