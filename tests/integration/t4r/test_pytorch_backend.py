@@ -32,7 +32,7 @@ grpcclient = pytest.importorskip("tritonclient.grpc")
 from merlin.core.dispatch import make_df  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
-from merlin.systems.triton.conversions import match_representations
+from merlin.systems.triton.conversions import match_representations  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
 TRITON_SERVER_PATH = shutil.which("tritonserver")
