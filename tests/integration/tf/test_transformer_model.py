@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+import shutil
+
 import pytest
 
 tf = pytest.importorskip("tensorflow")
@@ -31,7 +33,10 @@ from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.tensorflow import PredictTensorflow  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
 def test_serve_tf_session_based_with_libtensorflow(tmpdir):
 
     # ===========================================
