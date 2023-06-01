@@ -26,12 +26,14 @@
 
 import itertools
 from typing import Any, Dict, List
+from functools import singledispatch
 
 import numpy as np
 import pandas as pd
 
 from merlin.core.compat import cudf
 from merlin.core.compat import cupy as cp
+from merlin.core.compat.torch import torch
 from merlin.core.dispatch import build_cudf_list_column, is_list_dtype
 from merlin.dag import Supports
 from merlin.schema import Schema
@@ -104,19 +106,23 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
     return aligned
 
 
-def _to_values_offsets(array):
+@singledispatch
+def _to_values_offsets(values):
     """Convert array to values/offsets representation
 
     Parameters
     ----------
-    array : numpy.ndarray or cupy.ndarray
-        Array to convert
+    values : array or tensor
+        Array or tensor to convert
 
     Returns
     -------
     values, offsets
         Tuple of values and offsets
     """
+    raise NotImplementedError(f"_to_values_offsets not implemented for {type(values)}")
+
+def _to_values_offsets_array(array):
     num_rows = array.shape[0]
     row_lengths = [array.shape[1]] * num_rows
     offsets = [0] + list(itertools.accumulate(row_lengths))
@@ -124,6 +130,25 @@ def _to_values_offsets(array):
     offsets = array_lib.array(offsets, dtype="int32")
     values = array.reshape(-1, *array.shape[2:])
     return values, offsets
+
+@_to_values_offsets.register(np.ndarray)
+def _(array):
+    return _to_values_offsets_array(array)
+
+if cp:
+    @_to_values_offsets.register(cp.ndarray)
+    def _(array):
+        return _to_values_offsets_array(array)
+
+if torch:
+    @_to_values_offsets.register(torch.Tensor)
+    def _(tensor):
+        num_rows = tensor.shape[0]
+        row_lengths = [tensor.shape[1]] * num_rows
+        offsets = [0] + list(itertools.accumulate(row_lengths))
+        offsets = torch.tensor(offsets, dtype=torch.int32, device=tensor.device)
+        values = tensor.reshape(-1, *tensor.shape[2:])
+        return values, offsets
 
 
 def triton_request_to_tensor_table(request, schema):
