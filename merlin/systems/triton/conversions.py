@@ -25,8 +25,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import itertools
-from typing import Any, Dict, List
 from functools import singledispatch
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
@@ -122,6 +122,7 @@ def _to_values_offsets(values):
     """
     raise NotImplementedError(f"_to_values_offsets not implemented for {type(values)}")
 
+
 def _to_values_offsets_array(array):
     num_rows = array.shape[0]
     row_lengths = [array.shape[1]] * num_rows
@@ -131,16 +132,21 @@ def _to_values_offsets_array(array):
     values = array.reshape(-1, *array.shape[2:])
     return values, offsets
 
+
 @_to_values_offsets.register(np.ndarray)
 def _(array):
     return _to_values_offsets_array(array)
 
+
 if cp:
+
     @_to_values_offsets.register(cp.ndarray)
     def _(array):
         return _to_values_offsets_array(array)
 
+
 if torch:
+
     @_to_values_offsets.register(torch.Tensor)
     def _(tensor):
         num_rows = tensor.shape[0]
