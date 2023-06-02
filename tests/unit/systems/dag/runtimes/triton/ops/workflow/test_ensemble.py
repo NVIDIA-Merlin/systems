@@ -269,7 +269,7 @@ def test_workflow_with_ragged_input_and_output(tmpdir):
                         "x__offsets": np.array([0, 1], dtype="int32"),
                     },
                     {
-                        "x__values": np.array([1], dtype="int64"),
+                        "x__values": np.array([3], dtype="int64"),
                         "x__offsets": np.array([0, 1], dtype="int32"),
                     },
                 ),
@@ -279,7 +279,7 @@ def test_workflow_with_ragged_input_and_output(tmpdir):
                         "x__offsets": np.array([0, 1, 2], dtype="int32"),
                     },
                     {
-                        "x__values": np.array([1, 2], dtype="int64"),
+                        "x__values": np.array([3, 4], dtype="int64"),
                         "x__offsets": np.array([0, 1, 2], dtype="int32"),
                     },
                 ),
@@ -289,7 +289,7 @@ def test_workflow_with_ragged_input_and_output(tmpdir):
                         "x__offsets": np.array([0, 2, 3], dtype="int32"),
                     },
                     {
-                        "x__values": np.array([1, 2, 3], dtype="int64"),
+                        "x__values": np.array([3, 4, 5], dtype="int64"),
                         "x__offsets": np.array([0, 2, 3], dtype="int32"),
                     },
                 ),
@@ -298,7 +298,11 @@ def test_workflow_with_ragged_input_and_output(tmpdir):
                 input_table = TensorTable(request_dict)
                 output_names = ["x__values", "x__offsets"]
                 response = send_triton_request(
-                    schema, input_table, output_names, client=client, triton_model=model_name
+                    schema,
+                    input_table,
+                    output_names,
+                    client=client,
+                    triton_model=model_name,
                 )
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
@@ -362,7 +366,11 @@ def test_workflow_dtypes(tmpdir):
                 input_table = TensorTable(request_dict)
                 output_names = ["a__values", "a__offsets", "b"]
                 response = send_triton_request(
-                    schema, input_table, output_names, client=client, triton_model=model_name
+                    schema,
+                    input_table,
+                    output_names,
+                    client=client,
+                    triton_model=model_name,
                 )
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
