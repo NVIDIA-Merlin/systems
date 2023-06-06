@@ -25,13 +25,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import itertools
+from functools import singledispatch
 from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
 
+import merlin.dtypes as md
 from merlin.core.compat import cudf
 from merlin.core.compat import cupy as cp
+from merlin.core.compat.torch import torch
 from merlin.core.dispatch import build_cudf_list_column, is_list_dtype
 from merlin.dag import Supports
 from merlin.schema import Schema
@@ -85,10 +88,12 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
     """
     aligned = {}
     for col_name, col_schema in schema.column_schemas.items():
-        if col_schema.is_ragged:
-            vals_name = f"{col_name}__values"
-            offs_name = f"{col_name}__offsets"
+        dtype = col_schema.dtype
 
+        vals_name = f"{col_name}__values"
+        offs_name = f"{col_name}__offsets"
+
+        if col_schema.is_ragged:
             try:
                 # Look for values and offsets that already exist
                 aligned[vals_name] = dict_array[vals_name]
@@ -98,25 +103,58 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
                 values, offsets = _to_values_offsets(dict_array[col_name])
                 aligned[vals_name] = values
                 aligned[offs_name] = offsets
+
+            if dtype != md.unknown:
+                aligned[vals_name] = aligned[vals_name].astype(dtype.to_numpy)
         else:
-            aligned[col_name] = dict_array[col_name]
+            try:
+                # Look for values and offsets that already exist,
+                # then reshape accordingly
+                aligned[col_name] = _from_values_offsets(
+                    dict_array[vals_name], dict_array[offs_name], col_schema.shape
+                )
+            except KeyError:
+                # If you don't find them, just use the values
+                aligned[col_name] = dict_array[col_name]
+
+            if dtype != md.unknown:
+                aligned[col_name] = aligned[col_name].astype(dtype.to_numpy)
 
     return aligned
 
 
-def _to_values_offsets(array):
+def _from_values_offsets(values, offsets, shape):
+    new_shape = [-1]
+    new_shape.extend(shape.as_tuple[1:])
+
+    row_lengths = offsets[1:] - offsets[:-1]
+    if not all(row_lengths == row_lengths[0]):
+        raise ValueError(
+            "Attempted to convert values/offsets representation of list column "
+            "to values-only representation when row lengths were not equal."
+        )
+
+    return values.reshape(new_shape)
+
+
+@singledispatch
+def _to_values_offsets(values):
     """Convert array to values/offsets representation
 
     Parameters
     ----------
-    array : numpy.ndarray or cupy.ndarray
-        Array to convert
+    values : array or tensor
+        Array or tensor to convert
 
     Returns
     -------
     values, offsets
         Tuple of values and offsets
     """
+    raise NotImplementedError(f"_to_values_offsets not implemented for {type(values)}")
+
+
+def _to_values_offsets_array(array):
     num_rows = array.shape[0]
     row_lengths = [array.shape[1]] * num_rows
     offsets = [0] + list(itertools.accumulate(row_lengths))
@@ -124,6 +162,30 @@ def _to_values_offsets(array):
     offsets = array_lib.array(offsets, dtype="int32")
     values = array.reshape(-1, *array.shape[2:])
     return values, offsets
+
+
+@_to_values_offsets.register(np.ndarray)
+def _(array):
+    return _to_values_offsets_array(array)
+
+
+if cp:
+
+    @_to_values_offsets.register(cp.ndarray)
+    def _(array):
+        return _to_values_offsets_array(array)
+
+
+if torch:
+
+    @_to_values_offsets.register(torch.Tensor)
+    def _(tensor):
+        num_rows = tensor.shape[0]
+        row_lengths = [tensor.shape[1]] * num_rows
+        offsets = [0] + list(itertools.accumulate(row_lengths))
+        offsets = torch.tensor(offsets, dtype=torch.int32, device=tensor.device)
+        values = tensor.reshape(-1, *tensor.shape[2:])
+        return values, offsets
 
 
 def triton_request_to_tensor_table(request, schema):
@@ -306,7 +368,10 @@ def convert_format(tensors, kind, target_kind):
         elif kind == Supports.CPU_DICT_ARRAY:
             return _array_to_pandas(tensors), Supports.CPU_DATAFRAME
         elif kind == Supports.GPU_DICT_ARRAY:
-            return _array_to_pandas(_convert_array(tensors, cp.asnumpy)), Supports.CPU_DATAFRAME
+            return (
+                _array_to_pandas(_convert_array(tensors, cp.asnumpy)),
+                Supports.CPU_DATAFRAME,
+            )
 
     raise ValueError("unsupported target for converting tensors", target_kind)
 

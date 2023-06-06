@@ -18,5 +18,7 @@ feast==0.31
 xgboost==1.6.2
 implicit==0.6.0
 
+merlin-models[tensorflow,pytorch,transformers]@git+https://github.com/NVIDIA-Merlin/models.git
+
 # TODO: do we need more of these?
 # https://github.com/NVIDIA-Merlin/Merlin/blob/a1cc48fe23c4dfc627423168436f26ef7e028204/ci/dockerfile.ci#L13-L18
