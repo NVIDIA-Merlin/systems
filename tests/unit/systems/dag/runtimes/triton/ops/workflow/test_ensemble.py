@@ -193,6 +193,7 @@ def test_workflow_with_ragged_output(tmpdir):
                 )
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
+                    assert response[key].dtype == value.dtype
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
@@ -246,6 +247,7 @@ def test_workflow_with_padded_output(tmpdir):
                 )
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
+                    assert response[key].dtype == value.dtype
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
@@ -306,6 +308,7 @@ def test_workflow_with_ragged_input_and_output(tmpdir):
                 )
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
+                    assert response[key].dtype == value.dtype
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
@@ -374,3 +377,4 @@ def test_workflow_dtypes(tmpdir):
                 )
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
+                    assert response[key].dtype == value.dtype
