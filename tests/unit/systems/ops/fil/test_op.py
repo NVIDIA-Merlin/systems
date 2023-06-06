@@ -25,12 +25,9 @@ from google.protobuf import text_format  # noqa
 from tritonclient.grpc import model_config_pb2 as model_config  # noqa
 
 import merlin.systems.dag.ops.fil as fil_op
-from merlin.core.compat import HAS_GPU
 from merlin.dag import ColumnSelector, Graph
 from merlin.schema import Schema
 from merlin.systems.dag.runtimes.triton.ops.fil import FILTriton
-
-need_gpu = pytest.mark.skipif(not HAS_GPU, reason="No GPU available")
 
 
 def export_op(export_dir, triton_op) -> model_config.ModelConfig:
@@ -150,7 +147,6 @@ def test_binary_classifier_default_cpu(get_model_fn, get_model_params, tmpdir):
     ["get_model_fn", "get_model_params"],
     [(xgboost_train, {"objective": "binary:logistic"}), (xgboost_classifier, {})],
 )
-@need_gpu
 def test_binary_classifier_default_gpu(get_model_fn, get_model_params, tmpdir):
     X, y = get_classification_data(classes=2)
     model = get_model_fn(X, y, **get_model_params)
@@ -165,7 +161,6 @@ def test_binary_classifier_default_gpu(get_model_fn, get_model_params, tmpdir):
     ["get_model_fn", "get_model_params"],
     [(xgboost_train, {"objective": "binary:logistic"}), (xgboost_classifier, {})],
 )
-@need_gpu
 def test_binary_classifier_with_proba_gpu(get_model_fn, get_model_params, tmpdir):
     X, y = get_classification_data(classes=2)
     model = get_model_fn(X, y, **get_model_params)
@@ -198,7 +193,6 @@ def test_binary_classifier_with_proba_cpu(get_model_fn, get_model_params, tmpdir
     ["get_model_fn", "get_model_params"],
     [(xgboost_train, {"objective": "multi:softmax", "num_class": 8}), (xgboost_classifier, {})],
 )
-@need_gpu
 def test_multi_classifier_gpu(get_model_fn, get_model_params, tmpdir):
     X, y = get_classification_data(classes=8)
     model = get_model_fn(X, y, **get_model_params)
@@ -231,7 +225,6 @@ def test_multi_classifier_cpu(get_model_fn, get_model_params, tmpdir):
     ["get_model_fn", "get_model_params"],
     [(xgboost_train, {"objective": "reg:squarederror"}), (xgboost_regressor, {})],
 )
-@need_gpu
 def test_regressor_gpu(get_model_fn, get_model_params, tmpdir):
     X, y = get_regression_data()
     model = get_model_fn(X, y, **get_model_params)
@@ -266,7 +259,6 @@ def test_regressor_cpu(get_model_fn, get_model_params, tmpdir):
         (xgboost_regressor, "xgboost.json"),
     ],
 )
-@need_gpu
 def test_model_file_gpu(get_model_fn, expected_model_filename, tmpdir):
     X, y = get_regression_data()
     model = get_model_fn(X, y)
@@ -292,7 +284,6 @@ def test_model_file_cpu(get_model_fn, expected_model_filename, tmpdir):
     assert model_path.is_file()
 
 
-@need_gpu
 def test_fil_op_exports_own_config(tmpdir):
     X, y = get_regression_data()
     model = xgboost_train(X, y, objective="reg:squarederror")
@@ -309,7 +300,6 @@ def test_fil_op_exports_own_config(tmpdir):
     assert config.output[0].dims == [1]
 
 
-@need_gpu
 def test_fil_op_compute_schema():
     X, y = get_regression_data()
     model = xgboost_train(X, y, objective="reg:squarederror")
@@ -323,7 +313,6 @@ def test_fil_op_compute_schema():
     assert out_schema.column_names == ["output__0"]
 
 
-@need_gpu
 def test_fil_schema_validation():
     X, y = get_regression_data()
     model = xgboost_train(X, y, objective="reg:squarederror")
