@@ -106,6 +106,8 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
 
             if dtype != md.unknown:
                 aligned[vals_name] = aligned[vals_name].astype(dtype.to_numpy)
+
+            aligned[offs_name] = aligned[offs_name].astype("int32")
         else:
             try:
                 # Look for values and offsets that already exist,
