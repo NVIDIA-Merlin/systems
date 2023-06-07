@@ -15,3 +15,8 @@ myst-nb==0.13.2
 linkify-it-py==1.0.3
 sphinx-external-toc==0.2.4
 attrs==21.4.0
+
+# keep support for numpy builtin type aliases for previous tags
+# numpy builtin aliases like np.str were removed in 1.24
+# This can be unpinned when we no longer build docs for versions of Merlin prior 23.05
+numpy<1.24
