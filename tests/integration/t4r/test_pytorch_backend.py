@@ -29,6 +29,7 @@ data_conversions = pytest.importorskip("merlin.systems.triton.conversions")
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
+from merlin.core.compat import HAS_GPU  # noqa
 from merlin.core.dispatch import make_df  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
@@ -39,6 +40,7 @@ TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+@pytest.mark.skipif(not HAS_GPU, reason="GPU Device required for test")
 def test_serve_t4r_with_torchscript(tmpdir):
     # ===========================================
     # Generate training data
