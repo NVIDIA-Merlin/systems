@@ -21,7 +21,6 @@ import pytest
 import sklearn.datasets
 import xgboost
 
-from merlin.core.compat import HAS_GPU
 from merlin.dag import ColumnSelector
 from merlin.io import Dataset
 from merlin.schema import ColumnSchema, Schema
@@ -40,7 +39,6 @@ TRITON_SERVER_PATH = shutil.which("tritonserver")
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
-@pytest.mark.skipif(not HAS_GPU, reason="no gpu detected")
 def test_workflow_with_forest_inference(tmpdir):
     rows = 200
     num_features = 16

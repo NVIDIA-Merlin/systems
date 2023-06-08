@@ -3,7 +3,7 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/merlin-systems)
 [![PyPI version shields.io](https://img.shields.io/pypi/v/merlin-systems.svg)](https://pypi.python.org/pypi/merlin-systems/)
 ![GitHub License](https://img.shields.io/github/license/NVIDIA-Merlin/systems)
-[![Documentation](https://img.shields.io/badge/documentation-blue.svg)](https://nvidia-merlin.github.io/systems/main/README.html)
+[![Documentation](https://img.shields.io/badge/documentation-blue.svg)](https://nvidia-merlin.github.io/systems/stable/README.html)
 
 Merlin Systems provides tools for combining recommendation models with other elements of production recommender systems like feature stores, nearest neighbor search, and exploration strategies into end-to-end recommendation pipelines that can be served with [Triton Inference Server](https://github.com/triton-inference-server/server).
 

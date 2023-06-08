@@ -14,6 +14,8 @@
 # limitations under the License.
 #
 
+import shutil
+
 import pytest
 
 np = pytest.importorskip("numpy")
@@ -27,12 +29,18 @@ data_conversions = pytest.importorskip("merlin.systems.triton.conversions")
 tritonclient = pytest.importorskip("tritonclient")
 grpcclient = pytest.importorskip("tritonclient.grpc")
 
+from merlin.core.compat import HAS_GPU  # noqa
 from merlin.core.dispatch import make_df  # noqa
 from merlin.systems.dag import Ensemble  # noqa
 from merlin.systems.dag.ops.pytorch import PredictPyTorch  # noqa
+from merlin.systems.triton.conversions import match_representations  # noqa
 from merlin.systems.triton.utils import run_ensemble_on_tritonserver  # noqa
 
+TRITON_SERVER_PATH = shutil.which("tritonserver")
 
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+@pytest.mark.skipif(not HAS_GPU, reason="GPU Device required for test")
 def test_serve_t4r_with_torchscript(tmpdir):
     # ===========================================
     # Generate training data
@@ -69,11 +77,12 @@ def test_serve_t4r_with_torchscript(tmpdir):
 
     model.eval()
 
-    traced_model = torch.jit.trace(model, torch_yoochoose_like, strict=True)
+    example_inputs = match_representations(model.input_schema, torch_yoochoose_like)
+    traced_model = torch.jit.trace(model, example_inputs, strict=True)
     assert isinstance(traced_model, torch.jit.TopLevelTracedModule)
     assert torch.allclose(
-        model(torch_yoochoose_like),
-        traced_model(torch_yoochoose_like),
+        model(example_inputs),
+        traced_model(example_inputs),
     )
 
     # ===========================================

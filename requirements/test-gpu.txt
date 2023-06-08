@@ -1,4 +1,3 @@
 -r test.txt
 
-tensorflow
 faiss-gpu==1.7.2
