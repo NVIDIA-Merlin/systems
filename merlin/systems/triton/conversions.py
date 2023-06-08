@@ -146,14 +146,14 @@ def _astype(value, target_dtype):
 
 @_astype.register
 def _(array: np.ndarray, target_dtype: md.DType):
-    return array.astype(target_dtype.to("numpy"))
+    return array.astype(target_dtype.name)
 
 
 if cp:
 
     @_astype.register
     def _(array: cp.ndarray, target_dtype: md.DType):
-        return array.astype(target_dtype.to("cupy"))
+        return array.astype(target_dtype.name)
 
 
 if torch:
