@@ -170,7 +170,8 @@ def _ensure_input_spec_includes_names(model):
 
 def _build_schema_from_signature(signature):
     schema = Schema()
-    for col_name, col in signature.items():
+    for _, col in signature.items():
+        col_name = col.name
         if "__offsets" in col_name or "__values" in col_name:
             col_name = col_name.replace("__offsets", "").replace("__values", "")
             col_values_sig = signature[f"{col_name}__values"]
