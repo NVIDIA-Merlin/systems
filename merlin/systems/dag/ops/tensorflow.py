@@ -49,7 +49,7 @@ class PredictTensorflow(InferenceOperator):
 
             if isinstance(model_or_path, (str, os.PathLike)):
                 self.path = model_or_path
-                self.model = tf.keras.models.load_model(self.path, custom_objects=custom_objects)
+                self.model = tf.saved_model.load(self.path)
             else:
                 self.path = None
                 self.model = model_or_path
@@ -135,11 +135,9 @@ def _construct_schemas_from_model(model, *, signature_name="serving_default", ta
     # Importing here because tensorflow is an optional dependency of Merlin Systems
     from tensorflow.python.tools import saved_model_utils
 
-    model = _ensure_input_spec_includes_names(model)
-
     # save to disk to generate signature from saved model
     with tempfile.TemporaryDirectory() as saved_model_dir:
-        model.save(saved_model_dir, include_optimizer=False)
+        tf.saved_model.save(model, saved_model_dir)
         meta_graph_def = saved_model_utils.get_meta_graph_def(saved_model_dir, tag_set)
         signature_def = meta_graph_def.signature_def[signature_name]
 
@@ -147,22 +145,6 @@ def _construct_schemas_from_model(model, *, signature_name="serving_default", ta
     output_schema = _build_schema_from_signature(signature_def.outputs)
 
     return input_schema, output_schema
-
-
-def _ensure_input_spec_includes_names(model):
-    if isinstance(model._saved_model_inputs_spec, dict):
-        for key, spec in model._saved_model_inputs_spec.items():
-            if isinstance(spec, tuple):
-                model._saved_model_inputs_spec[key] = (
-                    tf.TensorSpec(shape=spec[0].shape, dtype=spec[0].dtype, name=key),
-                    tf.TensorSpec(shape=spec[1].shape, dtype=spec[1].dtype, name=key),
-                )
-            else:
-                model._saved_model_inputs_spec[key] = tf.TensorSpec(
-                    shape=spec.shape, dtype=spec.dtype, name=key
-                )
-
-    return model
 
 
 def _build_schema_from_signature(signature_def_inputs_or_outputs):
