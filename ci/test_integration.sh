@@ -29,4 +29,5 @@ cd /systems/
 container=$1
 devices=$2
 
+pip install feast==0.31
 CUDA_VISIBLE_DEVICES="$devices" TF_GPU_ALLOCATOR=cuda_malloc_async python -m pytest -rxs tests/integration
