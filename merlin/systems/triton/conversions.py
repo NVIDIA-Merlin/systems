@@ -105,7 +105,9 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
                 aligned[offs_name] = offsets
 
             if dtype != md.unknown:
-                aligned[vals_name] = aligned[vals_name].astype(dtype.to_numpy)
+                aligned[vals_name] = _astype(aligned[vals_name], dtype)
+
+            aligned[offs_name] = _astype(aligned[offs_name], md.dtype("int32"))
         else:
             try:
                 # Look for values and offsets that already exist,
@@ -118,7 +120,7 @@ def match_representations(schema: Schema, dict_array: Dict[str, Any]) -> Dict[st
                 aligned[col_name] = dict_array[col_name]
 
             if dtype != md.unknown:
-                aligned[col_name] = aligned[col_name].astype(dtype.to_numpy)
+                aligned[col_name] = _astype(aligned[col_name], dtype)
 
     return aligned
 
@@ -135,6 +137,30 @@ def _from_values_offsets(values, offsets, shape):
         )
 
     return values.reshape(new_shape)
+
+
+@singledispatch
+def _astype(value, target_dtype):
+    raise NotImplementedError(f"_to_dtype not implemented for {type(value)}")
+
+
+@_astype.register
+def _(array: np.ndarray, target_dtype: md.DType):
+    return array.astype(target_dtype.name)
+
+
+if cp:
+
+    @_astype.register
+    def _(array: cp.ndarray, target_dtype: md.DType):
+        return array.astype(target_dtype.name)
+
+
+if torch:
+
+    @_astype.register
+    def _(tensor: torch.Tensor, target_dtype: md.DType):
+        return tensor.to(target_dtype.to("torch"))
 
 
 @singledispatch

@@ -101,10 +101,7 @@ class TritonPythonModel:
         except Exception as exc:
             import traceback
 
-            raise pb_utils.TritonModelException(
-                f"Error: {type(exc)} - {str(exc)}, "
-                f"Traceback: {traceback.format_tb(exc.__traceback__)}"
-            ) from exc
+            raise pb_utils.TritonModelException(traceback.format_exc()) from exc
 
         return tensor_table_to_triton_response(outputs, self.ensemble.output_schema)
 
