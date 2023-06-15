@@ -255,7 +255,7 @@ def test_workflow_tf_subgraph_local(tmpdir, dataset, engine, python):
     model = create_tf_model(["name-cat", "name-string"], [], embedding_shapes_1)
     string_df["name-cat"] = cat_df["name-cat"]
 
-    req_dict = TensorTable.from_df(string_df[["name-string", "name-cat"]].iloc[:3]).to_dict()
+    req_dict = TensorTable.from_df(string_df[["name-string", "name-cat"]].iloc[:3]).cpu().to_dict()
     predictions = model.predict(req_dict)
 
     # Creating Triton Ensemble
@@ -302,7 +302,7 @@ def test_workflow_tf_subgraph_triton(tmpdir, dataset, engine, python):
     model = create_tf_model(["name-cat", "name-string"], [], embedding_shapes_1)
     string_df["name-cat"] = cat_df["name-cat"]
 
-    req_dict = TensorTable.from_df(string_df[["name-string", "name-cat"]].iloc[:3]).to_dict()
+    req_dict = TensorTable.from_df(string_df[["name-string", "name-cat"]].iloc[:3]).cpu().to_dict()
     predictions = model.predict(req_dict)
 
     # Creating Triton Ensemble

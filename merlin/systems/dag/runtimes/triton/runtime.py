@@ -113,7 +113,7 @@ class TritonExecutorRuntime(Runtime):
         """
         triton_model_name = name or "executor_model"
 
-        nodes = list(postorder_iter_nodes(ensemble.graph.output_node))
+        nodes = list(postorder_iter_nodes(ensemble.graph.output_node, flatten_subgraphs=True))
 
         for node in nodes:
             if type(node.op) in self.op_table:
