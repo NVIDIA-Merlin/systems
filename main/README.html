@@ -90,7 +90,8 @@
 <p>Merlin Systems uses the Merlin Operator DAG API, the same API used in <a class="reference external" href="https://github.com/NVIDIA-Merlin/NVTabular">NVTabular</a> for feature engineering, to create serving ensembles. To combine a feature engineering workflow and a Tensorflow model into an inference pipeline:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">nvtabular.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.dag</span> <span class="kn">import</span> <span class="n">Ensemble</span><span class="p">,</span> <span class="n">PredictTensorflow</span><span class="p">,</span> <span class="n">TransformWorkflow</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag</span> <span class="kn">import</span> <span class="n">Ensemble</span>
+<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops</span> <span class="kn">import</span> <span class="n">PredictTensorflow</span><span class="p">,</span> <span class="n">TransformWorkflow</span>
 
 <span class="c1"># Load saved NVTabular workflow and TensorFlow model</span>
 <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">nvtabular_workflow_path</span><span class="p">)</span>
@@ -216,7 +217,7 @@ The following table lists the containers that include Triton Inference Server fo
 </div>
 <div class="section" id="feedback-and-support">
 <h2>Feedback and Support<a class="headerlink" href="#feedback-and-support" title="Permalink to this headline"></a></h2>
-<p>To report bugs or get help, please <a class="reference external" href="https://github.com/NVIDIA-Merlin/NVTabular/issues/new/choose">open an issue</a>.</p>
+<p>To report bugs or get help, please <a class="reference external" href="https://github.com/NVIDIA-Merlin/Systems/issues/new/choose">open an issue</a>.</p>
 </div>
 </div>
 
