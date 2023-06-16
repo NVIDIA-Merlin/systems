@@ -14,7 +14,8 @@ Merlin Systems uses the Merlin Operator DAG API, the same API used in [NVTabular
 ```python
 import tensorflow as tf
 from nvtabular.workflow import Workflow
-from merlin.systems.dag import Ensemble, PredictTensorflow, TransformWorkflow
+from merlin.systems.dag import Ensemble
+from merlin.systems.dag.ops import PredictTensorflow, TransformWorkflow
 
 # Load saved NVTabular workflow and TensorFlow model
 workflow = Workflow.load(nvtabular_workflow_path)
@@ -133,4 +134,4 @@ If you want to add support for GPU-accelerated workflows, you will first need to
 
 ## Feedback and Support
 
-To report bugs or get help, please [open an issue](https://github.com/NVIDIA-Merlin/NVTabular/issues/new/choose).
+To report bugs or get help, please [open an issue](https://github.com/NVIDIA-Merlin/Systems/issues/new/choose).
