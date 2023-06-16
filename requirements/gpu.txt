@@ -1,6 +1,3 @@
-feast<0.20
 faiss-gpu
-pytest
-pytest-cov
 dask>=2022.3.0
 distributed>=2022.3.0
