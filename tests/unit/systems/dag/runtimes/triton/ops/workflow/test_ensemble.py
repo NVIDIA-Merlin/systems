@@ -385,7 +385,7 @@ def test_workflow_with_string_input(tmpdir):
     """This test checks that we can pass strings with unicode characters to a workflow in Triton."""
     df = make_df({"a": ["椅子", "καρέκλα", "כִּסֵא", "chair"]})
     dataset = Dataset(df)
-    workflow_ops = ["a"] >> wf_ops.Categorify()
+    workflow_ops = ["a"] >> wf_ops.LambdaOp(lambda s: s.str.len())
     workflow = Workflow(workflow_ops)
     workflow.fit(dataset)
 
@@ -399,7 +399,7 @@ def test_workflow_with_string_input(tmpdir):
                 "a": np.array(["椅子", "καρέκλα", "כִּסֵא", "chair"], dtype="object"),
             }
             expected_response = {
-                "a": np.array([1, 2, 3, 4], dtype="int32"),
+                "a": np.array([2, 7, 6, 5], dtype="int64"),
             }
             schema = workflow.input_schema
             input_table = TensorTable(request_dict)
