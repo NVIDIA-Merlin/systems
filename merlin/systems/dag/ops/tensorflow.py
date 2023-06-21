@@ -21,7 +21,7 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from merlin.core.compat.tensorflow import tensorflow as tf  # noqa
 from merlin.core.protocols import Transformable  # noqa
-from merlin.dag import ColumnSelector  # noqa
+from merlin.dag import ColumnSelector, DataFormats  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 from merlin.table import TensorflowColumn, TensorTable  # noqa
@@ -130,6 +130,12 @@ class PredictTensorflow(InferenceOperator):
         """
         return self.output_schema
 
+    @property
+    def supported_formats(self) -> DataFormats:
+        return (
+            DataFormats.NUMPY_TENSOR_TABLE
+            | DataFormats.CUPY_TENSOR_TABLE
+        )
 
 def _construct_schemas_from_model(model, *, signature_name="serving_default", tag_set="serve"):
     # Importing here because tensorflow is an optional dependency of Merlin Systems
@@ -164,3 +170,5 @@ def _build_schema_from_signature(signature_def_inputs_or_outputs):
         col_schema = ColumnSchema(col_name, dtype=col_dtype, dims=col_dims)
         schema.column_schemas[col_name] = col_schema
     return schema
+
+

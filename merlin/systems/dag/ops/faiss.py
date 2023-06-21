@@ -58,11 +58,14 @@ class QueryFaiss(InferenceOperator):
         self._index = None
 
     def load_artifacts(self, artifact_path: str) -> None:
-        filename = Path(self.index_path).name
-        path_artifact = Path(artifact_path)
-        if path_artifact.is_file():
-            path_artifact = path_artifact.parent
-        full_index_path = str(path_artifact / filename)
+        if artifact_path:
+            filename = Path(self.index_path).name
+            path_artifact = Path(artifact_path)
+            if path_artifact.is_file():
+                path_artifact = path_artifact.parent
+            full_index_path = str(path_artifact / filename)
+        else:
+            full_index_path = self.index_path
         index = faiss.read_index(full_index_path)
 
         if HAS_GPU:

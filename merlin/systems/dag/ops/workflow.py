@@ -16,7 +16,7 @@
 from typing import List
 
 from merlin.core.protocols import Transformable
-from merlin.dag import ColumnSelector
+from merlin.dag import ColumnSelector, DataFormats
 from merlin.schema import Schema
 from merlin.systems.dag.ops.operator import InferenceOperator
 from merlin.table import TensorTable
@@ -111,3 +111,11 @@ class TransformWorkflow(InferenceOperator):
             output = TensorTable.from_df(output)
 
         return output
+
+
+    @property
+    def supported_formats(self) -> DataFormats:
+        return (
+            DataFormats.PANDAS_DATAFRAME
+            | DataFormats.CUDF_DATAFRAME
+        )
