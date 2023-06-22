@@ -112,10 +112,6 @@ class TransformWorkflow(InferenceOperator):
 
         return output
 
-
     @property
     def supported_formats(self) -> DataFormats:
-        return (
-            DataFormats.PANDAS_DATAFRAME
-            | DataFormats.CUDF_DATAFRAME
-        )
+        return DataFormats.PANDAS_DATAFRAME | DataFormats.CUDF_DATAFRAME

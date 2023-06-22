@@ -17,7 +17,7 @@
 import numpy as np
 
 from merlin.core.protocols import Transformable
-from merlin.dag import Node, DataFormats
+from merlin.dag import DataFormats, Node
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import Schema
 from merlin.systems.dag.ops.operator import InferenceOperator
@@ -75,7 +75,4 @@ class UnrollFeatures(InferenceOperator):
 
     @property
     def supported_formats(self) -> DataFormats:
-        return (
-            DataFormats.NUMPY_TENSOR_TABLE
-            | DataFormats.CUPY_TENSOR_TABLE
-        )
+        return DataFormats.NUMPY_TENSOR_TABLE | DataFormats.CUPY_TENSOR_TABLE
