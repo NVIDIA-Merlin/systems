@@ -60,7 +60,7 @@
 
 # In this tutorial our objective is to demonstrate how to serve an `Implicit` model. In order for us to be able to do so, we begin by downloading data and training a model. We breeze through these activities below.
 # 
-# If you would like to learn more about training an `Implicit` model using the Merlin Models library, please consult this [tutorial](https://github.com/NVIDIA-Merlin/models/blob/main/examples/07-Train-traditional-ML-models-using-the-Merlin-Models-API.ipynb).
+# If you would like to learn more about training an `Implicit` model using the Merlin Models library, please consult this [tutorial](https://github.com/NVIDIA-Merlin/models/blob/stable/examples/07-Train-traditional-ML-models-using-the-Merlin-Models-API.ipynb).
 
 # In[ ]:
 
@@ -78,7 +78,6 @@ from merlin.datasets.entertainment import get_movielens
 
 
 ensemble_export_path = os.environ.get("OUTPUT_DATA_DIR", "ensemble")
-USE_GPU = bool(int(os.environ.get("USE_GPU", "1")))
 
 
 # In[ ]:
@@ -101,7 +100,7 @@ train_transformed = train_workflow.fit_transform(train)
 # In[2]:
 
 
-model = BayesianPersonalizedRanking(use_gpu=USE_GPU)
+model = BayesianPersonalizedRanking()
 model.fit(train_transformed)
 
 
