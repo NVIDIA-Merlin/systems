@@ -288,7 +288,4 @@ class QueryFeast(InferenceOperator):
 
     @property
     def supported_formats(self) -> DataFormats:
-        return (
-            DataFormats.NUMPY_TENSOR_TABLE
-            | DataFormats.CUPY_TENSOR_TABLE
-        )
+        return DataFormats.NUMPY_TENSOR_TABLE | DataFormats.CUPY_TENSOR_TABLE

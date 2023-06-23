@@ -132,10 +132,8 @@ class PredictTensorflow(InferenceOperator):
 
     @property
     def supported_formats(self) -> DataFormats:
-        return (
-            DataFormats.NUMPY_TENSOR_TABLE
-            | DataFormats.CUPY_TENSOR_TABLE
-        )
+        return DataFormats.NUMPY_TENSOR_TABLE | DataFormats.CUPY_TENSOR_TABLE
+
 
 def _construct_schemas_from_model(model, *, signature_name="serving_default", tag_set="serve"):
     # Importing here because tensorflow is an optional dependency of Merlin Systems
@@ -170,5 +168,3 @@ def _build_schema_from_signature(signature_def_inputs_or_outputs):
         col_schema = ColumnSchema(col_name, dtype=col_dtype, dims=col_dims)
         schema.column_schemas[col_name] = col_schema
     return schema
-
-
