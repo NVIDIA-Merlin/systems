@@ -206,10 +206,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">supported_formats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFormats</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">(</span>
-            <span class="n">DataFormats</span><span class="o">.</span><span class="n">NUMPY_TENSOR_TABLE</span>
-            <span class="o">|</span> <span class="n">DataFormats</span><span class="o">.</span><span class="n">CUPY_TENSOR_TABLE</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">DataFormats</span><span class="o">.</span><span class="n">NUMPY_TENSOR_TABLE</span> <span class="o">|</span> <span class="n">DataFormats</span><span class="o">.</span><span class="n">CUPY_TENSOR_TABLE</span></div>
+
 
 <span class="k">def</span> <span class="nf">_construct_schemas_from_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">signature_name</span><span class="o">=</span><span class="s2">&quot;serving_default&quot;</span><span class="p">,</span> <span class="n">tag_set</span><span class="o">=</span><span class="s2">&quot;serve&quot;</span><span class="p">):</span>
     <span class="c1"># Importing here because tensorflow is an optional dependency of Merlin Systems</span>
@@ -244,8 +242,6 @@
         <span class="n">col_schema</span> <span class="o">=</span> <span class="n">ColumnSchema</span><span class="p">(</span><span class="n">col_name</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">col_dtype</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="n">col_dims</span><span class="p">)</span>
         <span class="n">schema</span><span class="o">.</span><span class="n">column_schemas</span><span class="p">[</span><span class="n">col_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">col_schema</span>
     <span class="k">return</span> <span class="n">schema</span>
-
-
 </pre></div>
 
            </div>
