@@ -141,14 +141,8 @@ execute feature engineering during ensemble on tritonserver.</p>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code>(path, **kwargs)</p></td>
 <td><p>Loads the InferenceOperator from the path where it was exported after training.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_artifacts</span></code>(artifact_path)</p></td>
-<td><p>Load artifacts from disk required for operator function.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
 <td><p>Given a set of columns names returns the names of the transformed columns this operator will produce</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_artifacts</span></code>(artifact_path)</p></td>
-<td><p>Save artifacts required to be reload operator state from disk</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.set_nvt_model_name" title="merlin.systems.dag.ops.workflow.TransformWorkflow.set_nvt_model_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_nvt_model_name</span></code></a>(nvt_model_name)</p></td>
 <td><p></p></td>
@@ -198,7 +192,7 @@ execute feature engineering during ensemble on tritonserver.</p>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_shape</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supported_formats</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.supported_formats" title="merlin.systems.dag.ops.workflow.TransformWorkflow.supported_formats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supported_formats</span></code></a></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports</span></code></p></td>
@@ -241,6 +235,11 @@ execute feature engineering during ensemble on tritonserver.</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py method">
+<dt id="merlin.systems.dag.ops.workflow.TransformWorkflow.supported_formats">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">supported_formats</span></code><a class="headerlink" href="#merlin.systems.dag.ops.workflow.TransformWorkflow.supported_formats" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
