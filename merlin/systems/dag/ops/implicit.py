@@ -57,14 +57,15 @@ class PredictImplicit(InferenceOperator):
         return {k: v for k, v in self.__dict__.items() if k != "model"}
 
     def load_artifacts(self, artifact_path: str):
-        model_file = pathlib.Path(artifact_path) / "model.npz"
+        if artifact_path:
+            model_file = pathlib.Path(artifact_path) / "model.npz"
 
-        model_module_name = self.model_module_name
-        model_class_name = self.model_class_name
-        model_module = importlib.import_module(model_module_name)
-        model_cls = getattr(model_module, model_class_name)
+            model_module_name = self.model_module_name
+            model_class_name = self.model_class_name
+            model_module = importlib.import_module(model_module_name)
+            model_cls = getattr(model_module, model_class_name)
 
-        self.model = model_cls.load(str(model_file))
+            self.model = model_cls.load(str(model_file))
 
     def save_artifacts(self, artifact_path: str):
         model_path = pathlib.Path(artifact_path) / "model.npz"

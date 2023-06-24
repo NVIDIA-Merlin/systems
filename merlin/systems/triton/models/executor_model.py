@@ -69,9 +69,10 @@ class TritonPythonModel:
 
         self.ensemble = Ensemble.load(str(ensemble_path))
 
-        for node in list(postorder_iter_nodes(self.ensemble.graph.output_node)):
-            if hasattr(node.op, "load_artifacts"):
-                node.op.load_artifacts(str(ensemble_path))
+        for node in list(
+            postorder_iter_nodes(self.ensemble.graph.output_node, flatten_subgraphs=True)
+        ):
+            node.op.load_artifacts(str(ensemble_path))
 
     @triton_multi_request
     @triton_error_handling
