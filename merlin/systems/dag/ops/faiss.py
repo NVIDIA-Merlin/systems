@@ -21,7 +21,7 @@ import faiss
 import numpy as np
 
 from merlin.core.dispatch import HAS_GPU
-from merlin.core.protocols import Transformable
+from merlin.core.protocols import DataFrameLike, Transformable
 from merlin.dag import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import InferenceOperator
@@ -189,7 +189,13 @@ class QueryFaiss(InferenceOperator):
             )
 
 
-def setup_faiss(item_vector, output_path: str, metric=faiss.METRIC_INNER_PRODUCT):
+def setup_faiss(
+    item_vector: DataFrameLike,
+    output_path: str,
+    metric=faiss.METRIC_INNER_PRODUCT,
+    item_id_column="item_id",
+    embedding_column="embedding",
+):
     """
     Utiltiy function that will create a Faiss index from a set of embedding vectors
 
@@ -200,8 +206,10 @@ def setup_faiss(item_vector, output_path: str, metric=faiss.METRIC_INNER_PRODUCT
     output_path : string
         target output path
     """
-    ids = item_vector[:, 0].astype(np.int64)
-    item_vectors = np.ascontiguousarray(item_vector[:, 1:].astype(np.float32))
+    ids = item_vector[item_id_column].to_numpy().astype(np.int64)
+    item_vectors = np.ascontiguousarray(
+        np.stack(item_vector[embedding_column].to_numpy()).astype(np.float32)
+    )
 
     index = faiss.index_factory(item_vectors.shape[1], "IVF32,Flat", metric)
     index.nprobe = 8
