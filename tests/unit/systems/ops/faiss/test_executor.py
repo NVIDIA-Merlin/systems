@@ -18,6 +18,7 @@ import shutil
 import numpy as np
 import pytest
 
+from merlin.core.dispatch import make_df
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.systems.dag.ops.faiss import QueryFaiss, setup_faiss
@@ -57,9 +58,11 @@ def test_faiss_in_triton_executor_model(tmpdir):
     )
 
     faiss_path = tmpdir / "faiss.index"
-    item_ids = np.arange(0, 100).reshape(-1, 1)
-    item_embeddings = np.ascontiguousarray(np.random.rand(100, 128))
-    setup_faiss(np.concatenate((item_ids, item_embeddings), axis=1), faiss_path)
+    item_ids = np.arange(0, 100)
+    item_embeddings = np.random.rand(100, 128)
+    # cannot turn a list column in cudf directly to numpy so must delegate to pandas as bridge
+    df = make_df({"item_id": item_ids, "embedding": item_embeddings.tolist()}, device="cpu")
+    setup_faiss(df, faiss_path)
 
     request_schema = Schema(
         [
