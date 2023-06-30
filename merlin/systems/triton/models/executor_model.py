@@ -74,7 +74,6 @@ class TritonPythonModel:
         ):
             node.op.load_artifacts(str(ensemble_path))
 
-
     @triton_multi_request
     @triton_error_handling
     def execute(self, request):

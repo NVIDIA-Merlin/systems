@@ -23,10 +23,10 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 from google.protobuf import text_format  # noqa
 
 from merlin.core.dispatch import make_df  # noqa
-from merlin.dag.ops.subgraph import Subgraph # noqa
-from merlin.table import TensorTable # noqa
 from merlin.dag import ColumnSelector  # noqa
+from merlin.dag.ops.subgraph import Subgraph  # noqa
 from merlin.schema import Schema, Tags  # noqa
+from merlin.table import TensorTable  # noqa
 from nvtabular import Workflow  # noqa
 from nvtabular import ops as wf_ops  # noqa
 
@@ -271,7 +271,6 @@ def test_workflow_tf_subgraph_local(tmpdir, dataset, engine, python):
 
     assert response["predictions"].tolist() == predictions["predictions"].tolist()
     assert len(response["predictions"]) == df.shape[0]
-
 
 
 @pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
