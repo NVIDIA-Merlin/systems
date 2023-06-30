@@ -119,8 +119,8 @@ def test_workflow_tf_e2e_multi_op_run(tmpdir, dataset, engine, runtime):
 
     response = triton_ens.transform(df, runtime=runtime)
 
-    assert response["predictions"].shape[0].min == df.shape[0]
-    assert response["predictions"].shape[0].max == df.shape[0]
+    assert response["predictions"].shape[0] == df.shape[0]
+    assert response["predictions"].shape[0] == df.shape[0]
 
 
 @pytest.mark.parametrize("engine", ["parquet"])

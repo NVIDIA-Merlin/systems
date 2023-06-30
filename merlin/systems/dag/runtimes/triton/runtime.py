@@ -134,8 +134,7 @@ class TritonExecutorRuntime(Runtime):
                 if node_config is not None:
                     node_configs.append(node_config)
 
-            if hasattr(node.op, "save_artifacts"):
-                node.op.save_artifacts(str(artifact_path))
+            node.op.save_artifacts(str(artifact_path))
 
         executor_config = self._executor_model_export(path, triton_model_name, ensemble)
 

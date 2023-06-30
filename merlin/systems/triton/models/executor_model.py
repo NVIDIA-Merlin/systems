@@ -69,9 +69,11 @@ class TritonPythonModel:
 
         self.ensemble = Ensemble.load(str(ensemble_path))
 
-        for node in list(postorder_iter_nodes(self.ensemble.graph.output_node, flatten_subgraphs=True)):
-            if hasattr(node.op, "load_artifacts"):
-                node.op.load_artifacts(str(ensemble_path))
+        for node in list(
+            postorder_iter_nodes(self.ensemble.graph.output_node, flatten_subgraphs=True)
+        ):
+            node.op.load_artifacts(str(ensemble_path))
+
 
     @triton_multi_request
     @triton_error_handling
@@ -101,10 +103,7 @@ class TritonPythonModel:
         except Exception as exc:
             import traceback
 
-            raise pb_utils.TritonModelException(
-                f"Error: {type(exc)} - {str(exc)}, "
-                f"Traceback: {traceback.format_tb(exc.__traceback__)}"
-            ) from exc
+            raise pb_utils.TritonModelException(traceback.format_exc()) from exc
 
         return tensor_table_to_triton_response(outputs, self.ensemble.output_schema)
 

@@ -5,7 +5,7 @@ import numpy as np
 from feast import FeatureStore, ValueType
 
 from merlin.core.protocols import Transformable
-from merlin.dag import ColumnSelector
+from merlin.dag import ColumnSelector, DataFormats
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ops.operator import InferenceOperator
 
@@ -285,3 +285,7 @@ class QueryFeast(InferenceOperator):
             return f"{output_prefix}_{col_name}"
         else:
             return col_name
+
+    @property
+    def supported_formats(self) -> DataFormats:
+        return DataFormats.NUMPY_TENSOR_TABLE | DataFormats.CUPY_TENSOR_TABLE
