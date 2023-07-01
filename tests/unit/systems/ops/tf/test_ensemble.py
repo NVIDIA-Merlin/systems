@@ -16,6 +16,7 @@
 import os
 import shutil
 
+import numpy as np
 import pytest
 
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
@@ -267,9 +268,14 @@ def test_workflow_tf_subgraph_local(tmpdir, dataset, engine, python):
 
     df = dataset.to_ddf().compute()[["name-string", "name-cat"]].iloc[:3]
 
-    response = triton_ens.transform(df).to_dict()
+    response = triton_ens.transform(df)
 
-    assert response["predictions"].tolist() == predictions["predictions"].tolist()
+    if hasattr(response, "to_pandas"):
+        response = response.to_pandas()
+
+    assert (
+        np.stack(response["predictions"].to_numpy().tolist()) == predictions["predictions"].tolist()
+    ).all()
     assert len(response["predictions"]) == df.shape[0]
 
 
@@ -334,6 +340,9 @@ def test_workflow_tf_subgraph_triton(tmpdir, dataset, engine, python):
     assert response["predictions"].tolist() == predictions["predictions"].tolist()
     assert len(response["predictions"]) == df.shape[0]
 
+
+@pytest.mark.parametrize("engine", ["parquet"])
+@pytest.mark.parametrize("python", [False, True])
 def test_workflow_tf_python_nvt_chain(tmpdir, dataset, engine, python):
     # Create a Workflow
     workflow_ops = ["name-cat", "name-string"] >> wf_ops.Categorify(cat_cache="host")
