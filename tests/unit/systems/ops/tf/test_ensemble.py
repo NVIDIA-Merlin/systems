@@ -333,3 +333,19 @@ def test_workflow_tf_subgraph_triton(tmpdir, dataset, engine, python):
     assert len(response["predictions"]) == df.shape[0]
     assert response["predictions"].tolist() == predictions["predictions"].tolist()
     assert len(response["predictions"]) == df.shape[0]
+
+def test_workflow_tf_python_nvt_chain(tmpdir, dataset, engine, python):
+    # Create a Workflow
+    workflow_ops = ["name-cat", "name-string"] >> wf_ops.Categorify(cat_cache="host")
+    workflow = Workflow(workflow_ops)
+    workflow.fit(dataset)
+
+    embedding_shapes = wf_ops.get_embedding_sizes(workflow)
+
+    model = create_tf_model(["name-cat", "name-string"], [], embedding_shapes)
+
+    df = dataset.to_ddf().compute()[["name-string", "name-cat"]]
+    response = Workflow(workflow_ops >> PredictTensorflow(model)).fit_transform(dataset)
+    response = response.to_ddf().compute().reset_index(drop=True)
+    assert "predictions" in response.columns
+    assert response.shape[0] == df.shape[0]
