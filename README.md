@@ -43,10 +43,10 @@ After you export your ensemble, you reference the directory to run an instance o
 tritonserver --model-repository=/export_path/
 ```
 
-Refer to the [Merlin Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/ranking) for exploring notebooks that demonstrate 
+Refer to the [Merlin Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/ranking) for exploring notebooks that demonstrate
 how to train and evaluate a ranking model with Merlin Models and then how to serve it as an ensemble on [Triton Inference Server](https://github.com/triton-inference-server/server).
 
-For training models with XGBoost and Implicit, and then serving with Systems, you can visit these [examples](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/traditional-ml). 
+For training models with XGBoost and Implicit, and then serving with Systems, you can visit these [examples](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/traditional-ml).
 
 ## Building a Four-Stage Recommender Pipeline
 
@@ -102,7 +102,7 @@ ensemble = Ensemble(ordering, request_schema)
 ensemble.export("./ensemble")
 ```
 
-Refer to the [Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/Building-and-deploying-multi-stage-RecSys) for exploring 
+Refer to the [Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/Building-and-deploying-multi-stage-RecSys) for exploring
 `building-and-deploying-multi-stage-RecSys` notebooks with Merlin Models and Systems.
 
 ## Installation
