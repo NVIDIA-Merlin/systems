@@ -42,8 +42,7 @@ After you export your ensemble, you reference the directory to run an instance o
 tritonserver --model-repository=/export_path/
 ```
 
-Refer to the [Merlin Systems Example Notebooks](./examples/) for a notebook that serves a ranking models ensemble.
-The notebook shows how to deploy the ensemble and demonstrates sending requests to Triton Inference Server.
+Refer to the [Merlin Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/ranking) for exploring example notebooks that serves a ranking model's ensemble. The notebooks shows how to deploy the ensemble and demonstrates sending requests to Triton Inference Server.
 
 ## Building a Four-Stage Recommender Pipeline
 
@@ -98,6 +97,8 @@ ordering = combined_features["movie_id"] >> SoftmaxSampling(
 ensemble = Ensemble(ordering, request_schema)
 ensemble.export("./ensemble")
 ```
+
+Refer to the [Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/Building-and-deploying-multi-stage-RecSys) for exploring `building-and-deploying-multi-stage-RecSys` notebooks with Merlin Models and Systems.
 
 ## Installation
 
