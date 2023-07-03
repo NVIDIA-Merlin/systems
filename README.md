@@ -13,9 +13,10 @@ Merlin Systems uses the Merlin Operator DAG API, the same API used in [NVTabular
 
 ```python
 import tensorflow as tf
-from nvtabular.workflow import Workflow
+
 from merlin.systems.dag import Ensemble
 from merlin.systems.dag.ops import PredictTensorflow, TransformWorkflow
+from nvtabular.workflow import Workflow
 
 # Load saved NVTabular workflow and TensorFlow model
 workflow = Workflow.load(nvtabular_workflow_path)
@@ -42,8 +43,10 @@ After you export your ensemble, you reference the directory to run an instance o
 tritonserver --model-repository=/export_path/
 ```
 
-Refer to the [Merlin Systems Example Notebooks](./examples/) for a notebook that serves a ranking models ensemble.
-The notebook shows how to deploy the ensemble and demonstrates sending requests to Triton Inference Server.
+Refer to the [Merlin Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/ranking) for exploring notebooks that demonstrate
+how to train and evaluate a ranking model with Merlin Models and then how to serve it as an ensemble on [Triton Inference Server](https://github.com/triton-inference-server/server).
+
+For training models with XGBoost and Implicit, and then serving with Systems, you can visit these [examples](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/traditional-ml).
 
 ## Building a Four-Stage Recommender Pipeline
 
@@ -98,6 +101,9 @@ ordering = combined_features["movie_id"] >> SoftmaxSampling(
 ensemble = Ensemble(ordering, request_schema)
 ensemble.export("./ensemble")
 ```
+
+Refer to the [Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/Building-and-deploying-multi-stage-RecSys) for exploring
+`building-and-deploying-multi-stage-RecSys` notebooks with Merlin Models and Systems.
 
 ## Installation
 
