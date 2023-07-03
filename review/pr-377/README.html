@@ -88,9 +88,10 @@
 <h2>Quickstart<a class="headerlink" href="#quickstart" title="Permalink to this headline"></a></h2>
 <p>Merlin Systems uses the Merlin Operator DAG API, the same API used in <a class="reference external" href="https://github.com/NVIDIA-Merlin/NVTabular">NVTabular</a> for feature engineering, to create serving ensembles. To combine a feature engineering workflow and a Tensorflow model into an inference pipeline:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">from</span> <span class="nn">nvtabular.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
+
 <span class="kn">from</span> <span class="nn">merlin.systems.dag</span> <span class="kn">import</span> <span class="n">Ensemble</span>
 <span class="kn">from</span> <span class="nn">merlin.systems.dag.ops</span> <span class="kn">import</span> <span class="n">PredictTensorflow</span><span class="p">,</span> <span class="n">TransformWorkflow</span>
+<span class="kn">from</span> <span class="nn">nvtabular.workflow</span> <span class="kn">import</span> <span class="n">Workflow</span>
 
 <span class="c1"># Load saved NVTabular workflow and TensorFlow model</span>
 <span class="n">workflow</span> <span class="o">=</span> <span class="n">Workflow</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">nvtabular_workflow_path</span><span class="p">)</span>
@@ -115,7 +116,8 @@
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>tritonserver<span class="w"> </span>--model-repository<span class="o">=</span>/export_path/
 </pre></div>
 </div>
-<p>Refer to the <a class="reference external" href="https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/ranking">Merlin Example Notebooks</a> for exploring notebooks that demonstrate how to train and evaluate a ranking model with Merlin Models and then how to serve it as an ensemble on <a class="reference external" href="https://github.com/triton-inference-server/server">Triton Inference Server</a>.</p>
+<p>Refer to the <a class="reference external" href="https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/ranking">Merlin Example Notebooks</a> for exploring notebooks that demonstrate
+how to train and evaluate a ranking model with Merlin Models and then how to serve it as an ensemble on <a class="reference external" href="https://github.com/triton-inference-server/server">Triton Inference Server</a>.</p>
 <p>For training models with XGBoost and Implicit, and then serving with Systems, you can visit these <a class="reference external" href="https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/traditional-ml">examples</a>.</p>
 </div>
 <div class="section" id="building-a-four-stage-recommender-pipeline">
@@ -170,7 +172,8 @@
 <span class="n">ensemble</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="s2">&quot;./ensemble&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Refer to the <a class="reference external" href="https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/Building-and-deploying-multi-stage-RecSys">Example Notebooks</a> for exploring <code class="docutils literal notranslate"><span class="pre">building-and-deploying-multi-stage-RecSys</span></code> notebooks with Merlin Models and Systems.</p>
+<p>Refer to the <a class="reference external" href="https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/Building-and-deploying-multi-stage-RecSys">Example Notebooks</a> for exploring
+<code class="docutils literal notranslate"><span class="pre">building-and-deploying-multi-stage-RecSys</span></code> notebooks with Merlin Models and Systems.</p>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h2>
