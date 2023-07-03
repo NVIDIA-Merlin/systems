@@ -42,7 +42,9 @@ After you export your ensemble, you reference the directory to run an instance o
 tritonserver --model-repository=/export_path/
 ```
 
-Refer to the [Merlin Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/ranking) for exploring example notebooks that serves a ranking model's ensemble. The notebooks shows how to deploy the ensemble and demonstrates sending requests to Triton Inference Server.
+Refer to the [Merlin Example Notebooks](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/ranking) for exploring notebooks that demonstrate how to train and evaluate a ranking model with Merlin Models and then how to serve it as an ensemble on [Triton Inference Server](https://github.com/triton-inference-server/server).
+
+For training models with XGBoost and Implicit, and then serving with Systems, you can visit these [examples](https://github.com/NVIDIA-Merlin/Merlin/tree/main/examples/traditional-ml). 
 
 ## Building a Four-Stage Recommender Pipeline
 
