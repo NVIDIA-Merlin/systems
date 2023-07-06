@@ -38,7 +38,25 @@ def test_from_model_registry_loads_model_from_path(tmpdir):
 
     # Make a new subclass of BaseOperator so the mocks don't interfere with other tests.
     class BaseOperatorWithModelPath(BaseOperator):
-        pass
+        @classmethod
+        def from_model_registry(cls, registry: ModelRegistry, **kwargs) -> "BaseOperator":
+            """
+            Loads the Operator from the provided ModelRegistry.
+
+            Parameters
+            ----------
+            registry : ModelRegistry
+                A ModleRegistry object that will provide the path to the model.
+            **kwargs
+                Other kwargs to pass to your Operator's constructor.
+
+            Returns
+            -------
+            Operator
+                New node for graph.
+            """
+
+            return cls.from_path(registry.get_artifact_uri(), **kwargs)
 
     BaseOperatorWithModelPath.from_path = MagicMock(return_value=None)
 
