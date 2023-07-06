@@ -22,7 +22,7 @@ import requests
 # this needs to be before any modules that import protobuf
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
-from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
+from merlin.dag import BaseOperator  # noqa
 from merlin.systems.model_registry import MLFlowModelRegistry, ModelRegistry  # noqa
 
 ensemble = pytest.importorskip("merlin.systems.dag.ensemble")
@@ -36,16 +36,16 @@ def test_from_model_registry_loads_model_from_path(tmpdir):
 
     registry = SimpleModelRegistry()
 
-    # Make a new subclass of InferenceOperator so the mocks don't interfere with other tests.
-    class InferenceOperatorWithModelPath(InferenceOperator):
+    # Make a new subclass of BaseOperator so the mocks don't interfere with other tests.
+    class BaseOperatorWithModelPath(BaseOperator):
         pass
 
-    InferenceOperatorWithModelPath.from_path = MagicMock(return_value=None)
+    BaseOperatorWithModelPath.from_path = MagicMock(return_value=None)
 
     # Now we can call from_model_registry and assert that from_path was called with the
     # proper model path.
-    InferenceOperatorWithModelPath.from_model_registry(registry)
-    InferenceOperatorWithModelPath.from_path.assert_called_with(tmpdir)
+    BaseOperatorWithModelPath.from_model_registry(registry)
+    BaseOperatorWithModelPath.from_path.assert_called_with(tmpdir)
 
 
 @patch("requests.get")

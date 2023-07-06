@@ -1,13 +1,13 @@
 import numpy as np
 
 from merlin.core.protocols import Transformable
+from merlin.dag import BaseOperator
 from merlin.dag.node import Node
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
 
 
-class SoftmaxSampling(InferenceOperator):
+class SoftmaxSampling(BaseOperator):
     """
     Given inputs of ID and prediction, this operator will sort all
     inputs in descending order.

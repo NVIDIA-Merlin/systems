@@ -17,13 +17,12 @@
 import numpy as np
 
 from merlin.core.protocols import Transformable
-from merlin.dag import DataFormats, Node
+from merlin.dag import BaseOperator, DataFormats, Node
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
 
 
-class UnrollFeatures(InferenceOperator):
+class UnrollFeatures(BaseOperator):
     """
     This operator takes a target column and joins the "unroll" columns to the target. This helps
     when broadcasting a series of user features to a set of items.

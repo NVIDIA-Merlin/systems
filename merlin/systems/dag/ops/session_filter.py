@@ -17,12 +17,11 @@
 import numpy as np
 
 from merlin.core.protocols import Transformable
-from merlin.dag import ColumnSelector, Node
+from merlin.dag import BaseOperator, ColumnSelector, Node
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
 
 
-class FilterCandidates(InferenceOperator):
+class FilterCandidates(BaseOperator):
     """
     This operator takes the input column and filters out elements of that column
     based on the supplied criteria.
