@@ -22,6 +22,7 @@ import numpy as np
 from merlin.core.dispatch import HAS_GPU
 from merlin.core.protocols import Transformable
 from merlin.dag import ColumnSelector  # noqa
+from merlin.dag import BaseOperator
 from merlin.schema import ColumnSchema, Schema  # noqa
 from merlin.systems.dag.ops.compat import (
     cuml_ensemble,
@@ -32,11 +33,10 @@ from merlin.systems.dag.ops.compat import (
     treelite_sklearn,
     xgboost,
 )
-from merlin.systems.dag.ops.operator import InferenceOperator
 from merlin.table import TensorTable
 
 
-class PredictForest(InferenceOperator):
+class PredictForest(BaseOperator):
     """Operator for running inference on Forest models.
 
     This works for gradient-boosted decision trees (GBDTs) and Random forests (RF).
@@ -115,7 +115,7 @@ class PredictForest(InferenceOperator):
         return type(transformable)(outputs)
 
 
-class FIL(InferenceOperator):
+class FIL(BaseOperator):
     """Operator for Forest Inference Library (FIL) models.
 
     Packages up XGBoost models to run on Triton inference server using the fil backend.

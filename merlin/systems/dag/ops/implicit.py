@@ -19,9 +19,8 @@ import pathlib
 import numpy as np
 
 from merlin.core.protocols import Transformable
-from merlin.dag import ColumnSelector
+from merlin.dag import BaseOperator, ColumnSelector
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
 
 try:
     import implicit
@@ -35,7 +34,7 @@ except ImportError:
     implicit = None
 
 
-class PredictImplicit(InferenceOperator):
+class PredictImplicit(BaseOperator):
     """Operator for running inference on Implicit models.."""
 
     def __init__(self, model, num_to_recommend: int = 10, **kwargs):

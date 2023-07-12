@@ -21,14 +21,14 @@ os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 
 from merlin.core.compat.tensorflow import tensorflow as tf  # noqa
 from merlin.core.protocols import Transformable  # noqa
+from merlin.dag import BaseOperator  # noqa
 from merlin.dag import ColumnSelector, DataFormats  # noqa
 from merlin.schema import ColumnSchema, Schema  # noqa
-from merlin.systems.dag.ops.operator import InferenceOperator  # noqa
 from merlin.table import TensorflowColumn, TensorTable  # noqa
 from merlin.table.conversions import convert_col  # noqa
 
 
-class PredictTensorflow(InferenceOperator):
+class PredictTensorflow(BaseOperator):
     """TensorFlow Model Prediction Operator."""
 
     def __init__(self, model_or_path, custom_objects: dict = None):
