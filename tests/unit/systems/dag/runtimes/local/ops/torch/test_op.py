@@ -18,7 +18,7 @@ from typing import Dict
 import numpy as np
 import pytest
 
-from merlin.dag.base_runtime import Runtime
+from merlin.dag.runtime import Runtime
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble
 from merlin.table import TensorTable

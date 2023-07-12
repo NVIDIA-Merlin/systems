@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 from merlin.dag import ColumnSelector
-from merlin.dag.base_runtime import Runtime
+from merlin.dag.runtime import Runtime
 from merlin.dtypes.shape import Shape
 from merlin.schema import ColumnSchema, Schema
 from merlin.systems.dag.ensemble import Ensemble

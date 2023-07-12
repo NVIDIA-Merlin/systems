@@ -23,7 +23,7 @@ import tritonclient.grpc.model_config_pb2 as model_config
 from google.protobuf import text_format
 
 from merlin.dag import postorder_iter_nodes
-from merlin.dag.base_runtime import Runtime
+from merlin.dag.runtime import Runtime
 from merlin.systems.dag.ops import compute_dims
 from merlin.systems.dag.ops.compat import (
     cuml_ensemble,

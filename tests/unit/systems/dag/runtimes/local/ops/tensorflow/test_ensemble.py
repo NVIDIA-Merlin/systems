@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 
 from merlin.dag import ColumnSelector
-from merlin.dag.base_runtime import Runtime
+from merlin.dag.runtime import Runtime
 from merlin.schema import Tags
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops
