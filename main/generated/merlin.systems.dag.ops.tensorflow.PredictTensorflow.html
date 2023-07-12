@@ -82,7 +82,7 @@
 <dl class="py class">
 <dt id="merlin.systems.dag.ops.tensorflow.PredictTensorflow">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">merlin.systems.dag.ops.tensorflow.</span></code><code class="sig-name descname"><span class="pre">PredictTensorflow</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_objects</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">merlin.systems.dag.ops.operator.InferenceOperator</span></code></p>
+<dd><p>Bases: <a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.dag.html#merlin.dag.BaseOperator" title="(in Merlin Core)"><code class="xref py py-class docutils literal notranslate"><span class="pre">merlin.dag.base_operator.BaseOperator</span></code></a></p>
 <p>TensorFlow Model Prediction Operator.</p>
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.tensorflow.PredictTensorflow.__init__">
@@ -124,13 +124,7 @@
 <td><p>Provides a hook method for sub-classes to override to implement custom column selection logic.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
-<td><p>_summary_</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code>(path, input_schema, output_schema[, …])</p></td>
-<td><p>Export the class object as a config and all related files to the user defined path.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
-<td><p>Loads the InferenceOperator from the provided ModelRegistry.</p></td>
+<td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code></a>(path, **kwargs)</p></td>
 <td><p></p></td>
@@ -159,25 +153,19 @@
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dynamic_dtypes</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_name</span></code></p></td>
-<td><p>Provides a clear common english identifier for this operator.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_subgraph</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_subgraph</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">label</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_dtype</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_dtype</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_properties</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_properties</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tags</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_shape</span></code></p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tags</span></code></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.supported_formats" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.supported_formats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supported_formats</span></code></a></p></td>

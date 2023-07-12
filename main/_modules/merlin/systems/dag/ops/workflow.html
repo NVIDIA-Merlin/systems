@@ -89,13 +89,12 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
 <span class="kn">from</span> <span class="nn">merlin.core.protocols</span> <span class="kn">import</span> <span class="n">Transformable</span>
-<span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">DataFormats</span>
+<span class="kn">from</span> <span class="nn">merlin.dag</span> <span class="kn">import</span> <span class="n">BaseOperator</span><span class="p">,</span> <span class="n">ColumnSelector</span><span class="p">,</span> <span class="n">DataFormats</span>
 <span class="kn">from</span> <span class="nn">merlin.schema</span> <span class="kn">import</span> <span class="n">Schema</span>
-<span class="kn">from</span> <span class="nn">merlin.systems.dag.ops.operator</span> <span class="kn">import</span> <span class="n">InferenceOperator</span>
 <span class="kn">from</span> <span class="nn">merlin.table</span> <span class="kn">import</span> <span class="n">TensorTable</span>
 
 
-<div class="viewcode-block" id="TransformWorkflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow">[docs]</a><span class="k">class</span> <span class="nc">TransformWorkflow</span><span class="p">(</span><span class="n">InferenceOperator</span><span class="p">):</span>
+<div class="viewcode-block" id="TransformWorkflow"><a class="viewcode-back" href="../../../../../generated/merlin.systems.dag.ops.workflow.TransformWorkflow.html#merlin.systems.dag.ops.workflow.TransformWorkflow">[docs]</a><span class="k">class</span> <span class="nc">TransformWorkflow</span><span class="p">(</span><span class="n">BaseOperator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This operator takes a workflow and turns it into a ensemble operator so that we can</span>
 <span class="sd">    execute feature engineering during ensemble on tritonserver.</span>
