@@ -18,16 +18,16 @@ from abc import ABCMeta, abstractmethod
 import tritonclient.grpc.model_config_pb2 as model_config
 
 from merlin.core.protocols import Transformable
+from merlin.dag import BaseOperator
 from merlin.dag.selector import ColumnSelector
 from merlin.schema import Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
 from merlin.systems.triton.export import _convert_dtype
 
 
-class TritonOperator(InferenceOperator, metaclass=ABCMeta):
+class TritonOperator(BaseOperator, metaclass=ABCMeta):
     """Base class for Triton operators."""
 
-    def __init__(self, base_op: InferenceOperator):
+    def __init__(self, base_op: BaseOperator):
         """Construct TritonOperator from a base operator.
 
         Parameters

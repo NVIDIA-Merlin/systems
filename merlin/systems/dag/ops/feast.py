@@ -5,9 +5,8 @@ import numpy as np
 from feast import FeatureStore, ValueType
 
 from merlin.core.protocols import Transformable
-from merlin.dag import ColumnSelector, DataFormats
+from merlin.dag import BaseOperator, ColumnSelector, DataFormats
 from merlin.schema import ColumnSchema, Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
 
 # Feast_key: (numpy dtype, is_list, is_ragged)
 feast_2_numpy = {
@@ -20,7 +19,7 @@ feast_2_numpy = {
 }
 
 
-class QueryFeast(InferenceOperator):
+class QueryFeast(BaseOperator):
     """
     The QueryFeast operator is responsible for ensuring that your feast feature store [1]
     can communicate correctly with tritonserver for the ensemble feast feature look ups.
