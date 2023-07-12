@@ -19,13 +19,12 @@ import numpy as np
 
 from merlin.core.compat.torch import torch
 from merlin.core.protocols import Transformable
-from merlin.dag import ColumnSelector
+from merlin.dag import BaseOperator, ColumnSelector
 from merlin.schema import Schema
-from merlin.systems.dag.ops.operator import InferenceOperator
 from merlin.table import TensorTable
 
 
-class PredictPyTorch(InferenceOperator):
+class PredictPyTorch(BaseOperator):
     """
     This operator takes a pytorch model and packages it correctly for tritonserver
     to run, on the pytorch backend.

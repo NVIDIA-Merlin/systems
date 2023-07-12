@@ -17,4 +17,3 @@
 # alias submodules here to avoid breaking everything with moving to submodules
 # flake8: noqa
 from .ensemble import Ensemble
-from .node import Node
