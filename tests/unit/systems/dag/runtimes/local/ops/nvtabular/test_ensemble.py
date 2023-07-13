@@ -16,7 +16,7 @@
 import numpy as np
 import pytest
 
-from merlin.systems.dag.runtimes.base_runtime import Runtime
+from merlin.dag.runtime import Runtime
 from merlin.table import TensorTable
 from nvtabular import Workflow
 from nvtabular import ops as wf_ops

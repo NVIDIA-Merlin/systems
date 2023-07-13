@@ -23,6 +23,7 @@ import tritonclient.grpc.model_config_pb2 as model_config
 from google.protobuf import text_format
 
 from merlin.dag import postorder_iter_nodes
+from merlin.dag.runtime import Runtime
 from merlin.systems.dag.ops import compute_dims
 from merlin.systems.dag.ops.compat import (
     cuml_ensemble,
@@ -32,7 +33,6 @@ from merlin.systems.dag.ops.compat import (
     xgboost,
 )
 from merlin.systems.dag.ops.workflow import TransformWorkflow
-from merlin.systems.dag.runtimes import Runtime
 from merlin.systems.dag.runtimes.triton.ops.operator import TritonOperator, add_model_param
 from merlin.systems.dag.runtimes.triton.ops.workflow import TransformWorkflowTriton
 
