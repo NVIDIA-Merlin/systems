@@ -45,7 +45,6 @@
               <p class="caption"><span class="caption-text">Contents</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../README.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Example Notebooks</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ensemble-graph-constructors">Ensemble Graph Constructors</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#ensemble-operator-constructors">Ensemble Operator Constructors</a></li>
@@ -82,18 +81,18 @@
 <h1>merlin.systems.dag.ops.tensorflow.PredictTensorflow<a class="headerlink" href="#merlin-systems-dag-ops-tensorflow-predicttensorflow" title="Permalink to this headline"></a></h1>
 <dl class="py class">
 <dt id="merlin.systems.dag.ops.tensorflow.PredictTensorflow">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">merlin.systems.dag.ops.tensorflow.</span></code><code class="sig-name descname"><span class="pre">PredictTensorflow</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_objects</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">merlin.systems.dag.ops.operator.InferenceOperator</span></code></p>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">merlin.systems.dag.ops.tensorflow.</span></code><code class="sig-name descname"><span class="pre">PredictTensorflow</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_objects</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.dag.Operator.html#merlin.dag.Operator" title="(in Merlin Core)"><code class="xref py py-class docutils literal notranslate"><span class="pre">merlin.dag.operator.Operator</span></code></a></p>
 <p>TensorFlow Model Prediction Operator.</p>
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.tensorflow.PredictTensorflow.__init__">
-<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_objects</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.__init__" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname"><span class="pre">__init__</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_or_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">custom_objects</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.__init__" title="Permalink to this definition"></a></dt>
 <dd><p>Instantiate a PredictTensorflow inference operator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model_or_path</strong> (<em>Tensorflow model</em><em> or </em><em>string</em>) – This can be a tensorflow model or a path to a tensorflow model.</p></li>
-<li><p><strong>custom_objects</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a><em>, </em><em>optional</em>) – Any custom objects that need to be loaded with the model, by default None.</p></li>
+<li><p><strong>custom_objects</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.12)"><em>dict</em></a><em>, </em><em>optional</em>) – Any custom objects that need to be loaded with the model, by default None.</p></li>
 </ul>
 </dd>
 </dl>
@@ -125,30 +124,27 @@
 <td><p>Provides a hook method for sub-classes to override to implement custom column selection logic.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_node</span></code>(selector)</p></td>
-<td><p>_summary_</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code>(path, input_schema, output_schema[, …])</p></td>
-<td><p>Export the class object as a config and all related files to the user defined path.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_model_registry</span></code>(registry, **kwargs)</p></td>
-<td><p>Loads the InferenceOperator from the provided ModelRegistry.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code></a>(path, **kwargs)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_artifacts</span></code>(artifact_path)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">export</span></code>(path, input_schema, output_schema, …)</p></td>
+<td><p>Export the class object as a config and all related files to the user defined path.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.from_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_path</span></code></a>(path, **kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_artifacts</span></code>([artifact_path])</p></td>
 <td><p>Load artifacts from disk required for operator function.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_column_names</span></code>(col_selector)</p></td>
 <td><p>Given a set of columns names returns the names of the transformed columns this operator will produce</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_artifacts</span></code>(artifact_path)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_artifacts</span></code>([artifact_path])</p></td>
 <td><p>Save artifacts required to be reload operator state from disk</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.transform" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(col_selector, transformable)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.transform" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform</span></code></a>(col_selector, transformable)</p></td>
 <td><p>Run model inference.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schemas</span></code>(parents_schema, …[, …])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schemas</span></code>(parents_schema, …[, …])</p></td>
 <td><p>Provides a hook method that sub-classes can override to implement schema validation logic.</p></td>
 </tr>
 </tbody>
@@ -184,20 +180,17 @@
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tags</span></code></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">scalar_shape</span></code></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.supported_formats" title="merlin.systems.dag.ops.tensorflow.PredictTensorflow.supported_formats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supported_formats</span></code></a></p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supported_formats</span></code></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports</span></code></p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">supports</span></code></p></td>
 <td><p>Returns what kind of data representation this operator supports</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.tensorflow.PredictTensorflow.transform">
-<code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_selector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.dag.html#merlin.dag.ColumnSelector" title="(in Merlin Core)"><span class="pre">merlin.dag.selector.ColumnSelector</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.core.protocols.Transformable</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">merlin.core.protocols.Transformable</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.transform" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname"><span class="pre">transform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col_selector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.dag.ColumnSelector.html#merlin.dag.ColumnSelector" title="(in Merlin Core)"><span class="pre">merlin.dag.selector.ColumnSelector</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">transformable</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">merlin.core.protocols.Transformable</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">merlin.core.protocols.Transformable</span><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.transform" title="Permalink to this definition"></a></dt>
 <dd><p>Run model inference. Returning predictions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -222,15 +215,20 @@
 
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_input_schema">
-<code class="sig-name descname"><span class="pre">compute_input_schema</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">deps_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">selector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.dag.html#merlin.dag.ColumnSelector" title="(in Merlin Core)"><span class="pre">merlin.dag.selector.ColumnSelector</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow.compute_input_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_input_schema" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname"><span class="pre">compute_input_schema</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.schema.Schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">parents_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.schema.Schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">deps_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.schema.Schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">selector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.dag.ColumnSelector.html#merlin.dag.ColumnSelector" title="(in Merlin Core)"><span class="pre">merlin.dag.selector.ColumnSelector</span></a></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.schema.Schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow.compute_input_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_input_schema" title="Permalink to this definition"></a></dt>
 <dd><p>Use the input schema supplied during object creation.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema">
-<code class="sig-name descname"><span class="pre">compute_output_schema</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_selector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.dag.html#merlin.dag.ColumnSelector" title="(in Merlin Core)"><span class="pre">merlin.dag.selector.ColumnSelector</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_output_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/merlin.schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow.compute_output_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema" title="Permalink to this definition"></a></dt>
+<code class="sig-name descname"><span class="pre">compute_output_schema</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.schema.Schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_selector</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.dag.ColumnSelector.html#merlin.dag.ColumnSelector" title="(in Merlin Core)"><span class="pre">merlin.dag.selector.ColumnSelector</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev_output_schema</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.schema.Schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> &#x2192; <a class="reference external" href="https://nvidia-merlin.github.io/core/stable/api/generated/merlin.schema.Schema.html#merlin.schema.Schema" title="(in Merlin Core)"><span class="pre">merlin.schema.schema.Schema</span></a><a class="reference internal" href="../_modules/merlin/systems/dag/ops/tensorflow.html#PredictTensorflow.compute_output_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.compute_output_schema" title="Permalink to this definition"></a></dt>
 <dd><p>Use the output schema supplied during object creation.</p>
 </dd></dl>
+
+<dl class="py method">
+<dt id="merlin.systems.dag.ops.tensorflow.PredictTensorflow.supported_formats">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">supported_formats</span></code><a class="headerlink" href="#merlin.systems.dag.ops.tensorflow.PredictTensorflow.supported_formats" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -270,12 +268,12 @@
   <div class="rst-other-versions">
     <dl>
       <dt>Tags</dt>
-      <dd><a href="../../v0.8.0/index.html">v0.8.0</a></dd>
       <dd><a href="../../v0.9.0/index.html">v0.9.0</a></dd>
       <dd><a href="../../v23.02.00/index.html">v23.02.00</a></dd>
       <dd><a href="../../v23.04.00/index.html">v23.04.00</a></dd>
       <dd><a href="../../v23.05.00/index.html">v23.05.00</a></dd>
       <dd><a href="../../v23.06.00/index.html">v23.06.00</a></dd>
+      <dd><a href="../../v23.08.00/index.html">v23.08.00</a></dd>
     </dl>
     <dl>
       <dt>Branches</dt>
