@@ -66,15 +66,18 @@ class WorkflowRunner:
             )
 
         # recurse over all column groups, initializing operators for inference pipeline.
-        # (disabled for now while we sort out whether and how we want to use C++ implementations
-        # of NVTabular operators for performance optimization)
-        # self._initialize_ops(self.workflow.output_node)
+        # (disabled everyting other than Categorify for now while we sort out whether
+        # and how we want to use C++ implementations of NVTabular operators for
+        # performance optimization)
+        self._initialize_ops(self.workflow.output_node, restrict=["Categorify"])
 
-    def _initialize_ops(self, workflow_node, visited=None):
+    def _initialize_ops(self, workflow_node, visited=None, restrict=False):
         if visited is None:
             visited = set()
 
-        if workflow_node.op and hasattr(workflow_node.op, "inference_initialize"):
+        if workflow_node.op and hasattr(workflow_node.op, "inference_initialize") and (
+            not restrict or workflow_node.op.label in restrict
+        ):
             inference_op = workflow_node.op.inference_initialize(
                 workflow_node.selector, self.model_config
             )
@@ -96,7 +99,7 @@ class WorkflowRunner:
         for parent in workflow_node.parents_with_dependencies:
             if parent not in visited:
                 visited.add(parent)
-                self._initialize_ops(parent, visited)
+                self._initialize_ops(parent, visited=visited, restrict=restrict)
 
     def run_workflow(self, input_tensors):
         transformable = TensorTable(input_tensors).to_df()
