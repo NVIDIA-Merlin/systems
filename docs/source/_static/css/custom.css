@@ -470,3 +470,15 @@ dd p:first-child
 {
     margin-top: 0px;
 }
+
+footer div p {
+  font-size: 80%;
+}
+
+footer div p a {
+  color: var(--small-font-color);
+}
+
+footer div p a:hover {
+  color: var(--small-font-color);
+}
