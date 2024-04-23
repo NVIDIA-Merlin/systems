@@ -26,7 +26,7 @@ gitdir = os.path.join(repodir, r".git")
 # -- Project information -----------------------------------------------------
 
 project = "Merlin Systems"
-copyright = "2022, NVIDIA"  # pylint: disable=W0622
+copyright = "2024, NVIDIA"  # pylint: disable=W0622
 author = "NVIDIA"
 
 
@@ -37,8 +37,8 @@ author = "NVIDIA"
 # ones.
 extensions = [
     "myst_nb",
+    "sphinx_design",
     "sphinx_multiversion",
-    "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.coverage",
@@ -79,21 +79,38 @@ suppress_warnings = ["etoc.toctree"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_book_theme"
+html_title = "Merlin Systems"
 html_theme_options = {
-    "navigation_depth": 2,
-    "analytics_id": "G-NVJ1Y1YJHK",
+    "repository_url": "https://github.com/NVIDIA-Merlin/systems",
+    "use_repository_button": True,
+    "footer_content_items": ["copyright.html", "last-updated.html"],
+    "extra_footer": "",
+    "logo": {"text": "NVIDIA Merlin Systems", "alt_text": "NVIDIA Merlin Systems"},
 }
+html_sidebars = {
+    "**": [
+        "navbar-logo.html",
+        "search-field.html",
+        "icon-links.html",
+        "sbt-sidebar-nav.html",
+        "merlin-ecosystem.html",
+        "versions.html",
+    ]
+}
+html_favicon = "_static/favicon.png"
+html_copy_source = True
+html_show_sourcelink = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+html_css_files = ["css/custom.css", "css/versions.css"]
+html_js_files = ["js/rtd-version-switcher.js"]
+html_context = {"analytics_id": "G-NVJ1Y1YJHK"}
 
 source_suffix = [".rst", ".md"]
-
-html_copy_source = False
-html_show_sourcelink = False
 
 if os.path.exists(gitdir):
     tag_refs = subprocess.check_output(["git", "tag", "-l", "v*"]).decode("utf-8").split()
@@ -128,5 +145,9 @@ autodoc_default_options = {
 
 autosummary_generate = True
 
-copydirs_additional_dirs = ["../../README.md", "../../examples/"]
+copydirs_additional_dirs = [
+    "../../LICENSE",
+    "../../README.md",
+    "../../examples/",
+]
 copydirs_file_rename = {"README.md": "index.md"}
