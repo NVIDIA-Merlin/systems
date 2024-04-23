@@ -132,7 +132,6 @@ intersphinx_mapping = {
     "merlin-core": ("https://nvidia-merlin.github.io/core/stable/", None),
 }
 
-html_sidebars = {"**": ["versions.html"]}
 html_baseurl = "https://nvidia-merlin.github.io/systems/stable/"
 
 autodoc_inherit_docstrings = False
