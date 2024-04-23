@@ -4,7 +4,7 @@
 tritonclient[all]
 tensorflow<=2.9.0
 
-sphinx-book-theme~=1.1.2
+sphinx-book-theme~=1.0.1
 sphinx-multiversion@git+https://github.com/mikemckiernan/sphinx-multiversion.git
 sphinxcontrib-copydirs@git+https://github.com/mikemckiernan/sphinxcontrib-copydirs.git
 recommonmark~=0.7.1
