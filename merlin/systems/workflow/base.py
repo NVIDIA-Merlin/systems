@@ -71,7 +71,9 @@ class WorkflowRunner:
         # performance optimization)
         self._initialize_ops(self.workflow.output_node, restrict=["Categorify"])
 
-    def _initialize_ops(self, workflow_node, visited=None, restrict=False):
+    def _initialize_ops(self, workflow_node, visited=None, restrict=None):
+        restrict = restrict or []
+
         if visited is None:
             visited = set()
 
