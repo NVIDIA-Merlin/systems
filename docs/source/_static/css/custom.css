@@ -473,6 +473,7 @@ dd p:first-child
 
 footer div p {
   font-size: 80%;
+  padding-top: 1em;
 }
 
 footer div p a {
