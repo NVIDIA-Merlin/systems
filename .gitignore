@@ -60,6 +60,7 @@ cover/
 
 # Sphinx documentation
 docs/build/
+docs/source/LICENSE
 docs/source/generated/
 docs/source/README.md
 docs/source/examples/
