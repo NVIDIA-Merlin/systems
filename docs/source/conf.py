@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+from datetime import datetime
 
 from natsort import natsorted
 
@@ -25,8 +26,13 @@ gitdir = os.path.join(repodir, r".git")
 
 # -- Project information -----------------------------------------------------
 
+year_range = "2022"
+year_now = str(datetime.now().year)
+if year_range != year_now:
+    year_range = year_range + chr(8211) + year_now
+
 project = "Merlin Systems"
-copyright = "2024, NVIDIA"  # pylint: disable=W0622
+copyright = year_range + ", NVIDIA"  # pylint: disable=W0622
 author = "NVIDIA"
 
 
@@ -84,8 +90,7 @@ html_title = "Merlin Systems"
 html_theme_options = {
     "repository_url": "https://github.com/NVIDIA-Merlin/systems",
     "use_repository_button": True,
-    "footer_content_items": ["copyright.html", "last-updated.html"],
-    "extra_footer": "",
+    "footer_content_items": ["copyright.html", "footer.html"],
     "logo": {"text": "NVIDIA Merlin Systems", "alt_text": "NVIDIA Merlin Systems"},
 }
 html_sidebars = {
@@ -101,6 +106,7 @@ html_sidebars = {
 html_favicon = "_static/favicon.png"
 html_copy_source = True
 html_show_sourcelink = False
+html_show_sphinx = False
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
