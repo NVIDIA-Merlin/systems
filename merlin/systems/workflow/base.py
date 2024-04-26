@@ -66,7 +66,7 @@ class WorkflowRunner:
             )
 
         # recurse over all column groups, initializing operators for inference pipeline.
-        # (disabled everyting other than Categorify for now while we sort out whether
+        # (disabled everything other than Categorify for now while we sort out whether
         # and how we want to use C++ implementations of NVTabular operators for
         # performance optimization)
         self._initialize_ops(self.workflow.output_node, restrict=["Categorify"])
