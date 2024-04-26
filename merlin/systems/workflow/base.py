@@ -77,8 +77,10 @@ class WorkflowRunner:
         if visited is None:
             visited = set()
 
-        if workflow_node.op and hasattr(workflow_node.op, "inference_initialize") and (
-            not restrict or workflow_node.op.label in restrict
+        if (
+            workflow_node.op
+            and hasattr(workflow_node.op, "inference_initialize")
+            and (not restrict or workflow_node.op.label in restrict)
         ):
             inference_op = workflow_node.op.inference_initialize(
                 workflow_node.selector, self.model_config
