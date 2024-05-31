@@ -27,6 +27,7 @@
 import functools
 import json
 import logging
+import os
 
 from merlin.dag import ColumnSelector, DataFormats, Supports
 from merlin.dag.executors import LocalExecutor, _convert_format, _data_format
@@ -66,10 +67,12 @@ class WorkflowRunner:
             )
 
         # recurse over all column groups, initializing operators for inference pipeline.
-        # (disabled everything other than Categorify for now while we sort out whether
+        # (disabled everything other than operators that are specifically listed
+        # by the `NVT_CPP_OPS` environment variable while we sort out whether
         # and how we want to use C++ implementations of NVTabular operators for
         # performance optimization)
-        self._initialize_ops(self.workflow.output_node, restrict=["Categorify"])
+        _nvt_cpp_ops = os.environ.get("NVT_CPP_OPS", "").split(",")
+        self._initialize_ops(self.workflow.output_node, restrict=_nvt_cpp_ops)
 
     def _initialize_ops(self, workflow_node, visited=None, restrict=None):
         restrict = restrict or []
