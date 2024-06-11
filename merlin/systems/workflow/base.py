@@ -71,7 +71,7 @@ class WorkflowRunner:
         # by the `NVT_CPP_OPS` environment variable while we sort out whether
         # and how we want to use C++ implementations of NVTabular operators for
         # performance optimization)
-        _nvt_cpp_ops = os.environ.get("NVT_CPP_OPS", "").split(",")
+        _nvt_cpp_ops = os.environ.get("NVT_CPP_OPS", "Categorify").split(",")
         self._initialize_ops(self.workflow.output_node, restrict=_nvt_cpp_ops)
 
     def _initialize_ops(self, workflow_node, visited=None, restrict=None):
