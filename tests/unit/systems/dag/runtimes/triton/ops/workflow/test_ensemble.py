@@ -378,3 +378,33 @@ def test_workflow_dtypes(tmpdir):
                 for key, value in expected_response.items():
                     np.testing.assert_array_equal(response[key], value)
                     assert response[key].dtype == value.dtype
+
+
+@pytest.mark.skipif(not TRITON_SERVER_PATH, reason="triton server not found")
+def test_workflow_with_string_input(tmpdir):
+    """This test checks that we can pass strings with unicode characters to a workflow in Triton."""
+    df = make_df({"a": ["椅子", "καρέκλα", "כִּסֵא", "chair"]})
+    dataset = Dataset(df)
+    workflow_ops = ["a"] >> wf_ops.LambdaOp(lambda s: s.str.len())
+    workflow = Workflow(workflow_ops)
+    workflow.fit(dataset)
+
+    workflow_node = workflow.input_schema.column_names >> workflow_op.TransformWorkflow(workflow)
+    wkflow_ensemble = ensemble.Ensemble(workflow_node, workflow.input_schema)
+    ensemble_config, node_configs = wkflow_ensemble.export(tmpdir)
+
+    with run_triton_server(tmpdir) as client:
+        for model_name in [ensemble_config.name, node_configs[0].name]:
+            request_dict = {
+                "a": np.array(["椅子", "καρέκλα", "כִּסֵא", "chair"], dtype="object"),
+            }
+            expected_response = {
+                "a": np.array([2, 7, 6, 5], dtype="int64"),
+            }
+            schema = workflow.input_schema
+            input_table = TensorTable(request_dict)
+            output_names = ["a"]
+            response = send_triton_request(
+                schema, input_table, output_names, client=client, triton_model=model_name
+            )
+            assert set(expected_response["a"].tolist()) == set(response["a"].tolist())

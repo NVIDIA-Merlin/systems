@@ -15,6 +15,7 @@
 import json
 import os
 
+import numpy as np
 import pandas as pd
 
 # this needs to be before any modules that import protobuf
@@ -150,9 +151,10 @@ def _convert_tensor(t):
     out = t.as_numpy()
     if len(out.shape) == 2:
         out = out[:, 0]
-    # cudf doesn't seem to handle dtypes like |S15 or object that well
+
+    # coerce byte string arrays to unicode strings
     if is_string_dtype(out.dtype):
-        out = out.astype("str")
+        out = np.char.decode(out.astype(bytes))
     return out
 
 
